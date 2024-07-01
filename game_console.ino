@@ -2,6 +2,10 @@
 #include "LCD_Driver.h"
 #include <SPI.h>
 
+/*******************************************************************************
+  Constants
+*******************************************************************************/
+
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -21,6 +25,10 @@ int upButtonPin = 8;
 int rightButtonPin = 12;
 
 int old_grid[4][4];
+
+/*******************************************************************************
+  User Interface
+*******************************************************************************/
 
 void str_replace(char *str, char *oldWord, char *newWord)
 {
@@ -108,6 +116,11 @@ void draw()
                     " -------------------", &Font16, WHITE, BLACK);
         }
 }
+
+/*******************************************************************************
+  Game Logic
+*******************************************************************************/
+
 void drawGameOver()
 {
 
@@ -350,11 +363,6 @@ void setup(void)
         }
 }
 
-int leftButton;
-int downButton;
-int upButton;
-int rightButton;
-
 int check_joystick(bool *input_registered)
 {
         int x_val = analogRead(STICK_X_PIN);
@@ -412,8 +420,11 @@ void loop(void)
                                  yOffset + fontSize * (10), 6, RED,
                                  DOT_PIXEL_1X1, DRAW_FILL_FULL);
 
-
                 draw();
+                int leftButton;
+                int downButton;
+                int upButton;
+                int rightButton;
 
                 while (!isGameOver()) {
 
@@ -455,33 +466,6 @@ void loop(void)
         }
 }
 
-// #if 1
-//     Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 0, WHITE);
-//     Paint_Clear(WHITE);
-//
-//     Paint_DrawString_EN(30, 10, "123", &Font24, YELLOW, RED);
-//     Paint_DrawString_EN(30, 34, "ABC", &Font24, BLUE, CYAN);
-//
-//     Paint_DrawString_CN(10, 150, "微", &Font24CN,WHITE, RED);
-//     Paint_DrawString_CN(45, 150, "雪", &Font24CN,WHITE, RED);
-//     Paint_DrawString_CN(80, 150, "电", &Font24CN,WHITE, RED);
-//     Paint_DrawString_CN(115, 150, "子", &Font24CN,WHITE, RED);
-//
-//     Paint_DrawImage(gImage_70X70, 10, 70, 70, 70);
-//
-//     Paint_DrawRectangle(100, 20, 160, 120, RED, DOT_PIXEL_2X2,
-//     DRAW_FILL_EMPTY); Paint_DrawLine(100, 20, 160, 120, MAGENTA,
-//     DOT_PIXEL_2X2, LINE_STYLE_SOLID); Paint_DrawLine(100, 120, 160, 20,
-//     MAGENTA, DOT_PIXEL_2X2, LINE_STYLE_SOLID);
-//
-//     Paint_DrawCircle(50, 220, 25, BLUE, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//     Paint_DrawCircle(80, 220, 25, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//     Paint_DrawCircle(110, 220, 25, RED, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//     Paint_DrawCircle(65, 245, 25, YELLOW, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//     Paint_DrawCircle(95, 245, 25, GREEN, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//
-//     delay(3000);
-
-/*********************************************************************************************************
+/*******************************************************************************
   END FILE
-*********************************************************************************************************/
+*******************************************************************************/
