@@ -1,11 +1,14 @@
-#include "LCD/GUI_Paint.h"
-#include "LCD/LCD_Driver.h"
+#include "GUI_Paint.h"
+#include "LCD_Driver.h"
 #include <SPI.h>
 
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
+
+#define STICK_Y_PIN 16
+#define STICK_X_PIN 17
 
 // Initialise the grid and counter variables.
 int **grid;
@@ -16,6 +19,7 @@ int leftButtonPin = 9;
 int downButtonPin = 15;
 int upButtonPin = 8;
 int rightButtonPin = 12;
+
 int old_grid[4][4];
 
 void str_replace(char *str, char *oldWord, char *newWord)
@@ -328,6 +332,7 @@ void setup(void)
         LCD_Init();
 
         LCD_SetBacklight(100);
+        Serial.begin(115200);
         randomSeed(analogRead(0));
 
         pinMode(leftButtonPin, INPUT);
@@ -349,6 +354,37 @@ int leftButton;
 int downButton;
 int upButton;
 int rightButton;
+
+int check_joystick(bool *input_registered)
+{
+        int x_val = analogRead(STICK_X_PIN);
+        int y_val = analogRead(STICK_Y_PIN);
+
+        Serial.println("X stick value");
+        Serial.println(x_val);
+        Serial.println("Y stick value");
+        Serial.println(y_val);
+
+        if (x_val < 100) {
+                *input_registered = true;
+                return RIGHT;
+        }
+
+        if (x_val > 900) {
+                *input_registered = true;
+                return LEFT;
+        }
+
+        if (y_val < 100) {
+                *input_registered = true;
+                return UP;
+        }
+
+        if (y_val > 900) {
+                *input_registered = true;
+                return DOWN;
+        }
+}
 
 void loop(void)
 {
@@ -375,6 +411,8 @@ void loop(void)
                 Paint_DrawCircle(leftMargin + 21 * fontWidth,
                                  yOffset + fontSize * (10), 6, RED,
                                  DOT_PIXEL_1X1, DRAW_FILL_FULL);
+
+
                 draw();
 
                 while (!isGameOver()) {
@@ -383,12 +421,10 @@ void loop(void)
                         downButton = digitalRead(downButtonPin);
                         upButton = digitalRead(upButtonPin);
                         rightButton = digitalRead(rightButtonPin);
-                        // Serial.print(leftButton);
-                        // Serial.print(downButton);
-                        // Serial.print(upButton);
-                        // Serial.println(rightButton);
                         int turn;
                         bool inputRegistered = false;
+                        turn = check_joystick(&inputRegistered);
+                        Serial.println(inputRegistered);
 
                         if (!leftButton) {
                                 turn = LEFT;
