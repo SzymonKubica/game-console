@@ -26,14 +26,119 @@
 int **grid;
 int score = 0;
 int occupiedTiles = 0;
-
 int old_grid[4][4];
+
+/*******************************************************************************
+  Setup and Main Loop
+*******************************************************************************/
+
+void setup(void)
+{
+        // Initialise the display
+        Config_Init();
+        LCD_Init();
+        LCD_SetBacklight(100);
+
+        // Initialise serial port for debugging
+        Serial.begin(115200);
+
+        // Initializes the source of randomness from the noise present on the
+        // first digital pin
+        randomSeed(analogRead(0));
+
+        pinMode(LEFT_BUTTON_PIN, INPUT);
+        pinMode(DOWN_BUTTON_PIN, INPUT);
+        pinMode(UP_BUTTON_PIN, INPUT);
+        pinMode(RIGHT_BUTTON_PIN, INPUT);
+
+        grid = allocateGrid();
+        Paint_Clear(BLACK);
+
+        for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                        grid[i][j] = 0;
+                }
+        }
+}
+
+
+void loop(void)
+{
+
+        // picture loop
+        while (1) {
+                spawnTile();
+
+                draw();
+                Paint_Clear(BLACK);
+                int yOffset = 32;
+                int fontSize = 16;
+                int fontWidth = 11;
+                int leftMargin = 23;
+                Paint_ClearWindows(leftMargin, fontSize + 30,
+                                   leftMargin + 21 * fontWidth,
+                                   yOffset + fontSize * (10), WHITE);
+                Paint_DrawCircle(leftMargin, fontSize + 30, 6, RED,
+                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                Paint_DrawCircle(leftMargin + 21 * fontWidth, fontSize + 30, 6,
+                                 RED, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                Paint_DrawCircle(leftMargin, yOffset + fontSize * (10), 6, RED,
+                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                Paint_DrawCircle(leftMargin + 21 * fontWidth,
+                                 yOffset + fontSize * (10), 6, RED,
+                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+
+                draw();
+                int leftButton;
+                int downButton;
+                int upButton;
+                int rightButton;
+
+                while (!isGameOver()) {
+
+                        leftButton = digitalRead(LEFT_BUTTON_PIN);
+                        downButton = digitalRead(DOWN_BUTTON_PIN);
+                        upButton = digitalRead(UP_BUTTON_PIN);
+                        rightButton = digitalRead(RIGHT_BUTTON_PIN);
+                        int turn;
+                        bool inputRegistered = false;
+                        turn = checkJoystick(&inputRegistered);
+                        Serial.println(inputRegistered);
+
+                        if (!leftButton) {
+                                turn = LEFT;
+                                inputRegistered = true;
+                        }
+                        if (!downButton) {
+                                turn = DOWN;
+                                inputRegistered = true;
+                        }
+                        if (!upButton) {
+                                turn = UP;
+                                inputRegistered = true;
+                        }
+                        if (!rightButton) {
+                                turn = RIGHT;
+                                inputRegistered = true;
+                        }
+
+                        if (inputRegistered) {
+                                takeTurn(turn);
+                                draw();
+                                delay(150);
+                        }
+                        delay(50);
+                }
+
+                drawGameOver();
+        }
+}
 
 /*******************************************************************************
   User Interface
 *******************************************************************************/
 
-void str_replace(char *str, char *oldWord, char *newWord)
+void strReplace(char *str, char *oldWord, char *newWord)
 {
         char *pos, temp[1000];
         int index = 0;
@@ -74,7 +179,7 @@ void draw()
                 char *buffer = (char *)malloc(22 * sizeof(char));
                 sprintf(buffer, "|%4d|%4d|%4d|%4d|", grid[i][0], grid[i][1],
                         grid[i][2], grid[i][3]);
-                str_replace(buffer, "   0", "    ");
+                strReplace(buffer, "   0", "    ");
                 for (int j = 0; j < 4; j++) {
                         if (grid[i][j] != old_grid[i][j]) {
                                 int borders = j + 1;
@@ -342,31 +447,7 @@ int **allocateGrid()
         return g;
 }
 
-void setup(void)
-{
-        Config_Init();
-        LCD_Init();
-
-        LCD_SetBacklight(100);
-        Serial.begin(115200);
-        randomSeed(analogRead(0));
-
-        pinMode(LEFT_BUTTON_PIN, INPUT);
-        pinMode(DOWN_BUTTON_PIN, INPUT);
-        pinMode(UP_BUTTON_PIN, INPUT);
-        pinMode(RIGHT_BUTTON_PIN, INPUT);
-
-        grid = allocateGrid();
-        Paint_Clear(BLACK);
-
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        grid[i][j] = 0;
-                }
-        }
-}
-
-int check_joystick(bool *input_registered)
+int checkJoystick(bool *input_registered)
 {
         int x_val = analogRead(STICK_X_PIN);
         int y_val = analogRead(STICK_Y_PIN);
@@ -397,77 +478,6 @@ int check_joystick(bool *input_registered)
         }
 }
 
-void loop(void)
-{
-
-        // picture loop
-        while (1) {
-                spawnTile();
-
-                draw();
-                Paint_Clear(BLACK);
-                int yOffset = 32;
-                int fontSize = 16;
-                int fontWidth = 11;
-                int leftMargin = 23;
-                Paint_ClearWindows(leftMargin, fontSize + 30,
-                                   leftMargin + 21 * fontWidth,
-                                   yOffset + fontSize * (10), WHITE);
-                Paint_DrawCircle(leftMargin, fontSize + 30, 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin + 21 * fontWidth, fontSize + 30, 6,
-                                 RED, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin, yOffset + fontSize * (10), 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin + 21 * fontWidth,
-                                 yOffset + fontSize * (10), 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-
-                draw();
-                int leftButton;
-                int downButton;
-                int upButton;
-                int rightButton;
-
-                while (!isGameOver()) {
-
-                        leftButton = digitalRead(LEFT_BUTTON_PIN);
-                        downButton = digitalRead(DOWN_BUTTON_PIN);
-                        upButton = digitalRead(UP_BUTTON_PIN);
-                        rightButton = digitalRead(RIGHT_BUTTON_PIN);
-                        int turn;
-                        bool inputRegistered = false;
-                        turn = check_joystick(&inputRegistered);
-                        Serial.println(inputRegistered);
-
-                        if (!leftButton) {
-                                turn = LEFT;
-                                inputRegistered = true;
-                        }
-                        if (!downButton) {
-                                turn = DOWN;
-                                inputRegistered = true;
-                        }
-                        if (!upButton) {
-                                turn = UP;
-                                inputRegistered = true;
-                        }
-                        if (!rightButton) {
-                                turn = RIGHT;
-                                inputRegistered = true;
-                        }
-
-                        if (inputRegistered) {
-                                takeTurn(turn);
-                                draw();
-                                delay(150);
-                        }
-                        delay(50);
-                }
-
-                drawGameOver();
-        }
-}
 
 /*******************************************************************************
   END FILE
