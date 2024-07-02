@@ -14,15 +14,18 @@
 #define STICK_Y_PIN 16
 #define STICK_X_PIN 17
 
-// Initialise the grid and counter variables.
+#define LEFT_BUTTON_PIN 9
+#define DOWN_BUTTON_PIN 15
+#define UP_BUTTON_PIN 8
+#define RIGHT_BUTTON_PIN 12
+
+/*******************************************************************************
+  Game State
+*******************************************************************************/
+
 int **grid;
 int score = 0;
 int occupiedTiles = 0;
-
-int leftButtonPin = 9;
-int downButtonPin = 15;
-int upButtonPin = 8;
-int rightButtonPin = 12;
 
 int old_grid[4][4];
 
@@ -348,10 +351,10 @@ void setup(void)
         Serial.begin(115200);
         randomSeed(analogRead(0));
 
-        pinMode(leftButtonPin, INPUT);
-        pinMode(downButtonPin, INPUT);
-        pinMode(upButtonPin, INPUT);
-        pinMode(rightButtonPin, INPUT);
+        pinMode(LEFT_BUTTON_PIN, INPUT);
+        pinMode(DOWN_BUTTON_PIN, INPUT);
+        pinMode(UP_BUTTON_PIN, INPUT);
+        pinMode(RIGHT_BUTTON_PIN, INPUT);
 
         grid = allocateGrid();
         Paint_Clear(BLACK);
@@ -428,10 +431,10 @@ void loop(void)
 
                 while (!isGameOver()) {
 
-                        leftButton = digitalRead(leftButtonPin);
-                        downButton = digitalRead(downButtonPin);
-                        upButton = digitalRead(upButtonPin);
-                        rightButton = digitalRead(rightButtonPin);
+                        leftButton = digitalRead(LEFT_BUTTON_PIN);
+                        downButton = digitalRead(DOWN_BUTTON_PIN);
+                        upButton = digitalRead(UP_BUTTON_PIN);
+                        rightButton = digitalRead(RIGHT_BUTTON_PIN);
                         int turn;
                         bool inputRegistered = false;
                         turn = check_joystick(&inputRegistered);
