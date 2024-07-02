@@ -2,6 +2,17 @@
 #include "LCD_Driver.h"
 #include <SPI.h>
 
+/*
+
+TODO items:
+- clean up and decouple the display control logic.
+
+
+
+
+
+*/
+
 /*******************************************************************************
   Constants
 *******************************************************************************/
@@ -18,6 +29,9 @@
 #define DOWN_BUTTON_PIN 15
 #define UP_BUTTON_PIN 8
 #define RIGHT_BUTTON_PIN 12
+
+#define INPUT_POLLING_DELAY 50
+#define MOVE_REGISTERED_DELAY 150
 
 /*******************************************************************************
   Game State
@@ -61,10 +75,8 @@ void setup(void)
         }
 }
 
-
 void loop(void)
 {
-
         // picture loop
         while (1) {
                 spawnTile();
@@ -89,47 +101,20 @@ void loop(void)
                                  DOT_PIXEL_1X1, DRAW_FILL_FULL);
 
                 draw();
-                int leftButton;
-                int downButton;
-                int upButton;
-                int rightButton;
-
                 while (!isGameOver()) {
-
-                        leftButton = digitalRead(LEFT_BUTTON_PIN);
-                        downButton = digitalRead(DOWN_BUTTON_PIN);
-                        upButton = digitalRead(UP_BUTTON_PIN);
-                        rightButton = digitalRead(RIGHT_BUTTON_PIN);
                         int turn;
                         bool inputRegistered = false;
-                        turn = checkJoystick(&inputRegistered);
-                        Serial.println(inputRegistered);
 
-                        if (!leftButton) {
-                                turn = LEFT;
-                                inputRegistered = true;
-                        }
-                        if (!downButton) {
-                                turn = DOWN;
-                                inputRegistered = true;
-                        }
-                        if (!upButton) {
-                                turn = UP;
-                                inputRegistered = true;
-                        }
-                        if (!rightButton) {
-                                turn = RIGHT;
-                                inputRegistered = true;
-                        }
+                        checkJoystick(&turn, &inputRegistered);
+                        checkButtons(&turn, &inputRegistered);
 
                         if (inputRegistered) {
                                 takeTurn(turn);
                                 draw();
-                                delay(150);
+                                delay(MOVE_REGISTERED_DELAY);
                         }
-                        delay(50);
+                        delay(INPUT_POLLING_DELAY);
                 }
-
                 drawGameOver();
         }
 }
@@ -268,11 +253,12 @@ void spawnTile()
 
 bool isEmptyRow(int *row)
 {
-        boolean isEmpty = true;
         for (int i = 0; i < 4; i++) {
-                isEmpty &= (row[i] == 0);
+                if (row[i] != 0) {
+                        return false;
+                }
         }
-        return isEmpty;
+        return true;
 }
 
 void transpose()
@@ -315,15 +301,16 @@ int getSuccessorIndex(int i, int currentIndex)
         return succ;
 }
 
+// Reverses a given row of four elements in place
 void reverse(int *row)
 {
-        int clone[4];
-        for (int i = 0; i < 4; i++) {
-                clone[i] = row[i];
-        }
-        for (int i = 0; i < 4; i++) {
-                row[3 - i] = clone[i];
-        }
+        int temp = row[0];
+        row[0] = row[3];
+        row[3] = temp;
+
+        temp = row[1];
+        row[1] = row[2];
+        row[2] = temp;
 }
 
 void mergeRow(int i, int direction)
@@ -447,7 +434,7 @@ int **allocateGrid()
         return g;
 }
 
-int checkJoystick(bool *input_registered)
+int checkJoystick(int *turn, bool *input_registered)
 {
         int x_val = analogRead(STICK_X_PIN);
         int y_val = analogRead(STICK_Y_PIN);
@@ -459,25 +446,49 @@ int checkJoystick(bool *input_registered)
 
         if (x_val < 100) {
                 *input_registered = true;
-                return RIGHT;
+                *turn = RIGHT;
         }
 
         if (x_val > 900) {
                 *input_registered = true;
-                return LEFT;
+                *turn = LEFT;
         }
 
         if (y_val < 100) {
                 *input_registered = true;
-                return UP;
+                *turn = UP;
         }
 
         if (y_val > 900) {
                 *input_registered = true;
-                return DOWN;
+                *turn = DOWN;
         }
 }
 
+int checkButtons(int *turn, bool *inputRegistered)
+{
+        int leftButton = digitalRead(LEFT_BUTTON_PIN);
+        int downButton = digitalRead(DOWN_BUTTON_PIN);
+        int upButton = digitalRead(UP_BUTTON_PIN);
+        int rightButton = digitalRead(RIGHT_BUTTON_PIN);
+
+        if (!leftButton) {
+                *turn = LEFT;
+                *inputRegistered = true;
+        }
+        if (!downButton) {
+                *turn = DOWN;
+                *inputRegistered = true;
+        }
+        if (!upButton) {
+                *turn = UP;
+                *inputRegistered = true;
+        }
+        if (!rightButton) {
+                *turn = RIGHT;
+                *inputRegistered = true;
+        }
+}
 
 /*******************************************************************************
   END FILE
