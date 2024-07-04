@@ -1,7 +1,7 @@
 #include "GUI_Paint.h"
 #include "LCD_Driver.h"
-#include <SPI.h>
 #include "game2048.h"
+#include <SPI.h>
 
 /*
 
@@ -30,13 +30,8 @@ TODO items:
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150
 
-/*******************************************************************************
-  Game State
-*******************************************************************************/
 
-int **grid;
-int score = 0;
-int occupiedTiles = 0;
+GameState *state;
 int old_grid[4][4];
 
 /*******************************************************************************
@@ -55,7 +50,7 @@ void setup(void)
 
         // Initializes the source of randomness from the noise present on the
         // first digital pin
-        initializeRandomnessSeed(analogRead(0))
+        initializeRandomnessSeed(analogRead(0));
 
 
         pinMode(LEFT_BUTTON_PIN, INPUT);
@@ -63,7 +58,8 @@ void setup(void)
         pinMode(UP_BUTTON_PIN, INPUT);
         pinMode(RIGHT_BUTTON_PIN, INPUT);
 
-        grid = allocateGrid();
+        state = initializeGameState(4);
+
         Paint_Clear(BLACK);
 }
 
@@ -71,9 +67,9 @@ void loop(void)
 {
         // picture loop
         while (1) {
-                spawnTile();
+                spawnTile(state);
 
-                draw();
+                draw(state);
                 Paint_Clear(BLACK);
                 int yOffset = 32;
                 int fontSize = 16;
@@ -92,8 +88,8 @@ void loop(void)
                                  yOffset + fontSize * (10), 6, RED,
                                  DOT_PIXEL_1X1, DRAW_FILL_FULL);
 
-                draw();
-                while (!isGameOver()) {
+                draw(state);
+                while (!isGameOver(state)) {
                         int turn;
                         bool inputRegistered = false;
 
@@ -101,13 +97,13 @@ void loop(void)
                         checkButtons(&turn, &inputRegistered);
 
                         if (inputRegistered) {
-                                takeTurn(turn);
-                                draw();
+                                takeTurn(state, turn);
+                                draw(state);
                                 delay(MOVE_REGISTERED_DELAY);
                         }
                         delay(INPUT_POLLING_DELAY);
                 }
-                drawGameOver();
+                drawGameOver(state);
         }
 }
 
@@ -132,7 +128,7 @@ void strReplace(char *str, char *oldWord, char *newWord)
         }
 }
 
-void draw()
+void draw(GameState *state)
 {
         Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
         // graphic commands to redraw the complete screen should be placed here
@@ -143,7 +139,7 @@ void draw()
         int fontWidth = 11;
         int leftMargin = 23;
         char buffer[21];
-        sprintf(buffer, "  Score: %d", score);
+        sprintf(buffer, "  Score: %d", state->score);
         // This clears the screen behind the score
         Paint_ClearWindows(leftMargin + 100 + score_x_offset,
                            score_y_offset + fontSize, 200 + score_x_offset,
@@ -158,11 +154,11 @@ void draw()
         for (int i = 0; i < 4; i++) {
                 // This buffer is used for all game rows
                 char *buffer = (char *)malloc(22 * sizeof(char));
-                sprintf(buffer, "|%4d|%4d|%4d|%4d|", grid[i][0], grid[i][1],
-                        grid[i][2], grid[i][3]);
+                sprintf(buffer, "|%4d|%4d|%4d|%4d|", state->grid[i][0], state->grid[i][1],
+                        state->grid[i][2], state->grid[i][3]);
                 strReplace(buffer, "   0", "    ");
                 for (int j = 0; j < 4; j++) {
-                        if (grid[i][j] != old_grid[i][j]) {
+                        if (state->grid[i][j] != old_grid[i][j]) {
                                 int borders = j + 1;
                                 int gaps = j;
                                 int gap_width = 4;
@@ -186,7 +182,7 @@ void draw()
                 }
 
                 for (int j = 0; j < 4; j++) {
-                        old_grid[i][j] = grid[i][j];
+                        old_grid[i][j] = state->grid[i][j];
                 }
 
                 Paint_DrawString_EN(leftMargin,
@@ -210,7 +206,7 @@ int number_string_length(int number)
         }
 }
 
-void drawGameOver()
+void drawGameOver(GameState *state)
 {
 
         int yOffset = 40;
@@ -220,218 +216,12 @@ void drawGameOver()
         int fontWidth = 11;
         int leftMargin = 23;
         char buffer[21];
-        sprintf(buffer, "  Score: %d", score);
+        sprintf(buffer, "  Score: %d", state->score);
         Paint_DrawString_EN(leftMargin + score_x_offset,
                             score_y_offset + fontSize, buffer, &Font16, WHITE,
                             BLACK);
         Paint_DrawString_EN(leftMargin, yOffset + fontSize,
                             " -----Game-Over-----", &Font16, WHITE, BLACK);
-}
-
-/*******************************************************************************
-  Game Logic
-*******************************************************************************/
-
-int generateNewTileValue() { return 2 + 2 * (int)random(2); }
-
-int getRandomCoordinate() { return random(100) % 4; }
-
-void spawnTile()
-{
-        bool success = false;
-        while (!success) {
-                int x = getRandomCoordinate();
-                int y = getRandomCoordinate();
-
-                if (grid[x][y] == 0) {
-                        grid[x][y] = generateNewTileValue();
-                        success = true;
-                }
-        }
-        occupiedTiles++;
-}
-
-bool isEmptyRow(int *row)
-{
-        for (int i = 0; i < 4; i++) {
-                if (row[i] != 0) {
-                        return false;
-                }
-        }
-        return true;
-}
-
-void transpose()
-{
-        int **transposed = allocateGrid();
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        transposed[j][i] = grid[i][j];
-                }
-        }
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        grid[i][j] = transposed[i][j];
-                }
-        }
-        freeGrid(transposed);
-}
-
-void merge(int direction)
-{
-        if (direction == UP || direction == DOWN) {
-                transpose();
-        }
-
-        for (int i = 0; i < 4; i++) {
-                mergeRow(i, direction);
-        }
-
-        if (direction == UP || direction == DOWN) {
-                transpose();
-        }
-}
-
-int getSuccessorIndex(int i, int currentIndex)
-{
-        int succ = currentIndex + 1;
-        while (succ < 4 && grid[i][succ] == 0) {
-                succ++;
-        }
-        return succ;
-}
-
-// Reverses a given row of four elements in place
-void reverse(int *row)
-{
-        int temp = row[0];
-        row[0] = row[3];
-        row[3] = temp;
-
-        temp = row[1];
-        row[1] = row[2];
-        row[2] = temp;
-}
-
-void mergeRow(int i, int direction)
-{
-        int currentIndex = 0;
-        int mergedRow[4] = {0, 0, 0, 0};
-        int mergedNum = 0;
-
-        if (direction == DOWN || direction == RIGHT) {
-                reverse(grid[i]);
-        }
-
-        currentIndex = getSuccessorIndex(i, -1);
-
-        if (currentIndex == 4) {
-                // All tiles are empty.
-                return;
-        }
-
-        // Now the current tile must be non-empty.
-        while (currentIndex < 4) {
-                int successorIndex = getSuccessorIndex(i, currentIndex);
-                if (successorIndex < 4 &&
-                    grid[i][currentIndex] == grid[i][successorIndex]) {
-                        // Two matching tiles found, we perform a merge.
-                        int sum =
-                            grid[i][currentIndex] + grid[i][successorIndex];
-                        score += sum;
-                        occupiedTiles--;
-                        mergedRow[mergedNum] = sum;
-                        mergedNum++;
-                        currentIndex = getSuccessorIndex(i, successorIndex);
-                } else {
-                        mergedRow[mergedNum] = grid[i][currentIndex];
-                        mergedNum++;
-                        currentIndex = successorIndex;
-                }
-        }
-
-        for (int j = 0; j < 4; j++) {
-                if (direction == DOWN || direction == RIGHT) {
-                        grid[i][3 - j] = mergedRow[j];
-                } else {
-                        grid[i][j] = mergedRow[j];
-                }
-        }
-}
-
-void freeGrid(int **g)
-{
-        for (int i = 0; i < 4; i++) {
-                free(g[i]);
-        }
-        free(g);
-}
-void takeTurn(int direction)
-{
-        int **oldGrid = allocateGrid();
-        copy(grid, oldGrid);
-        merge(direction);
-
-        if (theGridChangedFrom(oldGrid)) {
-                spawnTile();
-        }
-        freeGrid(oldGrid);
-}
-
-bool isBoardFull() { return occupiedTiles >= 16; }
-
-bool isGameOver() { return isBoardFull() && noMovePossible(); }
-
-bool theGridChangedFrom(int **oldGrid)
-{
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        if (grid[i][j] != oldGrid[i][j]) {
-                                return true;
-                        }
-                }
-        }
-        return false;
-}
-
-bool noMovePossible()
-{
-        // Preserve the state
-        int **currentState = allocateGrid();
-        copy(grid, currentState);
-        int currentScore = score;
-        int currentOccupied = occupiedTiles;
-
-        boolean noMoves = true;
-        for (int direction = 0; direction < 4; direction++) {
-                merge(direction);
-                noMoves &= !theGridChangedFrom(currentState);
-                copy(currentState, grid);
-        }
-        freeGrid(currentState);
-
-        // Restore the state
-        score = currentScore;
-        occupiedTiles = currentOccupied;
-        return noMoves;
-}
-
-void copy(int **source, int **destination)
-{
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        destination[i][j] = source[i][j];
-                }
-        }
-}
-
-int **allocateGrid()
-{
-        int **g = (int **)malloc(4 * sizeof(int));
-        for (int i = 0; i < 4; i++) {
-                g[i] = (int *)malloc(4 * sizeof(int));
-        }
-        return g;
 }
 
 int checkJoystick(int *turn, bool *input_registered)

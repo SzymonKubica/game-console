@@ -1,7 +1,7 @@
 typedef struct GameState {
         int **grid;
-        int score = 0;
-        int occupiedTiles = 0;
+        int score;
+        int occupiedTiles;
         int gridSize;
 } GameState;
 
@@ -13,4 +13,11 @@ GameState *initializeGameState(int gridSize);
 
 void initializeRandomnessSeed(int seed);
 
+int generateNewTileValue();
+
+int getRandomCoordinate();
+
+bool isGameOver(GameState *gs);
+void takeTurn(GameState *gs, int direction);
+void spawnTile(GameState *gs);
 
