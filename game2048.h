@@ -5,7 +5,6 @@ typedef struct GameState {
         int gridSize;
 } GameState;
 
-
 // Allocates a new game grid as a two-dimensional array
 int **createGameGrid(int size);
 
@@ -20,4 +19,3 @@ int getRandomCoordinate();
 bool isGameOver(GameState *gs);
 void takeTurn(GameState *gs, int direction);
 void spawnTile(GameState *gs);
-

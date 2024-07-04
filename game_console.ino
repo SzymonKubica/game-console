@@ -6,7 +6,9 @@
 /*
 
 TODO items:
-- clean up and decouple the display control logic.
+- clean up the game logic
+- abstract away the peripheral input
+- clean up the display logic
 
 */
 
@@ -30,7 +32,6 @@ TODO items:
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150
 
-
 GameState *state;
 int old_grid[4][4];
 
@@ -52,7 +53,6 @@ void setup(void)
         // first digital pin
         initializeRandomnessSeed(analogRead(0));
 
-
         pinMode(LEFT_BUTTON_PIN, INPUT);
         pinMode(DOWN_BUTTON_PIN, INPUT);
         pinMode(UP_BUTTON_PIN, INPUT);
@@ -60,8 +60,8 @@ void setup(void)
 
         state = initializeGameState(4);
         for (int i = 0; i < 4; i++)
-          for (int j = 0; j < 4; j++)
-                  old_grid[i][j] = 0;
+                for (int j = 0; j < 4; j++)
+                        old_grid[i][j] = 0;
 
         Paint_Clear(BLACK);
 }
@@ -157,8 +157,9 @@ void draw(GameState *state)
         for (int i = 0; i < 4; i++) {
                 // This buffer is used for all game rows
                 char *buffer = (char *)malloc(22 * sizeof(char));
-                sprintf(buffer, "|%4d|%4d|%4d|%4d|", state->grid[i][0], state->grid[i][1],
-                        state->grid[i][2], state->grid[i][3]);
+                sprintf(buffer, "|%4d|%4d|%4d|%4d|", state->grid[i][0],
+                        state->grid[i][1], state->grid[i][2],
+                        state->grid[i][3]);
                 strReplace(buffer, "   0", "    ");
                 for (int j = 0; j < 4; j++) {
                         if (state->grid[i][j] != old_grid[i][j]) {
