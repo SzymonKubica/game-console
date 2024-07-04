@@ -17,6 +17,10 @@ int **createGameGrid(int size)
         int **g = (int **)malloc(4 * sizeof(int));
         for (int i = 0; i < size; i++) {
                 g[i] = (int *)malloc(size * sizeof(int));
+                // Need to zero the allocated array
+                for (int j = 0; j < size; j++) {
+                        g[i][j] = 0;
+                }
         }
         return g;
 }

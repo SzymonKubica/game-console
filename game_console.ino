@@ -59,6 +59,9 @@ void setup(void)
         pinMode(RIGHT_BUTTON_PIN, INPUT);
 
         state = initializeGameState(4);
+        for (int i = 0; i < 4; i++)
+          for (int j = 0; j < 4; j++)
+                  old_grid[i][j] = 0;
 
         Paint_Clear(BLACK);
 }
@@ -204,6 +207,7 @@ int number_string_length(int number)
         } else if (number >= 10) {
                 return 2;
         }
+        return 1;
 }
 
 void drawGameOver(GameState *state)
