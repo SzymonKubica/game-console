@@ -1,15 +1,12 @@
 #include "GUI_Paint.h"
 #include "LCD_Driver.h"
 #include <SPI.h>
+#include "game2048.h"
 
 /*
 
 TODO items:
 - clean up and decouple the display control logic.
-
-
-
-
 
 */
 
@@ -58,7 +55,8 @@ void setup(void)
 
         // Initializes the source of randomness from the noise present on the
         // first digital pin
-        randomSeed(analogRead(0));
+        initializeRandomnessSeed(analogRead(0))
+
 
         pinMode(LEFT_BUTTON_PIN, INPUT);
         pinMode(DOWN_BUTTON_PIN, INPUT);
@@ -67,12 +65,6 @@ void setup(void)
 
         grid = allocateGrid();
         Paint_Clear(BLACK);
-
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        grid[i][j] = 0;
-                }
-        }
 }
 
 void loop(void)
@@ -152,15 +144,19 @@ void draw()
         int leftMargin = 23;
         char buffer[21];
         sprintf(buffer, "  Score: %d", score);
+        // This clears the screen behind the score
         Paint_ClearWindows(leftMargin + 100 + score_x_offset,
                            score_y_offset + fontSize, 200 + score_x_offset,
                            score_y_offset + 2 * fontSize, WHITE);
+        // This prints the score
         Paint_DrawString_EN(leftMargin + score_x_offset,
                             score_y_offset + fontSize, buffer, &Font16, WHITE,
                             BLACK);
+
         Paint_DrawString_EN(leftMargin, yOffset + fontSize,
                             " -------------------", &Font16, WHITE, BLACK);
         for (int i = 0; i < 4; i++) {
+                // This buffer is used for all game rows
                 char *buffer = (char *)malloc(22 * sizeof(char));
                 sprintf(buffer, "|%4d|%4d|%4d|%4d|", grid[i][0], grid[i][1],
                         grid[i][2], grid[i][3]);
@@ -170,15 +166,8 @@ void draw()
                                 int borders = j + 1;
                                 int gaps = j;
                                 int gap_width = 4;
-                                int digit_len = 1;
                                 int old_value = old_grid[i][j];
-                                if (old_value >= 1000) {
-                                        digit_len = 4;
-                                } else if (old_value >= 100) {
-                                        digit_len = 3;
-                                } else if (old_value >= 10) {
-                                        digit_len = 2;
-                                }
+                                int digit_len = number_string_length(old_value);
                                 int clear_start =
                                     fontWidth * (borders + gap_width * gaps +
                                                  gap_width - digit_len);
@@ -210,9 +199,16 @@ void draw()
         }
 }
 
-/*******************************************************************************
-  Game Logic
-*******************************************************************************/
+int number_string_length(int number)
+{
+        if (number >= 1000) {
+                return 4;
+        } else if (number >= 100) {
+                return 3;
+        } else if (number >= 10) {
+                return 2;
+        }
+}
 
 void drawGameOver()
 {
@@ -231,6 +227,10 @@ void drawGameOver()
         Paint_DrawString_EN(leftMargin, yOffset + fontSize,
                             " -----Game-Over-----", &Font16, WHITE, BLACK);
 }
+
+/*******************************************************************************
+  Game Logic
+*******************************************************************************/
 
 int generateNewTileValue() { return 2 + 2 * (int)random(2); }
 
