@@ -7,7 +7,6 @@
 /*
 
 TODO items:
-- clean up the game logic
 - clean up the display logic
 
 */
@@ -56,58 +55,54 @@ void setup(void)
 
 void loop(void)
 {
-        // picture loop
-        while (1) {
-                spawnTile(state);
+        draw(state);
+        drawGameCanvas();
+        draw(state);
 
-                draw(state);
-                Paint_Clear(BLACK);
+        while (!isGameOver(state)) {
+                Direction dir;
+                bool registered = false;
+                Serial.println("Reading analog input");
+                checkJoystickInput(&dir, &registered,
+                                   (int (*)(unsigned char)) & analogRead);
+                checkButtonsInput(&dir, &registered,
+                                  (int (*)(unsigned char)) & digitalRead);
 
-                // Paints the white canvas for the game grid and the four red
-                // dots in the corners
-                int yOffset = 32;
-                int fontSize = 16;
-                int fontWidth = 11;
-                int leftMargin = 23;
-                Paint_ClearWindows(leftMargin, fontSize + 30,
-                                   leftMargin + 21 * fontWidth,
-                                   yOffset + fontSize * (10), WHITE);
-                Paint_DrawCircle(leftMargin, fontSize + 30, 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin + 21 * fontWidth, fontSize + 30, 6,
-                                 RED, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin, yOffset + fontSize * (10), 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                Paint_DrawCircle(leftMargin + 21 * fontWidth,
-                                 yOffset + fontSize * (10), 6, RED,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
-
-                draw(state);
-                while (!isGameOver(state)) {
-                        Direction dir;
-                        bool registered = false;
-                        Serial.println("Reading analog input");
-                        checkJoystickInput(&dir, &registered,
-                                           (int (*)(unsigned char)) &
-                                               analogRead);
-                        checkButtonsInput(&dir, &registered,
-                                          (int (*)(unsigned char)) &
-                                              digitalRead);
-
-                        if (registered) {
-                                takeTurn(state, (int)dir);
-                                draw(state);
-                                delay(MOVE_REGISTERED_DELAY);
-                        }
-                        delay(INPUT_POLLING_DELAY);
+                if (registered) {
+                        takeTurn(state, (int)dir);
+                        draw(state);
+                        delay(MOVE_REGISTERED_DELAY);
                 }
-                drawGameOver(state);
+                delay(INPUT_POLLING_DELAY);
         }
+        drawGameOver(state);
 }
 
 /*******************************************************************************
   User Interface
 *******************************************************************************/
+
+// Paints the white canvas for the game grid and the four red
+// dots in the corners
+void drawGameCanvas()
+{
+        Paint_Clear(BLACK);
+        int yOffset = 32;
+        int fontSize = 16;
+        int fontWidth = 11;
+        int leftMargin = 23;
+        Paint_ClearWindows(leftMargin, fontSize + 30,
+                           leftMargin + 21 * fontWidth,
+                           yOffset + fontSize * (10), WHITE);
+        Paint_DrawCircle(leftMargin, fontSize + 30, 6, RED, DOT_PIXEL_1X1,
+                         DRAW_FILL_FULL);
+        Paint_DrawCircle(leftMargin + 21 * fontWidth, fontSize + 30, 6, RED,
+                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
+        Paint_DrawCircle(leftMargin, yOffset + fontSize * (10), 6, RED,
+                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
+        Paint_DrawCircle(leftMargin + 21 * fontWidth, yOffset + fontSize * (10),
+                         6, RED, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+}
 
 void strReplace(char *str, char *oldWord, char *newWord)
 {

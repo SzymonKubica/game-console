@@ -10,4 +10,3 @@ GameState *initializeGameState(int gridSize);
 void initializeRandomnessSeed(int seed);
 bool isGameOver(GameState *gs);
 void takeTurn(GameState *gs, int direction);
-void spawnTile(GameState *gs);
