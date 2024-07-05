@@ -111,45 +111,45 @@ void merge(GameState *gs, int direction)
 
 void mergeRow(GameState *gs, int i, int direction)
 {
-        int current_index = 0;
+        int curr = 0;
         int *merged_row = (int *)calloc(gs->grid_size, sizeof(int));
         int merged_num = 0;
+
+        int size = gs->grid_size;
 
         // We always merge to the left (or up if we have previously transposed
         // the grid), in other cases we reverse the row, merge and reverse back.
         if (direction == DOWN || direction == RIGHT) {
-                reverse(gs->grid[i], gs->grid_size);
+                reverse(gs->grid[i], size);
         }
 
-        current_index = getSuccessorIndex(gs, i, -1);
+        // We find the first non-empty tile.
+        curr = getSuccessorIndex(gs, i, -1);
 
-        if (current_index == gs->grid_size) {
+        if (curr == size) {
                 // All tiles are empty.
                 return;
         }
 
         // Now the current tile must be non-empty.
-        while (current_index < gs->grid_size) {
-                int successorIndex = getSuccessorIndex(gs, i, current_index);
-                if (successorIndex < gs->grid_size &&
-                    gs->grid[i][current_index] == gs->grid[i][successorIndex]) {
-                        // Two matching tiles found, we perform a merge.
-                        int sum = gs->grid[i][current_index] +
-                                  gs->grid[i][successorIndex];
+        while (curr < size) {
+                int succ = getSuccessorIndex(gs, i, curr);
+                // Two matching tiles found, we perform a merge.
+                int curr_val = gs->grid[i][curr];
+                if (succ < size && curr_val == gs->grid[i][succ]) {
+                        int sum = curr_val + gs->grid[i][succ];
                         gs->score += sum;
                         gs->occupied_tiles--;
                         merged_row[merged_num] = sum;
-                        merged_num++;
-                        current_index =
-                            getSuccessorIndex(gs, i, successorIndex);
+                        curr = getSuccessorIndex(gs, i, succ);
                 } else {
-                        merged_row[merged_num] = gs->grid[i][current_index];
-                        merged_num++;
-                        current_index = successorIndex;
+                        merged_row[merged_num] = curr_val;
+                        curr = succ;
                 }
+                merged_num++;
         }
 
-        for (int j = 0; j < gs->grid_size; j++) {
+        for (int j = 0; j < size; j++) {
                 if (direction == DOWN || direction == RIGHT) {
                         gs->grid[i][gs->grid_size - 1 - j] = merged_row[j];
                 } else {
@@ -235,7 +235,6 @@ bool noMovePossible(GameState *gs)
 
         // When the grid is full a move is possible as long as there exist some
         // adjacent tiles that have the same number
-
         for (int i = 0; i < gs->grid_size; i++) {
                 for (int j = 0; j < gs->grid_size - 1; j++) {
                         // row-wise adjacency
