@@ -8,7 +8,6 @@
 
 TODO items:
 - clean up the game logic
-- abstract away the peripheral input
 - clean up the display logic
 
 */
@@ -81,14 +80,15 @@ void loop(void)
 
                 draw(state);
                 while (!isGameOver(state)) {
-                        Direction turn;
-                        bool inputRegistered = false;
-                        checkJoystick(&turn, &inputRegistered, &analogRead);
-                        checkButtons(&turn, &inputRegistered,
-                                     (int (*)(unsigned char)) & digitalRead);
+                        Direction dir;
+                        bool registered = false;
+                        checkJoystickInput(&dir, &registered, &analogRead);
+                        checkButtonsInput(&dir, &registered,
+                                          (int (*)(unsigned char)) &
+                                              digitalRead);
 
-                        if (inputRegistered) {
-                                takeTurn(state, (int)turn);
+                        if (registered) {
+                                takeTurn(state, (int)dir);
                                 draw(state);
                                 delay(MOVE_REGISTERED_DELAY);
                         }

@@ -7,7 +7,6 @@
 #define DOWN 2
 #define LEFT 3
 
-static void mergeRow(GameState *gs, int i, int direction);
 static void copy_grid(int **source, int **destination);
 
 void initializeRandomnessSeed(int seed) { srand(seed); }
@@ -16,11 +15,7 @@ int **createGameGrid(int size)
 {
         int **g = (int **)malloc(4 * sizeof(int));
         for (int i = 0; i < size; i++) {
-                g[i] = (int *)malloc(size * sizeof(int));
-                // Need to zero the allocated array
-                for (int j = 0; j < size; j++) {
-                        g[i][j] = 0;
-                }
+                g[i] = (int *)calloc(size, sizeof(int));
         }
         return g;
 }
@@ -37,15 +32,15 @@ GameState *initializeGameState(int size)
 {
         GameState *gs = (GameState *)malloc(sizeof(GameState));
         gs->score = 0;
-        gs->occupiedTiles = 0;
-        gs->gridSize = size;
+        gs->occupied_tiles = 0;
+        gs->grid_size = size;
         gs->grid = createGameGrid(size);
         return gs;
 }
 
 void freeGameState(GameState *gs)
 {
-        freeGameGrid(gs->grid, gs->gridSize);
+        freeGameGrid(gs->grid, gs->grid_size);
         free(gs);
 }
 
@@ -65,7 +60,7 @@ void spawnTile(GameState *gs)
                         success = true;
                 }
         }
-        gs->occupiedTiles++;
+        gs->occupied_tiles++;
 }
 
 bool isEmptyRow(int *row)
@@ -80,27 +75,41 @@ bool isEmptyRow(int *row)
 
 void transpose(GameState *gs)
 {
-        int **transposed = createGameGrid(4);
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        transposed[j][i] = gs->grid[i][j];
+        for (int i = 0; i < gs->grid_size; i++) {
+                for (int j = i; j < gs->grid_size; j++) {
+                        int temp = gs->grid[i][j];
+                        gs->grid[i][j] = gs->grid[j][i];
+                        gs->grid[j][i] = temp;
                 }
         }
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                        gs->grid[i][j] = transposed[i][j];
-                }
-        }
-        freeGameGrid(transposed, 4);
 }
 
+/*******************************************************************************
+  Tile Merging Logic
+*******************************************************************************/
+
+/* Helper functions for tile merging */
+
+/// Merges the i-th row of tiles in the given direction (left/right).
+static void mergeRow(GameState *gs, int i, int direction);
+
+/// Reverses a given row of `row_size` elements in place.
+void reverse(int *row, int row_size);
+
+/// Returns the index of the next non-empty tile after the `current_index` in
+/// the i-th row in of the grid.
+int getSuccessorIndex(GameState *gs, int i, int current_index);
+
+// We only implement merging tiles left or right (row-wise), in order to merge
+// the tiles in a vertical direction we first transpose the grid, merge and then
+// transpose back.
 void merge(GameState *gs, int direction)
 {
         if (direction == UP || direction == DOWN) {
                 transpose(gs);
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < gs->grid_size; i++) {
                 mergeRow(gs, i, direction);
         }
 
@@ -109,72 +118,77 @@ void merge(GameState *gs, int direction)
         }
 }
 
-int getSuccessorIndex(GameState *gs, int i, int currentIndex)
-{
-        int succ = currentIndex + 1;
-        while (succ < 4 && gs->grid[i][succ] == 0) {
-                succ++;
-        }
-        return succ;
-}
-
-// Reverses a given row of four elements in place
-void reverse(int *row)
-{
-        int temp = row[0];
-        row[0] = row[3];
-        row[3] = temp;
-
-        temp = row[1];
-        row[1] = row[2];
-        row[2] = temp;
-}
-
 void mergeRow(GameState *gs, int i, int direction)
 {
-        int currentIndex = 0;
-        int mergedRow[4] = {0, 0, 0, 0};
-        int mergedNum = 0;
+        int current_index = 0;
+        int *merged_row = (int *)calloc(gs->grid_size, sizeof(int));
+        int merged_num = 0;
 
+        // We always merge to the left (or up if we have previously transposed
+        // the grid), in other cases we reverse the row, merge and reverse back.
         if (direction == DOWN || direction == RIGHT) {
-                reverse(gs->grid[i]);
+                reverse(gs->grid[i], gs->grid_size);
         }
 
-        currentIndex = getSuccessorIndex(gs, i, -1);
+        current_index = getSuccessorIndex(gs, i, -1);
 
-        if (currentIndex == 4) {
+        if (current_index == gs->grid_size) {
                 // All tiles are empty.
                 return;
         }
 
         // Now the current tile must be non-empty.
-        while (currentIndex < 4) {
-                int successorIndex = getSuccessorIndex(gs, i, currentIndex);
-                if (successorIndex < 4 &&
-                    gs->grid[i][currentIndex] == gs->grid[i][successorIndex]) {
+        while (current_index < gs->grid_size) {
+                int successorIndex = getSuccessorIndex(gs, i, current_index);
+                if (successorIndex < gs->grid_size &&
+                    gs->grid[i][current_index] == gs->grid[i][successorIndex]) {
                         // Two matching tiles found, we perform a merge.
-                        int sum = gs->grid[i][currentIndex] +
+                        int sum = gs->grid[i][current_index] +
                                   gs->grid[i][successorIndex];
                         gs->score += sum;
-                        gs->occupiedTiles--;
-                        mergedRow[mergedNum] = sum;
-                        mergedNum++;
-                        currentIndex = getSuccessorIndex(gs, i, successorIndex);
+                        gs->occupied_tiles--;
+                        merged_row[merged_num] = sum;
+                        merged_num++;
+                        current_index =
+                            getSuccessorIndex(gs, i, successorIndex);
                 } else {
-                        mergedRow[mergedNum] = gs->grid[i][currentIndex];
-                        mergedNum++;
-                        currentIndex = successorIndex;
+                        merged_row[merged_num] = gs->grid[i][current_index];
+                        merged_num++;
+                        current_index = successorIndex;
                 }
         }
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < gs->grid_size; j++) {
                 if (direction == DOWN || direction == RIGHT) {
-                        gs->grid[i][3 - j] = mergedRow[j];
+                        gs->grid[i][gs->grid_size - 1 - j] = merged_row[j];
                 } else {
-                        gs->grid[i][j] = mergedRow[j];
+                        gs->grid[i][j] = merged_row[j];
                 }
         }
 }
+
+// Reverses a given row of four elements in place
+void reverse(int *row, int row_size)
+{
+        for (int i = 0; i < row_size / 2; i++) {
+                int temp = row[i];
+                row[i] = row[row_size - i - 1];
+                row[row_size - i - 1] = temp;
+        }
+}
+
+int getSuccessorIndex(GameState *gs, int i, int current_index)
+{
+        int succ = current_index + 1;
+        while (succ < gs->grid_size && gs->grid[i][succ] == 0) {
+                succ++;
+        }
+        return succ;
+}
+
+/*******************************************************************************
+  Game Loop Logic
+*******************************************************************************/
 
 bool theGridChangedFrom(GameState *gs, int **oldGrid);
 void takeTurn(GameState *gs, int direction)
@@ -186,10 +200,10 @@ void takeTurn(GameState *gs, int direction)
         if (theGridChangedFrom(gs, oldGrid)) {
                 spawnTile(gs);
         }
-        freeGameGrid(oldGrid, gs->gridSize);
+        freeGameGrid(oldGrid, gs->grid_size);
 }
 
-bool isBoardFull(GameState *gs) { return gs->occupiedTiles >= 16; }
+bool isBoardFull(GameState *gs) { return gs->occupied_tiles >= 16; }
 
 bool noMovePossible(GameState *gs);
 bool isGameOver(GameState *gs) { return isBoardFull(gs) && noMovePossible(gs); }
@@ -212,7 +226,7 @@ bool noMovePossible(GameState *gs)
         int **currentState = createGameGrid(4);
         copy_grid(gs->grid, currentState);
         int currentScore = gs->score;
-        int currentOccupied = gs->occupiedTiles;
+        int currentOccupied = gs->occupied_tiles;
 
         bool noMoves = true;
         for (int direction = 0; direction < 4; direction++) {
@@ -220,11 +234,11 @@ bool noMovePossible(GameState *gs)
                 noMoves &= !theGridChangedFrom(gs, currentState);
                 copy_grid(currentState, gs->grid);
         }
-        freeGameGrid(currentState, gs->gridSize);
+        freeGameGrid(currentState, gs->grid_size);
 
         // Restore the state
         gs->score = currentScore;
-        gs->occupiedTiles = currentOccupied;
+        gs->occupied_tiles = currentOccupied;
         return noMoves;
 }
 

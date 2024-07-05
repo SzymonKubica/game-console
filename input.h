@@ -19,13 +19,13 @@ typedef enum Direction {
 // registered input through the output parameter `turn`. The last argument is
 // the function for reading analog input that is only available inside of the
 // *.ino files and so needs to be passed into the cpp file as a function pointer.
-void checkJoystick(Direction *input, bool *input_registered, int (*analogRead)(unsigned char));
+void checkJoystickInput(Direction *input, bool *input_registered, int (*analogRead)(unsigned char));
 
 // Checks whether the buttons are registering user input at the moment.
 // If it is, it sets the `input_registered` flag to true and returns the
 // registered input through the output parameter `turn`. The last argument is
 // the function for reading analog input that is only available inside of the
 // *.ino files and so needs to be passed into the cpp file as a function pointer.
-void checkButtons(Direction *input, bool *input_registered, int (*digitalRead)(unsigned char));
+void checkButtonsInput(Direction *input, bool *input_registered, int (*digitalRead)(unsigned char));
 
 

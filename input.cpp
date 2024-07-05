@@ -7,7 +7,7 @@
 #define HIGH_THRESHOLD 900
 #define LOW_THRESHOLD 100
 
-void checkJoystick(Direction *turn, bool *input_registered,
+void checkJoystickInput(Direction *turn, bool *input_registered,
                    int (*analogRead)(unsigned char))
 {
         int x_val = analogRead(STICK_X_PIN);
@@ -28,7 +28,7 @@ void checkJoystick(Direction *turn, bool *input_registered,
         }
 }
 
-void checkButtons(Direction *turn, bool *input_registered,
+void checkButtonsInput(Direction *turn, bool *input_registered,
                   int (*digitalRead)(unsigned char))
 {
         int leftButton = digitalRead(LEFT_BUTTON_PIN);
