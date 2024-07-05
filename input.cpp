@@ -1,30 +1,35 @@
-int checkJoystick(int *turn, bool *input_registered)
+#include "input.h"
+
+/* The joystick reports the current position using two potentiometers. Those
+ * are read using analog pins that return values in range 0-1023. The two
+ * constants below control how quickly the joystick registers input.
+ */
+#define HIGH_THRESHOLD 900
+#define LOW_THRESHOLD 100
+
+void checkJoystick(Direction *turn, bool *input_registered,
+                   int (*analogRead)(unsigned char))
 {
         int x_val = analogRead(STICK_X_PIN);
         int y_val = analogRead(STICK_Y_PIN);
 
-        if (x_val < 100) {
+        if (x_val < LOW_THRESHOLD) {
                 *input_registered = true;
-                *turn = RIGHT;
-        }
-
-        if (x_val > 900) {
+                *turn = Direction::RIGHT;
+        } else if (x_val > HIGH_THRESHOLD) {
                 *input_registered = true;
-                *turn = LEFT;
-        }
-
-        if (y_val < 100) {
+                *turn = Direction::LEFT;
+        } else if (y_val < LOW_THRESHOLD) {
                 *input_registered = true;
-                *turn = UP;
-        }
-
-        if (y_val > 900) {
+                *turn = Direction::UP;
+        } else if (y_val > HIGH_THRESHOLD) {
                 *input_registered = true;
-                *turn = DOWN;
+                *turn = Direction::DOWN;
         }
 }
 
-int checkButtons(int *turn, bool *inputRegistered)
+void checkButtons(Direction *turn, bool *input_registered,
+                  int (*digitalRead)(unsigned char))
 {
         int leftButton = digitalRead(LEFT_BUTTON_PIN);
         int downButton = digitalRead(DOWN_BUTTON_PIN);
@@ -32,19 +37,19 @@ int checkButtons(int *turn, bool *inputRegistered)
         int rightButton = digitalRead(RIGHT_BUTTON_PIN);
 
         if (!leftButton) {
-                *turn = LEFT;
-                *inputRegistered = true;
+                *turn = Direction::LEFT;
+                *input_registered = true;
         }
         if (!downButton) {
-                *turn = DOWN;
-                *inputRegistered = true;
+                *turn = Direction::DOWN;
+                *input_registered = true;
         }
         if (!upButton) {
-                *turn = UP;
-                *inputRegistered = true;
+                *turn = Direction::UP;
+                *input_registered = true;
         }
         if (!rightButton) {
-                *turn = RIGHT;
-                *inputRegistered = true;
+                *turn = Direction::RIGHT;
+                *input_registered = true;
         }
 }
