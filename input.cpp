@@ -8,7 +8,7 @@
 #define LOW_THRESHOLD 100
 
 void checkJoystickInput(Direction *turn, bool *input_registered,
-                   int (*analogRead)(unsigned char))
+                        int (*analogRead)(unsigned char))
 {
         int x_val = analogRead(STICK_X_PIN);
         int y_val = analogRead(STICK_Y_PIN);
@@ -16,20 +16,23 @@ void checkJoystickInput(Direction *turn, bool *input_registered,
         if (x_val < LOW_THRESHOLD) {
                 *input_registered = true;
                 *turn = Direction::RIGHT;
-        } else if (x_val > HIGH_THRESHOLD) {
+        }
+        if (x_val > HIGH_THRESHOLD) {
                 *input_registered = true;
                 *turn = Direction::LEFT;
-        } else if (y_val < LOW_THRESHOLD) {
+        }
+        if (y_val < LOW_THRESHOLD) {
                 *input_registered = true;
                 *turn = Direction::UP;
-        } else if (y_val > HIGH_THRESHOLD) {
+        }
+        if (y_val > HIGH_THRESHOLD) {
                 *input_registered = true;
                 *turn = Direction::DOWN;
         }
 }
 
 void checkButtonsInput(Direction *turn, bool *input_registered,
-                  int (*digitalRead)(unsigned char))
+                       int (*digitalRead)(unsigned char))
 {
         int leftButton = digitalRead(LEFT_BUTTON_PIN);
         int downButton = digitalRead(DOWN_BUTTON_PIN);

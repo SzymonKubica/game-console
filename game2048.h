@@ -5,7 +5,6 @@ typedef struct GameState {
         int grid_size;
 } GameState;
 
-// Allocates a new game grid as a two-dimensional array
 int **createGameGrid(int size);
 GameState *initializeGameState(int gridSize);
 void initializeRandomnessSeed(int seed);

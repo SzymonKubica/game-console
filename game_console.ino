@@ -46,6 +46,7 @@ void setup(void)
         pinMode(RIGHT_BUTTON_PIN, INPUT);
 
         state = initializeGameState(4);
+
         for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                         old_grid[i][j] = 0;
@@ -61,6 +62,9 @@ void loop(void)
 
                 draw(state);
                 Paint_Clear(BLACK);
+
+                // Paints the white canvas for the game grid and the four red
+                // dots in the corners
                 int yOffset = 32;
                 int fontSize = 16;
                 int fontWidth = 11;
@@ -82,7 +86,10 @@ void loop(void)
                 while (!isGameOver(state)) {
                         Direction dir;
                         bool registered = false;
-                        checkJoystickInput(&dir, &registered, &analogRead);
+                        Serial.println("Reading analog input");
+                        checkJoystickInput(&dir, &registered,
+                                           (int (*)(unsigned char)) &
+                                               analogRead);
                         checkButtonsInput(&dir, &registered,
                                           (int (*)(unsigned char)) &
                                               digitalRead);

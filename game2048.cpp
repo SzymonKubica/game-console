@@ -7,10 +7,32 @@
 #define DOWN 2
 #define LEFT 3
 
-static void copy_grid(int **source, int **destination);
+static void copy_grid(int **source, int **destination, int size);
 
 void initializeRandomnessSeed(int seed) { srand(seed); }
 
+/*******************************************************************************
+  Initialization Code
+*******************************************************************************/
+
+GameState *initializeGameState(int size)
+{
+        GameState *gs = (GameState *)malloc(sizeof(GameState));
+        gs->score = 0;
+        gs->occupied_tiles = 0;
+        gs->grid_size = size;
+        gs->grid = createGameGrid(size);
+        return gs;
+}
+
+void freeGameGrid(int **grid, int size);
+void freeGameState(GameState *gs)
+{
+        freeGameGrid(gs->grid, gs->grid_size);
+        free(gs);
+}
+
+// Allocates a new game grid as a two-dimensional array
 int **createGameGrid(int size)
 {
         int **g = (int **)malloc(4 * sizeof(int));
@@ -28,24 +50,11 @@ void freeGameGrid(int **grid, int size)
         free(grid);
 }
 
-GameState *initializeGameState(int size)
-{
-        GameState *gs = (GameState *)malloc(sizeof(GameState));
-        gs->score = 0;
-        gs->occupied_tiles = 0;
-        gs->grid_size = size;
-        gs->grid = createGameGrid(size);
-        return gs;
-}
-
-void freeGameState(GameState *gs)
-{
-        freeGameGrid(gs->grid, gs->grid_size);
-        free(gs);
-}
+/*******************************************************************************
+  Tile Spawning
+*******************************************************************************/
 
 int generateNewTileValue() { return 2 + 2 * (rand() % 2); }
-
 int getRandomCoordinate() { return rand() % 4; }
 
 void spawnTile(GameState *gs)
@@ -63,27 +72,6 @@ void spawnTile(GameState *gs)
         gs->occupied_tiles++;
 }
 
-bool isEmptyRow(int *row)
-{
-        for (int i = 0; i < 4; i++) {
-                if (row[i] != 0) {
-                        return false;
-                }
-        }
-        return true;
-}
-
-void transpose(GameState *gs)
-{
-        for (int i = 0; i < gs->grid_size; i++) {
-                for (int j = i; j < gs->grid_size; j++) {
-                        int temp = gs->grid[i][j];
-                        gs->grid[i][j] = gs->grid[j][i];
-                        gs->grid[j][i] = temp;
-                }
-        }
-}
-
 /*******************************************************************************
   Tile Merging Logic
 *******************************************************************************/
@@ -95,6 +83,9 @@ static void mergeRow(GameState *gs, int i, int direction);
 
 /// Reverses a given row of `row_size` elements in place.
 void reverse(int *row, int row_size);
+
+/// Transposes the game trid in place to allow for merging vertically.
+void transpose(GameState *gs);
 
 /// Returns the index of the next non-empty tile after the `current_index` in
 /// the i-th row in of the grid.
@@ -165,6 +156,7 @@ void mergeRow(GameState *gs, int i, int direction)
                         gs->grid[i][j] = merged_row[j];
                 }
         }
+        free(merged_row);
 }
 
 // Reverses a given row of four elements in place
@@ -186,15 +178,34 @@ int getSuccessorIndex(GameState *gs, int i, int current_index)
         return succ;
 }
 
+void transpose(GameState *gs)
+{
+        for (int i = 0; i < gs->grid_size; i++) {
+                for (int j = i; j < gs->grid_size; j++) {
+                        int temp = gs->grid[i][j];
+                        gs->grid[i][j] = gs->grid[j][i];
+                        gs->grid[j][i] = temp;
+                }
+        }
+}
+
 /*******************************************************************************
   Game Loop Logic
 *******************************************************************************/
 
-bool theGridChangedFrom(GameState *gs, int **oldGrid);
+// Helper functions for the game loop
+static bool theGridChangedFrom(GameState *gs, int **oldGrid);
+static bool isBoardFull(GameState *gs)
+{
+        return gs->occupied_tiles >= gs->occupied_tiles * gs->occupied_tiles;
+}
+static bool noMovePossible(GameState *gs);
+bool isGameOver(GameState *gs) { return isBoardFull(gs) && noMovePossible(gs); }
+
 void takeTurn(GameState *gs, int direction)
 {
-        int **oldGrid = createGameGrid(4);
-        copy_grid(gs->grid, oldGrid);
+        int **oldGrid = createGameGrid(gs->grid_size);
+        copy_grid(gs->grid, oldGrid, gs->grid_size);
         merge(gs, direction);
 
         if (theGridChangedFrom(gs, oldGrid)) {
@@ -203,15 +214,10 @@ void takeTurn(GameState *gs, int direction)
         freeGameGrid(oldGrid, gs->grid_size);
 }
 
-bool isBoardFull(GameState *gs) { return gs->occupied_tiles >= 16; }
-
-bool noMovePossible(GameState *gs);
-bool isGameOver(GameState *gs) { return isBoardFull(gs) && noMovePossible(gs); }
-
 bool theGridChangedFrom(GameState *gs, int **oldGrid)
 {
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < gs->grid_size; i++) {
+                for (int j = 0; j < gs->grid_size; j++) {
                         if (gs->grid[i][j] != oldGrid[i][j]) {
                                 return true;
                         }
@@ -222,30 +228,33 @@ bool theGridChangedFrom(GameState *gs, int **oldGrid)
 
 bool noMovePossible(GameState *gs)
 {
-        // Preserve the state
-        int **currentState = createGameGrid(4);
-        copy_grid(gs->grid, currentState);
-        int currentScore = gs->score;
-        int currentOccupied = gs->occupied_tiles;
-
-        bool noMoves = true;
-        for (int direction = 0; direction < 4; direction++) {
-                merge(gs, direction);
-                noMoves &= !theGridChangedFrom(gs, currentState);
-                copy_grid(currentState, gs->grid);
+        // A move is always possible if not all tiles are occupied.
+        if (gs->occupied_tiles < gs->grid_size * gs->grid_size) {
+                return false;
         }
-        freeGameGrid(currentState, gs->grid_size);
 
-        // Restore the state
-        gs->score = currentScore;
-        gs->occupied_tiles = currentOccupied;
-        return noMoves;
+        // When the grid is full a move is possible as long as there exist some
+        // adjacent tiles that have the same number
+
+        for (int i = 0; i < gs->grid_size; i++) {
+                for (int j = 0; j < gs->grid_size - 1; j++) {
+                        // row-wise adjacency
+                        if (gs->grid[i][j] == gs->grid[i][j + 1]) {
+                                return false;
+                        }
+                        // colunm-wise adjacency
+                        if (gs->grid[j][i] == gs->grid[j + 1][i]) {
+                                return false;
+                        }
+                }
+        }
+        return true;
 }
 
-void copy_grid(int **source, int **destination)
+void copy_grid(int **source, int **destination, int size)
 {
-        for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
                         destination[i][j] = source[i][j];
                 }
         }
