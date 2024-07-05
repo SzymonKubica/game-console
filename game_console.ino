@@ -5,10 +5,8 @@
 #include <SPI.h>
 
 /*
-
 TODO items:
 - clean up the display logic
-
 */
 
 /*******************************************************************************
@@ -61,14 +59,13 @@ void loop(void)
 
         while (!isGameOver(state)) {
                 Direction dir;
-                bool registered = false;
-                Serial.println("Reading analog input");
-                checkJoystickInput(&dir, &registered,
+                bool input_registered = false;
+                checkJoystickInput(&dir, &input_registered,
                                    (int (*)(unsigned char)) & analogRead);
-                checkButtonsInput(&dir, &registered,
+                checkButtonsInput(&dir, &input_registered,
                                   (int (*)(unsigned char)) & digitalRead);
 
-                if (registered) {
+                if (input_registered) {
                         takeTurn(state, (int)dir);
                         draw(state);
                         delay(MOVE_REGISTERED_DELAY);
