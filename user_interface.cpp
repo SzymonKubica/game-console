@@ -1,7 +1,14 @@
-#include "ui.h"
+#include "user_interface.h"
 
 int old_grid[4][4];
 
+void initializeOldGrid()
+{
+        for (int i = 0; i < 4; i++)
+                for (int j = 0; j < 4; j++)
+                        old_grid[i][j] = 0;
+
+}
 /*******************************************************************************
   User Interface
 *******************************************************************************/
@@ -143,4 +150,3 @@ void drawGameOver(GameState *state)
         Paint_DrawString_EN(leftMargin, yOffset + fontSize,
                             " -----Game-Over-----", &Font16, WHITE, BLACK);
 }
-

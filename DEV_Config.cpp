@@ -44,7 +44,7 @@ void GPIO_Init()
 
     //Serial
     Serial.begin(115200);
-
+    
     //spi
     SPI.begin();
 

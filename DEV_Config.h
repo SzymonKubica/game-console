@@ -3,7 +3,7 @@
 * | Author      :   Waveshare team
 * | Function    :   Hardware underlying interface
 * | Info        :
-*                Used to shield the underlying layers of each master 
+*                Used to shield the underlying layers of each master
 *                and enhance portability
 *----------------
 * | This version:   V1.0

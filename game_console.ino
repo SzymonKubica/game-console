@@ -1,6 +1,6 @@
 #include "input.h"
 #include "game2048.h"
-#include "ui.h"
+#include "user_interface.h"
 
 /*
 TODO items:
@@ -41,9 +41,7 @@ void setup(void)
 
         state = initializeGameState(4);
 
-        for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
-                        old_grid[i][j] = 0;
+        initializeOldGrid();
 
         Paint_Clear(BLACK);
 }
