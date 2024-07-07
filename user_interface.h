@@ -11,11 +11,9 @@
 // dots in the corners
 void drawGameCanvas();
 
-void strReplace(char *str, char *oldWord, char *newWord);
-
 void draw(GameState *state);
 
 void drawGameOver(GameState *state);
-void initializeOldGrid();
+void initializeDisplay();
 
 #endif

@@ -1,58 +1,64 @@
 #include "user_interface.h"
 
+/* Constants for configuring the UI. */
+#define FONT_SIZE 16
+#define FONT_WIDTH 11
+#define TOP_LEFT_CORNER_X 23
+#define TOP_LEFT_CORNER_Y 38
+
 int old_grid[4][4];
 
-void initializeOldGrid()
+void initializeDisplay()
 {
+        Config_Init();
+        LCD_Init();
+        LCD_SetBacklight(100);
+
         for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                         old_grid[i][j] = 0;
 
+        Paint_Clear(BLACK);
 }
 /*******************************************************************************
   User Interface
 *******************************************************************************/
 
-// Paints the white canvas for the game grid and the four red
-// dots in the corners
+typedef struct Point {
+        int x;
+        int y;
+} Point;
+
+/// Paints the white canvas for the game grid and the four blue
+/// dots in the corners
 void drawGameCanvas()
 {
+        int canvas_height = 10 * FONT_SIZE;
+        int canvas_width = 21 * FONT_WIDTH;
+
+        Point top_left_corner = {.x = TOP_LEFT_CORNER_X,
+                                 .y = TOP_LEFT_CORNER_Y};
+
+        Point bottom_right_corner = {.x = top_left_corner.x + canvas_width,
+                                     .y = top_left_corner.y + canvas_height};
+
+        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
+        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
+
         Paint_Clear(BLACK);
-        int yOffset = 32;
-        int fontSize = 16;
-        int fontWidth = 11;
-        int leftMargin = 23;
-        Paint_ClearWindows(leftMargin, fontSize + 30,
-                           leftMargin + 21 * fontWidth,
-                           yOffset + fontSize * (10), WHITE);
-        Paint_DrawCircle(leftMargin, fontSize + 30, 6, RED, DOT_PIXEL_1X1,
-                         DRAW_FILL_FULL);
-        Paint_DrawCircle(leftMargin + 21 * fontWidth, fontSize + 30, 6, RED,
-                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
-        Paint_DrawCircle(leftMargin, yOffset + fontSize * (10), 6, RED,
-                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
-        Paint_DrawCircle(leftMargin + 21 * fontWidth, yOffset + fontSize * (10),
-                         6, RED, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-}
+        Paint_ClearWindows(top_left_corner.x, top_left_corner.y,
+                           bottom_right_corner.x, bottom_right_corner.y, WHITE);
 
-void strReplace(char *str, char *oldWord, char *newWord)
-{
-        char *pos, temp[1000];
-        int index = 0;
-        int owlen;
-
-        owlen = strlen(oldWord);
-
-        while ((pos = strstr(str, oldWord)) != NULL) {
-                strcpy(temp, str);
-                index = pos - str;
-                str[index] = '\0';
-                strcat(str, newWord);
-                strcat(str, temp + index + owlen);
+        for (int x : x_positions) {
+                for (int y : y_positions) {
+                        Paint_DrawCircle(x, y, 6, BLUE, DOT_PIXEL_1X1,
+                                         DRAW_FILL_FULL);
+                }
         }
 }
 
-int number_string_length(int number);
+static void strReplace(char *str, char *oldWord, char *newWord);
+static int number_string_length(int number);
 void draw(GameState *state)
 {
         Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
@@ -121,7 +127,7 @@ void draw(GameState *state)
         }
 }
 
-int number_string_length(int number)
+static int number_string_length(int number)
 {
         if (number >= 1000) {
                 return 4;
@@ -131,6 +137,23 @@ int number_string_length(int number)
                 return 2;
         }
         return 1;
+}
+
+static void strReplace(char *str, char *oldWord, char *newWord)
+{
+        char *pos, temp[1000];
+        int index = 0;
+        int owlen;
+
+        owlen = strlen(oldWord);
+
+        while ((pos = strstr(str, oldWord)) != NULL) {
+                strcpy(temp, str);
+                index = pos - str;
+                str[index] = '\0';
+                strcat(str, newWord);
+                strcat(str, temp + index + owlen);
+        }
 }
 
 void drawGameOver(GameState *state)

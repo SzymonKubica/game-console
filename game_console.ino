@@ -7,43 +7,29 @@ TODO items:
 - clean up the display logic
 */
 
-/*******************************************************************************
-  Constants
-*******************************************************************************/
-
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150
 
 GameState *state;
 
-/*******************************************************************************
-  Setup and Main Loop
-*******************************************************************************/
-
 void setup(void)
 {
-        // Initialise the display
-        Config_Init();
-        LCD_Init();
-        LCD_SetBacklight(100);
-
         // Initialise serial port for debugging
         Serial.begin(115200);
 
-        // Initializes the source of randomness from the noise present on the
-        // first digital pin
-        initializeRandomnessSeed(analogRead(0));
-
+        // Set up button pins as inputs
         pinMode(LEFT_BUTTON_PIN, INPUT);
         pinMode(DOWN_BUTTON_PIN, INPUT);
         pinMode(UP_BUTTON_PIN, INPUT);
         pinMode(RIGHT_BUTTON_PIN, INPUT);
 
+        initializeDisplay();
+
+        // Initializes the source of randomness from the
+        // noise present on the first digital pin
+        initializeRandomnessSeed(analogRead(0));
+
         state = initializeGameState(4);
-
-        initializeOldGrid();
-
-        Paint_Clear(BLACK);
 }
 
 void loop(void)
@@ -69,7 +55,3 @@ void loop(void)
         }
         drawGameOver(state);
 }
-
-/*******************************************************************************
-  END FILE
-*******************************************************************************/
