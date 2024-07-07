@@ -1,3 +1,6 @@
+#ifndef GAME2048_H
+#define GAME2048_H
+
 typedef struct GameState {
         int **grid;
         int score;
@@ -5,8 +8,9 @@ typedef struct GameState {
         int grid_size;
 } GameState;
 
-int **createGameGrid(int size);
 GameState *initializeGameState(int gridSize);
 void initializeRandomnessSeed(int seed);
 bool isGameOver(GameState *gs);
 void takeTurn(GameState *gs, int direction);
+
+#endif

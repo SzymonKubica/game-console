@@ -1,5 +1,10 @@
-#include "GUI_Paint.h"
-#include "LCD_Driver.h"
+#include "ui.h"
+
+int old_grid[4][4];
+
+/*******************************************************************************
+  User Interface
+*******************************************************************************/
 
 // Paints the white canvas for the game grid and the four red
 // dots in the corners
@@ -40,6 +45,7 @@ void strReplace(char *str, char *oldWord, char *newWord)
         }
 }
 
+int number_string_length(int number);
 void draw(GameState *state)
 {
         Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
@@ -137,3 +143,4 @@ void drawGameOver(GameState *state)
         Paint_DrawString_EN(leftMargin, yOffset + fontSize,
                             " -----Game-Over-----", &Font16, WHITE, BLACK);
 }
+

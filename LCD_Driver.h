@@ -6,7 +6,7 @@
 *----------------
 * | This version:   V1.0
 * | Date        :   2023-03-15
-* | Info        :   
+* | Info        :
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documnetation files (the "Software"), to deal
@@ -38,7 +38,7 @@
 #define HORIZONTAL 0
 #define VERTICAL   1
 
-void LCD_WriteData_Byte(UBYTE da); 
+void LCD_WriteData_Byte(UBYTE da);
 void LCD_WriteData_Word(UWORD da);
 void LCD_WriteReg(UBYTE da);
 

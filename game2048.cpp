@@ -16,6 +16,7 @@ void initializeRandomnessSeed(int seed) { srand(seed); }
 *******************************************************************************/
 static void spawnTile(GameState *gs);
 
+int **createGameGrid(int size);
 GameState *initializeGameState(int size)
 {
         GameState *gs = (GameState *)malloc(sizeof(GameState));
