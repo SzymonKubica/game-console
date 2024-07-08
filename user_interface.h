@@ -7,13 +7,10 @@
 #include "LCD_Driver.h"
 #include "game2048.h"
 
-// Paints the white canvas for the game grid and the four red
-// dots in the corners
-void drawGameCanvas();
-
-void draw(GameState *state);
-
-void drawGameOver(GameState *state);
 void initializeDisplay();
+void drawGameCanvas(GameState *state);
+void draw(GameState *state);
+void drawGameOver(GameState *state);
+void drawGameGrid(GameState *gs);
 
 #endif

@@ -5,6 +5,7 @@
 /*
 TODO items:
 - clean up the display logic
+- move the game grid cells calculation into a function to remove duplication.
 */
 
 #define INPUT_POLLING_DELAY 50
@@ -35,8 +36,8 @@ void setup(void)
 void loop(void)
 {
         draw(state);
-        drawGameCanvas();
-        draw(state);
+        drawGameCanvas(state);
+        drawGameGrid(state);
 
         while (!isGameOver(state)) {
                 Direction dir;
@@ -48,7 +49,7 @@ void loop(void)
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
-                        draw(state);
+                        drawGameGrid(state);
                         delay(MOVE_REGISTERED_DELAY);
                 }
                 delay(INPUT_POLLING_DELAY);
