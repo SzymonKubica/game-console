@@ -2,6 +2,7 @@
 #include "GUI_Paint.h"
 #include "LCD_Driver.h"
 #include <cassert>
+#include <cstdio>
 
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
@@ -45,6 +46,8 @@ static void drawRoundedRect(Point top_left, int width, int height, int radius,
 static void drawGameGridSlots(int grid_size, int cell_spacing);
 void drawGameCanvas(GameState *state)
 {
+        Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
+        Paint_Clear(BLACK);
         drawRoundedBorder(DARKBLUE);
         Point top_left = {.x = 70, .y = 70};
         // drawRoundedRect(top_left, 100, 60, 20, WHITE);
@@ -116,6 +119,10 @@ typedef struct GridDimensions {
                      // space isn't evenly divided into grid_size
         int grid_start_x;
         int grid_start_y;
+        int score_cell_height;
+        int score_cell_width;
+        int score_start_x;
+        int score_start_y;
 } GridDimensions;
 
 GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
@@ -144,17 +151,40 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
         // We offset the grid downwards to allow it to overlap with the gap
         // between the two bottom corners and save space for the score at the
         // top of the grid.
-        int corner_offset = DISPLAY_CORNER_RADIUS  / 4;
+        int corner_offset = DISPLAY_CORNER_RADIUS / 4;
 
         int grid_start_x =
             SCREEN_BORDER_WIDTH + cell_spacing + remainder_width / 2;
-        int grid_start_y = SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS + corner_offset;
+        int grid_start_y =
+            SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS + corner_offset;
+
+        // We first draw a slot for the score
+        int score_cell_width =
+            LCD_HEIGHT -
+            2 * (SCREEN_BORDER_WIDTH + cell_spacing + DISPLAY_CORNER_RADIUS);
+        int score_cell_height = FONT_SIZE + cell_spacing;
+
+        int score_start_y =
+            (grid_start_y - score_cell_height - SCREEN_BORDER_WIDTH) / 2 +
+            SCREEN_BORDER_WIDTH;
+
+        Point score_start = {.x = SCREEN_BORDER_WIDTH + cell_spacing +
+                                  DISPLAY_CORNER_RADIUS,
+                             .y = score_start_y};
+
+        int score_title_x = score_start.x + cell_spacing;
+        int score_title_y = score_start.y + cell_spacing / 2;
 
         gd->cell_height = cell_height;
         gd->cell_width = cell_width;
         gd->padding = remainder_width;
         gd->grid_start_x = grid_start_x;
         gd->grid_start_y = grid_start_y;
+
+        gd->score_cell_height = score_cell_height;
+        gd->score_cell_width = score_cell_width;
+        gd->score_start_x = score_start.x;
+        gd->score_start_y = score_start.y;
 }
 
 /// Draws the background slots for the grid tiles, this takes a long time and
@@ -164,20 +194,19 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
 static void drawGameGridSlots(int grid_size, int cell_spacing)
 {
 
-        // We first draw a slot for the score
-        int score_cell_width =
-            LCD_HEIGHT -
-            2 * (SCREEN_BORDER_WIDTH + cell_spacing + DISPLAY_CORNER_RADIUS);
-        int score_cell_height = FONT_SIZE + cell_spacing;
-
-        Point score_start = {.x = SCREEN_BORDER_WIDTH + cell_spacing +
-                                  DISPLAY_CORNER_RADIUS,
-                             .y = SCREEN_BORDER_WIDTH + 2 * cell_spacing};
-
-        drawRoundedRect(score_start, score_cell_width, score_cell_height,
-                        score_cell_height / 2, GRID_BG_COLOR);
-
         GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
+
+        Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
+        drawRoundedRect(score_start, gd->score_cell_width,
+                        gd->score_cell_height, gd->score_cell_height / 2,
+                        GRID_BG_COLOR);
+
+        char *buffer = "Score:";
+        int score_title_x = score_start.x + cell_spacing;
+        int score_title_y = score_start.y + cell_spacing / 2;
+
+        Paint_DrawString_EN(score_title_x, score_title_y, buffer, &Font16,
+                            GRID_BG_COLOR, BLACK);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
@@ -204,6 +233,23 @@ void drawGameGrid(GameState *gs)
         int cell_spacing = DEFAULT_CELL_SPACING;
 
         GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
+
+        int score_title_length = 6 * FONT_WIDTH;
+
+        char score_buffer[20];
+        sprintf(score_buffer, "%d", gs->score);
+
+        int score_rounding_radius = gd->score_cell_height / 2;
+
+        Paint_ClearWindows(
+            gd->score_start_x + score_title_length + cell_spacing,
+            gd->score_start_y + cell_spacing / 2,
+            gd->score_start_x + gd->score_cell_width - score_rounding_radius,
+            gd->score_start_y + cell_spacing / 2 + FONT_SIZE, GRID_BG_COLOR);
+
+        Paint_DrawString_EN(gd->score_start_x + score_title_length + FONT_WIDTH,
+                            gd->score_start_y + cell_spacing / 2, score_buffer,
+                            &Font16, GRID_BG_COLOR, BLACK);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {

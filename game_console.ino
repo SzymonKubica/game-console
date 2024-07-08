@@ -34,7 +34,6 @@ void setup(void)
 
 void loop(void)
 {
-        draw(state);
         drawGameCanvas(state);
         drawGameGrid(state);
 
