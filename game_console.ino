@@ -5,6 +5,7 @@
 /*
 TODO items:
 - clean up the display logic
+- Add proper logic when the game is over.
 */
 
 #define INPUT_POLLING_DELAY 50
@@ -52,5 +53,18 @@ void loop(void)
                 }
                 delay(INPUT_POLLING_DELAY);
         }
+
         drawGameOver(state);
+        // After the game is over we loop until some input is registered.
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+                checkJoystickInput(&dir, &input_registered,
+                                   (int (*)(unsigned char)) & analogRead);
+                checkButtonsInput(&dir, &input_registered,
+                                  (int (*)(unsigned char)) & digitalRead);
+                if (input_registered) {
+                        break;
+                }
+        }
 }
