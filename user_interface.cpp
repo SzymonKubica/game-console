@@ -12,8 +12,8 @@
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
-#define GRID_BG_COLOR GRAY
-#define DEFAULT_CELL_SPACING 10
+#define GRID_BG_COLOR WHITE
+#define DEFAULT_CELL_SPACING 15
 
 int old_grid[4][4];
 
@@ -160,16 +160,14 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
 
         // We first draw a slot for the score
         int score_cell_width =
-            LCD_HEIGHT -
-            2 * (SCREEN_BORDER_WIDTH + cell_spacing + DISPLAY_CORNER_RADIUS);
-        int score_cell_height = FONT_SIZE + cell_spacing;
+            LCD_HEIGHT - 2 * (SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS);
+        int score_cell_height = cell_height;
 
         int score_start_y =
             (grid_start_y - score_cell_height - SCREEN_BORDER_WIDTH) / 2 +
             SCREEN_BORDER_WIDTH;
 
-        Point score_start = {.x = SCREEN_BORDER_WIDTH + cell_spacing +
-                                  DISPLAY_CORNER_RADIUS,
+        Point score_start = {.x = SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS,
                              .y = score_start_y};
 
         int score_title_x = score_start.x + cell_spacing;
@@ -247,7 +245,8 @@ void drawGameGrid(GameState *gs)
             gd->score_start_x + gd->score_cell_width - score_rounding_radius,
             gd->score_start_y + cell_spacing / 2 + FONT_SIZE, GRID_BG_COLOR);
 
-        Paint_DrawString_EN(gd->score_start_x + score_title_length + FONT_WIDTH,
+        Paint_DrawString_EN(gd->score_start_x + score_title_length +
+                                FONT_WIDTH + cell_spacing,
                             gd->score_start_y + cell_spacing / 2, score_buffer,
                             &Font16, GRID_BG_COLOR, BLACK);
 
@@ -412,6 +411,5 @@ void drawGameOver(GameState *state)
         int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
         int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
 
-        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16,
-                            BLACK, RED);
+        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, RED);
 }

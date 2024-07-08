@@ -4,8 +4,6 @@
 
 /*
 TODO items:
-- clean up the display logic
-- Add proper logic when the game is over.
 */
 
 #define INPUT_POLLING_DELAY 50
