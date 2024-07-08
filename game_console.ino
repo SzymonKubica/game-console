@@ -5,7 +5,6 @@
 /*
 TODO items:
 - clean up the display logic
-- move the game grid cells calculation into a function to remove duplication.
 */
 
 #define INPUT_POLLING_DELAY 50

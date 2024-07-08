@@ -107,26 +107,33 @@ static void drawRoundedRect(Point start, int width, int height, int radius,
                             color, DOT_PIXEL_1X1, DRAW_FILL_FULL);
 }
 
-/// Draws the background slots for the grid tiles, this takes a long time and
-/// should only be called once at the start of the game to draw the grid. After
-/// that drawGameGrid should be called to update the contents of the grid slots
-/// with the numbers.
-static void drawGameGridSlots(int grid_size, int cell_spacing)
+/// Struct modelling all dimensional information required to properly render
+/// and space out the grid slots that are used to display the game tiles.
+typedef struct GridDimensions {
+        int cell_height;
+        int cell_width;
+        int padding; // Padding added to the left of the grid if the available
+                     // space isn't evenly divided into grid_size
+        int grid_start_x;
+        int grid_start_y;
+} GridDimensions;
+
+GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
 {
+        GridDimensions *gd = (GridDimensions *)malloc(sizeof(GridDimensions));
         // HEIGHT and WIDTH are swapped because the display is mounted
         // horizontally. We subtract 4 times the border width to add padding
         // around the grid.
         int usable_width =
             LCD_HEIGHT - 2 * SCREEN_BORDER_WIDTH - 2 * cell_spacing;
-        int usable_height =
-            LCD_WIDTH - 2 * DISPLAY_CORNER_RADIUS;
+        int usable_height = LCD_WIDTH - 2 * DISPLAY_CORNER_RADIUS;
 
         int cell_height =
             (usable_height - (grid_size - 1) * cell_spacing) / grid_size;
         int cell_width =
             (usable_width - (grid_size - 1) * cell_spacing) / grid_size;
 
-        assert (cell_height >= FONT_SIZE);
+        assert(cell_height >= FONT_SIZE);
 
         // We need to calculate the remainder width and then add a half of it
         // to the starting point to make the grid centered in case the usable
@@ -134,21 +141,58 @@ static void drawGameGridSlots(int grid_size, int cell_spacing)
         int remainder_width =
             (usable_width - (grid_size - 1) * cell_spacing) % grid_size;
 
+        // We offset the grid downwards to allow it to overlap with the gap
+        // between the two bottom corners and save space for the score at the
+        // top of the grid.
+        int corner_offset = DISPLAY_CORNER_RADIUS  / 4;
+
         int grid_start_x =
-            1 * SCREEN_BORDER_WIDTH + cell_spacing + remainder_width / 2;
-        int grid_start_y = 1 * SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS;
+            SCREEN_BORDER_WIDTH + cell_spacing + remainder_width / 2;
+        int grid_start_y = SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS + corner_offset;
+
+        gd->cell_height = cell_height;
+        gd->cell_width = cell_width;
+        gd->padding = remainder_width;
+        gd->grid_start_x = grid_start_x;
+        gd->grid_start_y = grid_start_y;
+}
+
+/// Draws the background slots for the grid tiles, this takes a long time and
+/// should only be called once at the start of the game to draw the grid. After
+/// that drawGameGrid should be called to update the contents of the grid slots
+/// with the numbers.
+static void drawGameGridSlots(int grid_size, int cell_spacing)
+{
+
+        // We first draw a slot for the score
+        int score_cell_width =
+            LCD_HEIGHT -
+            2 * (SCREEN_BORDER_WIDTH + cell_spacing + DISPLAY_CORNER_RADIUS);
+        int score_cell_height = FONT_SIZE + cell_spacing;
+
+        Point score_start = {.x = SCREEN_BORDER_WIDTH + cell_spacing +
+                                  DISPLAY_CORNER_RADIUS,
+                             .y = SCREEN_BORDER_WIDTH + 2 * cell_spacing};
+
+        drawRoundedRect(score_start, score_cell_width, score_cell_height,
+                        score_cell_height / 2, GRID_BG_COLOR);
+
+        GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
-                        Point start = {.x = grid_start_x +
-                                            j * (cell_width + cell_spacing),
-                                       .y = grid_start_y +
-                                            i * (cell_height + cell_spacing)};
+                        Point start = {
+                            .x = gd->grid_start_x +
+                                 j * (gd->cell_width + cell_spacing),
+                            .y = gd->grid_start_y +
+                                 i * (gd->cell_height + cell_spacing)};
 
-                        drawRoundedRect(start, cell_width, cell_height,
-                                        cell_height / 2, GRID_BG_COLOR);
+                        drawRoundedRect(start, gd->cell_width, gd->cell_height,
+                                        gd->cell_height / 2, GRID_BG_COLOR);
                 }
         }
+
+        free(gd);
 }
 
 static void strReplace(char *str, char *oldWord, char *newWord);
@@ -156,38 +200,18 @@ static int number_string_length(int number);
 
 void drawGameGrid(GameState *gs)
 {
-        int cell_spacing = DEFAULT_CELL_SPACING;
-        // HEIGHT and WIDTH are swapped because the display is mounted
-        // horizontally. We subtract 4 times the border width to add padding
-        // around the grid.
-        int usable_width =
-            LCD_HEIGHT - 2 * SCREEN_BORDER_WIDTH - 2 * cell_spacing;
-        int usable_height =
-            LCD_WIDTH - 2 * DISPLAY_CORNER_RADIUS;
-
         int grid_size = gs->grid_size;
+        int cell_spacing = DEFAULT_CELL_SPACING;
 
-        int cell_height =
-            (usable_height - (grid_size - 1) * cell_spacing) / grid_size;
-        int cell_width =
-            (usable_width - (grid_size - 1) * cell_spacing) / grid_size;
-
-        // We need to calculate the remainder width and then add a half of it
-        // to the starting point to make the grid centered in case the usable
-        // height doesn't divide evenly into grid_size.
-        int remainder_width =
-            (usable_width - (grid_size - 1) * cell_spacing) % grid_size;
-
-        int grid_start_x =
-            1 * SCREEN_BORDER_WIDTH + cell_spacing + remainder_width / 2;
-        int grid_start_y = 1 * SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS;
+        GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
-                        Point start = {.x = grid_start_x +
-                                            j * (cell_width + cell_spacing),
-                                       .y = grid_start_y +
-                                            i * (cell_height + cell_spacing)};
+                        Point start = {
+                            .x = gd->grid_start_x +
+                                 j * (gd->cell_width + cell_spacing),
+                            .y = gd->grid_start_y +
+                                 i * (gd->cell_height + cell_spacing)};
 
                         if (gs->grid[i][j] != old_grid[i][j]) {
                                 char *buffer = (char *)malloc(5 * sizeof(char));
@@ -196,8 +220,9 @@ void drawGameGrid(GameState *gs)
                                 // We need to center the four characters of text
                                 // inside of the cell.
                                 int x_margin =
-                                    (cell_width - 4 * FONT_WIDTH) / 2;
-                                int y_margin = (cell_height - FONT_SIZE) / 2;
+                                    (gd->cell_width - 4 * FONT_WIDTH) / 2;
+                                int y_margin =
+                                    (gd->cell_height - FONT_SIZE) / 2;
                                 int digit_len =
                                     number_string_length(old_grid[i][j]);
 
@@ -217,6 +242,7 @@ void drawGameGrid(GameState *gs)
                         }
                 }
         }
+        free(gd);
 }
 
 static void drawRoundedBorder(int color)
