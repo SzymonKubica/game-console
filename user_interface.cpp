@@ -41,43 +41,21 @@ typedef struct Point {
 /// Paints the white canvas for the game grid and the four blue
 /// dots in the corners
 static void drawRoundedBorder(int color);
-static void drawRoundedRect(Point top_left, int width, int height, int radius,
-                            int color);
-static void drawGameGridSlots(int grid_size, int cell_spacing);
+static void drawRoundedRectangle(Point top_left, int width, int height,
+                                 int radius, int color);
+static void drawGameGridSlots(int grid_size);
+
 void drawGameCanvas(GameState *state)
 {
         Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
         Paint_Clear(BLACK);
         drawRoundedBorder(DARKBLUE);
         Point top_left = {.x = 70, .y = 70};
-        // drawRoundedRect(top_left, 100, 60, 20, WHITE);
-        drawGameGridSlots(state->grid_size, DEFAULT_CELL_SPACING);
-        return;
-        int canvas_height = 10 * FONT_SIZE;
-        int canvas_width = 21 * FONT_WIDTH;
-
-        Point top_left_corner = {.x = TOP_LEFT_CORNER_X,
-                                 .y = TOP_LEFT_CORNER_Y};
-
-        Point bottom_right_corner = {.x = top_left_corner.x + canvas_width,
-                                     .y = top_left_corner.y + canvas_height};
-
-        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
-        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
-
-        Paint_ClearWindows(top_left_corner.x, top_left_corner.y,
-                           bottom_right_corner.x, bottom_right_corner.y, WHITE);
-
-        for (int x : x_positions) {
-                for (int y : y_positions) {
-                        Paint_DrawCircle(x, y, 6, BLUE, DOT_PIXEL_1X1,
-                                         DRAW_FILL_FULL);
-                }
-        }
+        drawGameGridSlots(state->grid_size);
 }
 
-static void drawRoundedRect(Point start, int width, int height, int radius,
-                            int color)
+static void drawRoundedRectangle(Point start, int width, int height, int radius,
+                                 int color)
 {
 
         Point top_left_corner = {.x = start.x + radius, .y = start.y + radius};
@@ -115,6 +93,8 @@ static void drawRoundedRect(Point start, int width, int height, int radius,
 typedef struct GridDimensions {
         int cell_height;
         int cell_width;
+        int cell_x_spacing;
+        int cell_y_spacing;
         int padding; // Padding added to the left of the grid if the available
                      // space isn't evenly divided into grid_size
         int grid_start_x;
@@ -123,30 +103,32 @@ typedef struct GridDimensions {
         int score_cell_width;
         int score_start_x;
         int score_start_y;
+        int score_title_x;
+        int score_title_y;
 } GridDimensions;
 
-GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
+GridDimensions *calculateGridDimensions(int grid_size)
 {
         GridDimensions *gd = (GridDimensions *)malloc(sizeof(GridDimensions));
         // HEIGHT and WIDTH are swapped because the display is mounted
         // horizontally. We subtract 4 times the border width to add padding
         // around the grid.
-        int usable_width =
-            LCD_HEIGHT - 2 * SCREEN_BORDER_WIDTH - 2 * cell_spacing;
+        int usable_width = LCD_HEIGHT - 2 * SCREEN_BORDER_WIDTH;
         int usable_height = LCD_WIDTH - 2 * DISPLAY_CORNER_RADIUS;
 
-        int cell_height =
-            (usable_height - (grid_size - 1) * cell_spacing) / grid_size;
-        int cell_width =
-            (usable_width - (grid_size - 1) * cell_spacing) / grid_size;
+        int cell_height = FONT_SIZE + FONT_SIZE / 2;
+        int cell_width = 4 * FONT_WIDTH + FONT_WIDTH / 2;
 
-        assert(cell_height >= FONT_SIZE);
+        int cell_y_spacing =
+            (usable_height - cell_height * grid_size) / (grid_size - 1);
+        int cell_x_spacing =
+            (usable_width - cell_width * grid_size) / (grid_size + 1);
 
         // We need to calculate the remainder width and then add a half of it
         // to the starting point to make the grid centered in case the usable
         // height doesn't divide evenly into grid_size.
-        int remainder_width =
-            (usable_width - (grid_size - 1) * cell_spacing) % grid_size;
+        int remainder_width = (usable_width - (grid_size + 1) * cell_x_spacing -
+                               grid_size * cell_width);
 
         // We offset the grid downwards to allow it to overlap with the gap
         // between the two bottom corners and save space for the score at the
@@ -154,7 +136,7 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
         int corner_offset = DISPLAY_CORNER_RADIUS / 4;
 
         int grid_start_x =
-            SCREEN_BORDER_WIDTH + cell_spacing + remainder_width / 2;
+            SCREEN_BORDER_WIDTH + cell_x_spacing + remainder_width / 2;
         int grid_start_y =
             SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS + corner_offset;
 
@@ -170,11 +152,13 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
         Point score_start = {.x = SCREEN_BORDER_WIDTH + DISPLAY_CORNER_RADIUS,
                              .y = score_start_y};
 
-        int score_title_x = score_start.x + cell_spacing;
-        int score_title_y = score_start.y + cell_spacing / 2;
+        int score_title_x = score_start.x + cell_x_spacing;
+        int score_title_y = score_start.y + (score_cell_height - FONT_SIZE) / 2;
 
         gd->cell_height = cell_height;
         gd->cell_width = cell_width;
+        gd->cell_x_spacing = cell_x_spacing;
+        gd->cell_y_spacing = cell_y_spacing;
         gd->padding = remainder_width;
         gd->grid_start_x = grid_start_x;
         gd->grid_start_y = grid_start_y;
@@ -183,39 +167,40 @@ GridDimensions *calculateGridDimensions(int grid_size, int cell_spacing)
         gd->score_cell_width = score_cell_width;
         gd->score_start_x = score_start.x;
         gd->score_start_y = score_start.y;
+        gd->score_title_x = score_title_x;
+        gd->score_title_y = score_title_y;
 }
 
 /// Draws the background slots for the grid tiles, this takes a long time and
 /// should only be called once at the start of the game to draw the grid. After
 /// that drawGameGrid should be called to update the contents of the grid slots
 /// with the numbers.
-static void drawGameGridSlots(int grid_size, int cell_spacing)
+static void drawGameGridSlots(int grid_size)
 {
 
-        GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
+        GridDimensions *gd = calculateGridDimensions(grid_size);
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
-        drawRoundedRect(score_start, gd->score_cell_width,
-                        gd->score_cell_height, gd->score_cell_height / 2,
-                        GRID_BG_COLOR);
+        drawRoundedRectangle(score_start, gd->score_cell_width,
+                             gd->score_cell_height, gd->score_cell_height / 2,
+                             GRID_BG_COLOR);
 
         char *buffer = "Score:";
-        int score_title_x = score_start.x + cell_spacing;
-        int score_title_y = score_start.y + cell_spacing / 2;
 
-        Paint_DrawString_EN(score_title_x, score_title_y, buffer, &Font16,
-                            GRID_BG_COLOR, BLACK);
+        Paint_DrawString_EN(gd->score_title_x, gd->score_title_y, buffer,
+                            &Font16, GRID_BG_COLOR, BLACK);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
                         Point start = {
                             .x = gd->grid_start_x +
-                                 j * (gd->cell_width + cell_spacing),
+                                 j * (gd->cell_width + gd->cell_x_spacing),
                             .y = gd->grid_start_y +
-                                 i * (gd->cell_height + cell_spacing)};
+                                 i * (gd->cell_height + gd->cell_y_spacing)};
 
-                        drawRoundedRect(start, gd->cell_width, gd->cell_height,
-                                        gd->cell_height / 2, GRID_BG_COLOR);
+                        drawRoundedRectangle(
+                            start, gd->cell_width, gd->cell_height,
+                            gd->cell_height / 2, GRID_BG_COLOR);
                 }
         }
 
@@ -228,35 +213,31 @@ static int number_string_length(int number);
 void updateGameGrid(GameState *gs)
 {
         int grid_size = gs->grid_size;
-        int cell_spacing = DEFAULT_CELL_SPACING;
-
-        GridDimensions *gd = calculateGridDimensions(grid_size, cell_spacing);
+        GridDimensions *gd = calculateGridDimensions(grid_size);
 
         int score_title_length = 6 * FONT_WIDTH;
-
         char score_buffer[20];
         sprintf(score_buffer, "%d", gs->score);
 
         int score_rounding_radius = gd->score_cell_height / 2;
 
-        Paint_ClearWindows(
-            gd->score_start_x + score_title_length + cell_spacing,
-            gd->score_start_y + cell_spacing / 2,
-            gd->score_start_x + gd->score_cell_width - score_rounding_radius,
-            gd->score_start_y + cell_spacing / 2 + FONT_SIZE, GRID_BG_COLOR);
+        Paint_ClearWindows(gd->score_title_x + score_title_length + FONT_WIDTH,
+                           gd->score_title_y,
+                           gd->score_start_x + gd->score_cell_width -
+                               score_rounding_radius,
+                           gd->score_title_y + FONT_SIZE, GRID_BG_COLOR);
 
-        Paint_DrawString_EN(gd->score_start_x + score_title_length +
-                                FONT_WIDTH + cell_spacing,
-                            gd->score_start_y + cell_spacing / 2, score_buffer,
-                            &Font16, GRID_BG_COLOR, BLACK);
+        Paint_DrawString_EN(gd->score_title_x + score_title_length + FONT_WIDTH,
+                            gd->score_title_y, score_buffer, &Font16,
+                            GRID_BG_COLOR, BLACK);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
                         Point start = {
                             .x = gd->grid_start_x +
-                                 j * (gd->cell_width + cell_spacing),
+                                 j * (gd->cell_width + gd->cell_x_spacing),
                             .y = gd->grid_start_y +
-                                 i * (gd->cell_height + cell_spacing)};
+                                 i * (gd->cell_height + gd->cell_y_spacing)};
 
                         if (gs->grid[i][j] != old_grid[i][j]) {
                                 char *buffer = (char *)malloc(5 * sizeof(char));
@@ -407,6 +388,18 @@ void drawGameOver(GameState *state)
         drawRoundedBorder(RED);
 
         char *msg = "Game Over";
+
+        int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
+        int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
+
+        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, RED);
+}
+
+void drawGameWon(GameState *state)
+{
+        drawRoundedBorder(GREEN);
+
+        char *msg = "You Won!";
 
         int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
         int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
