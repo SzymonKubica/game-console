@@ -13,20 +13,12 @@
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
 #define GRID_BG_COLOR WHITE
-#define DEFAULT_CELL_SPACING 15
-
-int old_grid[4][4];
 
 void initializeDisplay()
 {
         Config_Init();
         LCD_Init();
         LCD_SetBacklight(100);
-
-        for (int i = 0; i < 4; i++)
-                for (int j = 0; j < 4; j++)
-                        old_grid[i][j] = 0;
-
         Paint_Clear(BLACK);
 }
 /*******************************************************************************
@@ -239,7 +231,7 @@ void updateGameGrid(GameState *gs)
                             .y = gd->grid_start_y +
                                  i * (gd->cell_height + gd->cell_y_spacing)};
 
-                        if (gs->grid[i][j] != old_grid[i][j]) {
+                        if (gs->grid[i][j] != gs->old_grid[i][j]) {
                                 char *buffer = (char *)malloc(5 * sizeof(char));
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
                                 strReplace(buffer, "   0", "    ");
@@ -250,7 +242,7 @@ void updateGameGrid(GameState *gs)
                                 int y_margin =
                                     (gd->cell_height - FONT_SIZE) / 2;
                                 int digit_len =
-                                    number_string_length(old_grid[i][j]);
+                                    number_string_length(gs->old_grid[i][j]);
 
                                 Paint_ClearWindows(
                                     start.x + x_margin +
@@ -263,7 +255,7 @@ void updateGameGrid(GameState *gs)
                                 Paint_DrawString_EN(
                                     start.x + x_margin, start.y + y_margin,
                                     buffer, &Font16, GRID_BG_COLOR, BLACK);
-                                old_grid[i][j] = gs->grid[i][j];
+                                gs->old_grid[i][j] = gs->grid[i][j];
                                 free(buffer);
                         }
                 }

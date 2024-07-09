@@ -3,6 +3,7 @@
 
 typedef struct GameState {
         int **grid;
+        int **old_grid;
         int score;
         int occupied_tiles;
         int grid_size;

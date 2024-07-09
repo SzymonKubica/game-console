@@ -24,6 +24,7 @@ GameState *initializeGameState(int size)
         gs->occupied_tiles = 0;
         gs->grid_size = size;
         gs->grid = createGameGrid(size);
+        gs->old_grid = createGameGrid(size);
 
         spawnTile(gs);
         return gs;
@@ -39,7 +40,7 @@ void freeGameState(GameState *gs)
 // Allocates a new game grid as a two-dimensional array
 int **createGameGrid(int size)
 {
-        int **g = (int **)malloc(4 * sizeof(int));
+        int **g = (int **)malloc(size * sizeof(int));
         for (int i = 0; i < size; i++) {
                 g[i] = (int *)calloc(size, sizeof(int));
         }
@@ -65,14 +66,14 @@ static int generateNewTileValue()
         }
         return 2;
 }
-static int getRandomCoordinate() { return rand() % 4; }
+static int getRandomCoordinate(int grid_size) { return rand() % grid_size; }
 
 static void spawnTile(GameState *gs)
 {
         bool success = false;
         while (!success) {
-                int x = getRandomCoordinate();
-                int y = getRandomCoordinate();
+                int x = getRandomCoordinate(gs->grid_size);
+                int y = getRandomCoordinate(gs->grid_size);
 
                 if (gs->grid[x][y] == 0) {
                         gs->grid[x][y] = generateNewTileValue();

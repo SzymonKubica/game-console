@@ -29,7 +29,7 @@ void setup(void)
         // noise present on the first digital pin
         initializeRandomnessSeed(analogRead(0));
 
-        state = initializeGameState(4);
+        state = initializeGameState(5);
 }
 
 void loop(void)
