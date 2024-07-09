@@ -56,14 +56,27 @@ void loop(void)
                         handleGameOver(state);
                         break;
                 }
+                if (isGameFinished(state)) {
+                        handleGameFinished(state);
+                        break;
+                }
         }
 }
 
-void handleGameOver(GridState *state)
+void handleGameOver(GameState *state)
 {
         drawGameOver(state);
+        waitForInput();
+}
 
-        // We loop until some input is registered.
+void handleGameFinished(GameState *state)
+{
+        drawGameWon(state);
+        waitForInput();
+}
+
+void waitForInput()
+{
         while (true) {
                 Direction dir;
                 bool input_registered = false;

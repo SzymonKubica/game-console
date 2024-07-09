@@ -6,11 +6,13 @@ typedef struct GameState {
         int score;
         int occupied_tiles;
         int grid_size;
+        int target_max_tile;
 } GameState;
 
 GameState *initializeGameState(int gridSize);
 void initializeRandomnessSeed(int seed);
 bool isGameOver(GameState *gs);
+bool isGameFinished(GameState *gs);
 void takeTurn(GameState *gs, int direction);
 
 #endif

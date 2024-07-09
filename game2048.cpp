@@ -210,6 +210,18 @@ static bool noMovePossible(GameState *gs);
 
 bool isGameOver(GameState *gs) { return isBoardFull(gs) && noMovePossible(gs); }
 
+bool isGameFinished(GameState *gs)
+{
+        for (int i = 0; i < gs->grid_size; i++) {
+                for (int j = 0; j < gs->grid_size; j++) {
+                        if (gs->grid[i][j] == gs->target_max_tile) {
+                                return true;
+                        }
+                }
+        }
+        return false;
+}
+
 static bool isBoardFull(GameState *gs)
 {
         return gs->occupied_tiles >= gs->grid_size * gs->grid_size;
