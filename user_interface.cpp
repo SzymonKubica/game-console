@@ -225,7 +225,7 @@ static void drawGameGridSlots(int grid_size, int cell_spacing)
 static void strReplace(char *str, char *oldWord, char *newWord);
 static int number_string_length(int number);
 
-void drawGameGrid(GameState *gs)
+void updateGameGrid(GameState *gs)
 {
         int grid_size = gs->grid_size;
         int cell_spacing = DEFAULT_CELL_SPACING;

@@ -11,6 +11,6 @@ void initializeDisplay();
 void drawGameCanvas(GameState *state);
 void draw(GameState *state);
 void drawGameOver(GameState *state);
-void drawGameGrid(GameState *gs);
+void updateGameGrid(GameState *gs);
 
 #endif

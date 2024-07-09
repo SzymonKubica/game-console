@@ -58,7 +58,13 @@ void freeGameGrid(int **grid, int size)
   Tile Spawning
 *******************************************************************************/
 
-static int generateNewTileValue() { return 2 + 2 * (rand() % 2); }
+static int generateNewTileValue()
+{
+        if (rand() % 10 == 1) {
+                return 4;
+        }
+        return 2;
+}
 static int getRandomCoordinate() { return rand() % 4; }
 
 static void spawnTile(GameState *gs)

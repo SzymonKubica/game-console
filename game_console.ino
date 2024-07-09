@@ -4,6 +4,7 @@
 
 /*
 TODO items:
+Add detection of when the game is won
 */
 
 #define INPUT_POLLING_DELAY 50
@@ -34,9 +35,9 @@ void setup(void)
 void loop(void)
 {
         drawGameCanvas(state);
-        drawGameGrid(state);
+        updateGameGrid(state);
 
-        while (!isGameOver(state)) {
+        while (true) {
                 Direction dir;
                 bool input_registered = false;
                 checkJoystickInput(&dir, &input_registered,
@@ -46,14 +47,23 @@ void loop(void)
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
-                        drawGameGrid(state);
+                        updateGameGrid(state);
                         delay(MOVE_REGISTERED_DELAY);
                 }
                 delay(INPUT_POLLING_DELAY);
-        }
 
+                if (isGameOver(state)) {
+                        handleGameOver(state);
+                        break;
+                }
+        }
+}
+
+void handleGameOver(GridState *state)
+{
         drawGameOver(state);
-        // After the game is over we loop until some input is registered.
+
+        // We loop until some input is registered.
         while (true) {
                 Direction dir;
                 bool input_registered = false;
