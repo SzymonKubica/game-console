@@ -4,6 +4,7 @@
 typedef enum ConfigOption {
         GRID_SIZE = 0,
         TARGET_MAX_TILE = 1,
+        READY_TO_GO = 2,
 } ConfigOption;
 
 typedef struct GameConfiguration {

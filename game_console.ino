@@ -95,7 +95,7 @@ void waitForInput()
 
 void collectGameConfiguration(GameConfiguration *config)
 {
-        const int AVAILABLE_OPTIONS = 2;
+        const int AVAILABLE_OPTIONS = 3;
         const int GRID_SIZES_LEN = 3;
         const int TARGET_MAX_TILES_LEN = 6;
 
@@ -113,7 +113,6 @@ void collectGameConfiguration(GameConfiguration *config)
         drawConfigurationMenu(config, config, false);
 
         while (true) {
-                int stick_registered = digitalRead(STICK_BUTTON_PIN);
                 Direction dir;
                 bool input_registered = false;
 
@@ -121,18 +120,18 @@ void collectGameConfiguration(GameConfiguration *config)
                                    (int (*)(unsigned char)) & analogRead);
                 checkButtonsInput(&dir, &input_registered,
                                   (int (*)(unsigned char)) & digitalRead);
-
+                bool ready = false;
                 if (input_registered) {
                         GameConfiguration old_config;
                         old_config.grid_size = config->grid_size;
                         old_config.target_max_tile = config->target_max_tile;
                         old_config.config_option = config->config_option;
                         switch (dir) {
-                        case UP:
+                        case DOWN:
                                 curr_opt = (ConfigOption)((curr_opt + 1) %
                                                           AVAILABLE_OPTIONS);
                                 break;
-                        case DOWN:
+                        case UP:
                                 curr_opt = (ConfigOption)((curr_opt - 1) %
                                                           AVAILABLE_OPTIONS);
                                 break;
@@ -156,9 +155,11 @@ void collectGameConfiguration(GameConfiguration *config)
                                 if (curr_opt == GRID_SIZE) {
                                         grid_size =
                                             (grid_size + 1) % GRID_SIZES_LEN;
-                                } else {
+                                } else if (curr_opt == TARGET_MAX_TILE) {
                                         game_target = (game_target + 1) %
                                                       TARGET_MAX_TILES_LEN;
+                                } else {
+                                  ready = true;
                                 }
                                 break;
                         }
@@ -169,6 +170,9 @@ void collectGameConfiguration(GameConfiguration *config)
                         config->config_option = curr_opt;
                         drawConfigurationMenu(config, &old_config, true);
                         delay(MOVE_REGISTERED_DELAY);
+                        if (ready) {
+                                break;
+                        }
                 }
                 delay(INPUT_POLLING_DELAY);
         }

@@ -408,24 +408,29 @@ void drawConfigurationMenu(GameConfiguration *config,
         char *heading = "2048";
         char *grid_size_str = "Grid size:";
         char *target_tile = "Game target:";
+        char *start = "Start Game";
 
         int text_max_length = strlen(target_tile) + 2 + 4; // max 4096 target
         int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
 
-        int spacing = (LCD_WIDTH - 2 * FONT_SIZE - HEADING_FONT_SIZE) / 3;
+        int spacing = (LCD_WIDTH - 6 * FONT_SIZE - HEADING_FONT_SIZE) / 3;
 
         int heading_x_pos =
             (LCD_HEIGHT - strlen(heading) * HEADING_FONT_WIDTH) / 2;
 
         // First calculate the positions of the two configuration cells.
-        int grid_size_y_pos = 2 * spacing;
-        int target_tile_y_pos = 2 * spacing + 3 * FONT_SIZE;
+        int grid_size_y_pos = 2 * spacing + FONT_SIZE;
+        int target_tile_y_pos = 2 * spacing + 4 * FONT_SIZE;
+        int start_tile_y_pos = 2 * spacing + 7 * FONT_SIZE;
 
         Point grid_size_cell_start = {.x = left_margin - FONT_WIDTH / 2,
                                       .y = grid_size_y_pos - FONT_SIZE / 2};
 
         Point target_tile_cell_start = {.x = left_margin - FONT_WIDTH / 2,
                                         .y = target_tile_y_pos - FONT_SIZE / 2};
+
+        Point start_tile_cell_start = {.x = left_margin - FONT_WIDTH / 2,
+                                       .y = start_tile_y_pos - FONT_SIZE / 2};
 
         Point grid_size_modifiable_cell_start = {
             .x = (int)(left_margin + (strlen(target_tile) + 1) * FONT_WIDTH),
@@ -452,10 +457,16 @@ void drawConfigurationMenu(GameConfiguration *config,
                                      FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
                 drawRoundedRectangle(target_tile_cell_start, option_cell_width,
                                      FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
+                drawRoundedRectangle(start_tile_cell_start, option_cell_width,
+                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
 
                 Paint_DrawString_EN(left_margin, grid_size_y_pos, grid_size_str,
                                     &Font16, cell_bg_color, WHITE);
                 Paint_DrawString_EN(left_margin, target_tile_y_pos, target_tile,
+                                    &Font16, cell_bg_color, WHITE);
+                int start_game_margin =
+                    (LCD_HEIGHT - strlen(start) * FONT_WIDTH) / 2;
+                Paint_DrawString_EN(start_game_margin, start_tile_y_pos, start,
                                     &Font16, cell_bg_color, WHITE);
         }
 
@@ -465,22 +476,32 @@ void drawConfigurationMenu(GameConfiguration *config,
                 int selector_circle_radius = 5;
                 Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
                                  grid_size_y_pos + FONT_SIZE / 2,
-                                 selector_circle_radius, BLACK,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                                 selector_circle_radius, BLACK, DOT_PIXEL_1X1,
+                                 DRAW_FILL_FULL);
                 Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
                                  target_tile_y_pos + FONT_SIZE / 2,
-                                 selector_circle_radius, BLACK,
-                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                                 selector_circle_radius, BLACK, DOT_PIXEL_1X1,
+                                 DRAW_FILL_FULL);
+                Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
+                                 start_tile_y_pos + FONT_SIZE / 2,
+                                 selector_circle_radius, BLACK, DOT_PIXEL_1X1,
+                                 DRAW_FILL_FULL);
                 if (config->config_option == 0) {
                         Paint_DrawCircle(left_margin + option_cell_width +
                                              FONT_WIDTH,
                                          grid_size_y_pos + FONT_SIZE / 2,
                                          selector_circle_radius, cell_bg_color,
                                          DOT_PIXEL_1X1, DRAW_FILL_FULL);
-                } else {
+                } else if (config->config_option == 1) {
                         Paint_DrawCircle(left_margin + option_cell_width +
                                              FONT_WIDTH,
                                          target_tile_y_pos + FONT_SIZE / 2,
+                                         selector_circle_radius, cell_bg_color,
+                                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                } else {
+                        Paint_DrawCircle(left_margin + option_cell_width +
+                                             FONT_WIDTH,
+                                         start_tile_y_pos + FONT_SIZE / 2,
                                          selector_circle_radius, cell_bg_color,
                                          DOT_PIXEL_1X1, DRAW_FILL_FULL);
                 }
