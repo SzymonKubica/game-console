@@ -17,12 +17,13 @@ void initializeRandomnessSeed(int seed) { srand(seed); }
 static void spawnTile(GameState *gs);
 
 int **createGameGrid(int size);
-GameState *initializeGameState(int size)
+GameState *initializeGameState(int size, int target_max_tile)
 {
         GameState *gs = (GameState *)malloc(sizeof(GameState));
         gs->score = 0;
         gs->occupied_tiles = 0;
         gs->grid_size = size;
+        gs->target_max_tile = target_max_tile,
         gs->grid = createGameGrid(size);
         gs->old_grid = createGameGrid(size);
 

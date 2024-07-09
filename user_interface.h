@@ -14,4 +14,6 @@ void drawGameOver(GameState *state);
 void drawGameWon(GameState *state);
 void updateGameGrid(GameState *gs);
 
+void drawConfigurationMenu(GameConfiguration *config, GameConfiguration *previous_config, bool update);
+
 #endif

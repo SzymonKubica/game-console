@@ -7,6 +7,8 @@
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
 #define FONT_WIDTH 11
+#define HEADING_FONT_SIZE 24
+#define HEADING_FONT_WIDTH 17
 #define TOP_LEFT_CORNER_X 23
 #define TOP_LEFT_CORNER_Y 38
 
@@ -396,5 +398,121 @@ void drawGameWon(GameState *state)
         int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
         int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
 
-        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, RED);
+        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, GREEN);
+}
+
+void drawConfigurationMenu(GameConfiguration *config,
+                           GameConfiguration *previous_config, bool update)
+{
+        // First set up all aata required to print
+        char *heading = "2048";
+        char *grid_size_str = "Grid size:";
+        char *target_tile = "Game target:";
+
+        int text_max_length = strlen(target_tile) + 2 + 4; // max 4096 target
+        int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
+
+        int spacing = (LCD_WIDTH - 2 * FONT_SIZE - HEADING_FONT_SIZE) / 3;
+
+        int heading_x_pos =
+            (LCD_HEIGHT - strlen(heading) * HEADING_FONT_WIDTH) / 2;
+
+        // First calculate the positions of the two configuration cells.
+        int grid_size_y_pos = 2 * spacing;
+        int target_tile_y_pos = 2 * spacing + 3 * FONT_SIZE;
+
+        Point grid_size_cell_start = {.x = left_margin - FONT_WIDTH / 2,
+                                      .y = grid_size_y_pos - FONT_SIZE / 2};
+
+        Point target_tile_cell_start = {.x = left_margin - FONT_WIDTH / 2,
+                                        .y = target_tile_y_pos - FONT_SIZE / 2};
+
+        Point grid_size_modifiable_cell_start = {
+            .x = (int)(left_margin + (strlen(target_tile) + 1) * FONT_WIDTH),
+            .y = grid_size_y_pos - FONT_SIZE / 4};
+
+        Point target_tile_modifiable_cell_start = {
+            .x = (int)(left_margin + (strlen(target_tile) + 1) * FONT_WIDTH),
+            .y = target_tile_y_pos - FONT_SIZE / 4};
+
+        int option_cell_width = (text_max_length + 1) * FONT_WIDTH;
+        int modifiable_cell_width = (5) * FONT_WIDTH;
+
+        int cell_bg_color = DARKBLUE;
+
+        if (!update) {
+                Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
+                Paint_Clear(BLACK);
+
+                Paint_DrawString_EN(heading_x_pos, spacing, heading, &Font24,
+                                    BLACK, WHITE);
+
+                // Draw the background for the two configuration cells.
+                drawRoundedRectangle(grid_size_cell_start, option_cell_width,
+                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
+                drawRoundedRectangle(target_tile_cell_start, option_cell_width,
+                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
+
+                Paint_DrawString_EN(left_margin, grid_size_y_pos, grid_size_str,
+                                    &Font16, cell_bg_color, WHITE);
+                Paint_DrawString_EN(left_margin, target_tile_y_pos, target_tile,
+                                    &Font16, cell_bg_color, WHITE);
+        }
+
+        if (!update || (update && config->config_option !=
+                                      previous_config->config_option)) {
+                // First clear both circles
+                int selector_circle_radius = 5;
+                Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
+                                 grid_size_y_pos + FONT_SIZE / 2,
+                                 selector_circle_radius, BLACK,
+                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
+                                 target_tile_y_pos + FONT_SIZE / 2,
+                                 selector_circle_radius, BLACK,
+                                 DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                if (config->config_option == 0) {
+                        Paint_DrawCircle(left_margin + option_cell_width +
+                                             FONT_WIDTH,
+                                         grid_size_y_pos + FONT_SIZE / 2,
+                                         selector_circle_radius, cell_bg_color,
+                                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                } else {
+                        Paint_DrawCircle(left_margin + option_cell_width +
+                                             FONT_WIDTH,
+                                         target_tile_y_pos + FONT_SIZE / 2,
+                                         selector_circle_radius, cell_bg_color,
+                                         DOT_PIXEL_1X1, DRAW_FILL_FULL);
+                }
+        }
+
+        if (!update || config->grid_size != previous_config->grid_size) {
+                char grid_size_buffer[5];
+                sprintf(grid_size_buffer, "%4d", config->grid_size);
+                drawRoundedRectangle(grid_size_modifiable_cell_start,
+                                     modifiable_cell_width,
+                                     FONT_SIZE + FONT_SIZE / 2,
+                                     (FONT_SIZE + FONT_SIZE / 2) / 2, WHITE);
+                Paint_DrawString_EN(
+                    grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
+                    grid_size_modifiable_cell_start.y + FONT_SIZE / 4,
+                    grid_size_buffer, &Font16, WHITE, BLACK);
+        }
+
+        if (!update ||
+            config->target_max_tile != previous_config->target_max_tile) {
+                char game_target_buffer[5];
+                sprintf(game_target_buffer, "%4d", config->target_max_tile);
+
+                // Draw / clear the modifiable cells
+                drawRoundedRectangle(target_tile_modifiable_cell_start,
+                                     modifiable_cell_width,
+                                     FONT_SIZE + FONT_SIZE / 2,
+                                     (FONT_SIZE + FONT_SIZE / 2) / 2, WHITE);
+
+                Paint_DrawString_EN(
+                    grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
+                    target_tile_modifiable_cell_start.y + FONT_SIZE / 4,
+                    game_target_buffer, &Font16, WHITE, BLACK);
+        }
 }
