@@ -206,7 +206,7 @@ bool isGameOver(GameState *gs) { return isBoardFull(gs) && noMovePossible(gs); }
 
 static bool isBoardFull(GameState *gs)
 {
-        return gs->occupied_tiles >= gs->occupied_tiles * gs->occupied_tiles;
+        return gs->occupied_tiles >= gs->grid_size * gs->grid_size;
 }
 
 void takeTurn(GameState *gs, int direction)
