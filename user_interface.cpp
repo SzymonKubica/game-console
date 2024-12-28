@@ -401,6 +401,7 @@ void drawGameWon(GameState *state)
         Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, GREEN);
 }
 
+/// Draws the config menu given the old and new config values
 void drawConfigurationMenu(GameConfiguration *config,
                            GameConfiguration *previous_config, bool update)
 {

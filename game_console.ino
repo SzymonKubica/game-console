@@ -2,10 +2,6 @@
 #include "game2048.h"
 #include "user_interface.h"
 
-/*
-TODO items:
-Add detection of when the game is won
-*/
 
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150

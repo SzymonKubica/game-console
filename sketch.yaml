@@ -1,0 +1,2 @@
+default_fqbn: arduino:renesas_uno:unor4minima
+default_port: /dev/ttyACM0
