@@ -173,3 +173,48 @@ void collectGameConfiguration(GameConfiguration *config)
                 delay(INPUT_POLLING_DELAY);
         }
 }
+
+
+void collectGenericConfig(Configuration *config)
+{
+        renderGenericConfigMenu(config, false);
+
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+
+                checkJoystickInput(&dir, &input_registered,
+                                   (int (*)(unsigned char)) & analogRead);
+                checkButtonsInput(&dir, &input_registered,
+                                  (int (*)(unsigned char)) & digitalRead);
+                bool ready = false;
+                if (input_registered) {
+                        Configuration old_config;
+                        switch (dir) {
+                        case DOWN:
+                                curr_opt = (ConfigOption)((curr_opt + 1) %
+                                                          AVAILABLE_OPTIONS);
+                                break;
+                        case UP:
+                                curr_opt = (ConfigOption)((curr_opt - 1) %
+                                                          AVAILABLE_OPTIONS);
+                                break;
+                        case LEFT:
+                                break;
+                        case RIGHT:
+                                break;
+                        }
+
+                        config->grid_size = available_grid_sizes[grid_size];
+                        config->target_max_tile =
+                            available_target_max_tiles[game_target];
+                        config->config_option = curr_opt;
+                        renderGenericConfigMenu(config, &old_config, true);
+                        delay(MOVE_REGISTERED_DELAY);
+                        if (ready) {
+                                break;
+                        }
+                }
+                delay(INPUT_POLLING_DELAY);
+        }
+}

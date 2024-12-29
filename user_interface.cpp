@@ -402,6 +402,8 @@ void drawGameWon(GameState *state)
 }
 
 /// Draws the config menu given the old and new config values
+/// The old config given in `previous_config` is needed to determine which parts
+/// of the UI need to be redrawn
 void drawConfigurationMenu(GameConfiguration *config,
                            GameConfiguration *previous_config, bool update)
 {
@@ -537,4 +539,9 @@ void drawConfigurationMenu(GameConfiguration *config,
                     target_tile_modifiable_cell_start.y + FONT_SIZE / 4,
                     game_target_buffer, &Font16, WHITE, BLACK);
         }
+}
+
+void renderGenericConfigMenu(Configuration *previous, bool update)
+{
+
 }
