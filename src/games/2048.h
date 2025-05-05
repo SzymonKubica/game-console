@@ -22,13 +22,10 @@ typedef struct GameState {
         int target_max_tile;
 } GameState;
 
-
-
-GameState *
-initializeGameState(int gridSize, int target_max_tile);
-void initializeRandomnessSeed(int seed);
-bool isGameOver(GameState *gs);
-bool isGameFinished(GameState *gs);
-void takeTurn(GameState *gs, int direction);
+GameState *initialize_game_state(int gridSize, int target_max_tile);
+void initialize_randomness_seed(int seed);
+bool is_game_over(GameState *gs);
+bool is_game_finished(GameState *gs);
+void take_turn(GameState *gs, int direction);
 
 #endif

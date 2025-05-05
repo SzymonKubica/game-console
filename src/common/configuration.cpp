@@ -2,7 +2,7 @@
 #include <cassert>
 #include <string.h>
 
-void shiftEditedConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
+void shift_edited_config_option_by(Configuration *config, ConfigurationDiff *diff,
                                int steps);
 
 /**
@@ -11,9 +11,9 @@ void shiftEditedConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
  * encoded in the `ConfigurationDiff` object so that it can be then rendered
  * on the UI.
  */
-void switchEditedConfigOptionUp(Configuration *config, ConfigurationDiff *diff)
+void switch_edited_config_option_up(Configuration *config, ConfigurationDiff *diff)
 {
-        shiftEditedConfigOptionBy(config, diff, 1);
+        shift_edited_config_option_by(config, diff, 1);
 }
 
 /**
@@ -22,10 +22,10 @@ void switchEditedConfigOptionUp(Configuration *config, ConfigurationDiff *diff)
  * is encoded in the `ConfigurationDiff` object so that it can be then rendered
  * on the UI.
  */
-void switchEditedConfigOptionDown(Configuration *config,
+void switch_edited_config_option_down(Configuration *config,
                                   ConfigurationDiff *diff)
 {
-        shiftEditedConfigOptionBy(config, diff, -1);
+        shift_edited_config_option_by(config, diff, -1);
 }
 
 /**
@@ -33,7 +33,7 @@ void switchEditedConfigOptionDown(Configuration *config,
  * `config->config_values_len`
  * + 1 because the last config bar allows the user to confirm selection.
  */
-void shiftEditedConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
+void shift_edited_config_option_by(Configuration *config, ConfigurationDiff *diff,
                                int steps)
 {
         int config_len = config->config_values_len + 1;
@@ -44,20 +44,20 @@ void shiftEditedConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
         diff->currently_edited_option = config->current_config_value;
 }
 
-void shiftCurrentConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
+void shift_current_config_option_by(Configuration *config, ConfigurationDiff *diff,
                                 int steps);
 
-void switchCurrentConfigOptionUp(Configuration *config, ConfigurationDiff *diff)
+void switch_current_config_option_up(Configuration *config, ConfigurationDiff *diff)
 {
-        shiftCurrentConfigOptionBy(config, diff, 1);
+        shift_current_config_option_by(config, diff, 1);
 }
-void switchCurrentConfigOptionDown(Configuration *config,
+void switch_current_config_option_down(Configuration *config,
                                    ConfigurationDiff *diff)
 {
-        shiftCurrentConfigOptionBy(config, diff, -1);
+        shift_current_config_option_by(config, diff, -1);
 }
 
-void shiftCurrentConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
+void shift_current_config_option_by(Configuration *config, ConfigurationDiff *diff,
                                 int steps)
 {
         assert(config->current_config_value != config->config_values_len);
@@ -87,7 +87,7 @@ int max(int a, int b)
         return (a > b) ? a : b;
 }
 
-int findMaxConfigOptionNameLength(Configuration *config)
+int find_max_config_option_name_length(Configuration *config)
 {
         int max_length = 0;
         for (int i = 0; i < config->config_values_len; i++) {

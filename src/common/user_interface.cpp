@@ -260,7 +260,7 @@ static void str_replace(char *str, char *oldWord, char *newWord)
         }
 }
 
-void drawGameOver(Display *display, GameState *state)
+void draw_game_over(Display *display, GameState *state)
 {
         display->draw_rounded_border(Red);
 
@@ -274,7 +274,7 @@ void drawGameOver(Display *display, GameState *state)
         display->draw_string(text_position, msg, Size16, Black, Red);
 }
 
-void drawGameWon(Display *display, GameState *state)
+void draw_game_won(Display *display, GameState *state)
 {
         display->draw_rounded_border(Green);
 
@@ -437,11 +437,11 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         }
 }
 
-void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff,
+void render_generic_config_menu(Configuration *config, ConfigurationDiff *diff,
                              bool update)
 {
 
-        int text_max_length = findMaxConfigOptionNameLength(config) + 2;
+        int text_max_length = find_max_config_option_name_length(config) + 2;
         int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
         int spacing = (LCD_WIDTH - config->config_values_len * FONT_SIZE -
                        HEADING_FONT_SIZE) /

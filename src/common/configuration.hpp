@@ -69,11 +69,11 @@ struct ConfigurationDiff {
         int modified_option_index;
 };
 
-void switchEditedConfigOptionDown(Configuration *config, ConfigurationDiff *diff);
-void switchEditedConfigOptionUp(Configuration *config, ConfigurationDiff *diff);
+void switch_edited_config_option_down(Configuration *config, ConfigurationDiff *diff);
+void switch_edited_config_option_up(Configuration *config, ConfigurationDiff *diff);
 
-void switchCurrentConfigOptionUp(Configuration *config, ConfigurationDiff *diff);
-void switchCurrentConfigOptionDown(Configuration *config, ConfigurationDiff *diff);
-int findMaxConfigOptionNameLength(Configuration *config);
+void switch_current_config_option_up(Configuration *config, ConfigurationDiff *diff);
+void switch_current_config_option_down(Configuration *config, ConfigurationDiff *diff);
+int find_max_config_option_name_length(Configuration *config);
 
 #endif
