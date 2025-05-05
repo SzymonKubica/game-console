@@ -1,13 +1,3 @@
-
-#define STICK_BUTTON_PIN A0
-#define STICK_Y_PIN 16
-#define STICK_X_PIN 17
-
-#define LEFT_BUTTON_PIN 9
-#define DOWN_BUTTON_PIN 15
-#define UP_BUTTON_PIN 8
-#define RIGHT_BUTTON_PIN 12
-
 typedef enum Direction {
         UP = 0,
         RIGHT = 1,

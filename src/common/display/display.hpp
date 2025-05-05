@@ -12,6 +12,15 @@ class Display
 {
       public:
         /**
+         * Performs the setup of the display. This is intended for performing
+         * initialization of the modules that are responsible for driving the
+         * particular implementation of the display. In case of the hardware
+         * display, this is supposed to initialize the display driver and erease
+         * its previous contents. Note that this should be called inside of
+         * the `setup` Arduino function and is intended to be executed only once.
+         */
+        virtual void setup() = 0;
+        /**
          * Initializes the display, this is for actions such as erasing the
          * previously rendered shapes in a physical Arduino display.
          */

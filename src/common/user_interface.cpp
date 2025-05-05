@@ -20,25 +20,18 @@
 
 #define GRID_BG_COLOR White
 
-void initializeDisplay()
-{
-        Config_Init();
-        LCD_Init();
-        LCD_SetBacklight(100);
-        Paint_Clear(BLACK);
-}
 /*******************************************************************************
   User Interface
 *******************************************************************************/
 
-static void drawGameGridSlots(Display *display, int grid_size);
-void drawGameCanvas(Display *display, GameState *state)
+static void draw_game_grid(Display *display, int grid_size);
+void draw_game_canvas(Display *display, GameState *state)
 {
         display->initialize();
         display->clear(Black);
         display->draw_rounded_border(DarkBlue);
         Point top_left = {.x = 70, .y = 70};
-        drawGameGridSlots(display, state->grid_size);
+        draw_game_grid(display, state->grid_size);
 }
 
 /// Struct modelling all dimensional information required to properly render
@@ -125,11 +118,13 @@ GridDimensions *calculate_grid_dimensions(int grid_size)
         gd->score_title_y = score_title_y;
 }
 
-/// Draws the background slots for the grid tiles, this takes a long time and
-/// should only be called once at the start of the game to draw the grid. After
-/// that drawGameGrid should be called to update the contents of the grid slots
-/// with the numbers.
-static void drawGameGridSlots(Display *display, int grid_size)
+/**
+ * Draws the background slots for the grid tiles, this takes a long time and
+ * should only be called once at the start of the game to draw the grid. After
+ * that update_game_grid should be called to update the contents of the grid slots
+ * with the numbers.
+ */
+static void draw_game_grid(Display *display, int grid_size)
 {
 
         GridDimensions *gd = calculate_grid_dimensions(grid_size);
@@ -294,8 +289,8 @@ void drawGameWon(Display *display, GameState *state)
 
 /// Draws the config menu given the old and new config values
 /// The old config given in `previous_config` is needed to determine which parts
-/// of the UI need to be redrawn
-void drawConfigurationMenu(Display *display, GameConfiguration *config,
+/// of the UI need to be updated
+void draw_configuration_menu(Display *display, GameConfiguration *config,
                            GameConfiguration *previous_config, bool update)
 {
         // First set up all aata required to print

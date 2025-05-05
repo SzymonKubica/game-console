@@ -1,4 +1,6 @@
-#include "src/common/input.h"
+#include "src/common/controller/controller.hpp"
+#include "src/common/controller/joystick_controller.hpp"
+#include "src/common/controller/keypad_controller.hpp"
 #include "src/common/configuration.hpp"
 #include "src/common/user_interface.h"
 #include "src/common/display/display.hpp"
@@ -9,19 +11,24 @@
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150
 
+
+LcdDisplay display;
+JoystickController joystick_controller;
+KeypadController keypad_controller;
+
 void setup(void)
 {
         // Initialise serial port for debugging
         Serial.begin(115200);
 
-        // Set up button pins as inputs
-        pinMode(LEFT_BUTTON_PIN, INPUT);
-        pinMode(DOWN_BUTTON_PIN, INPUT);
-        pinMode(UP_BUTTON_PIN, INPUT);
-        pinMode(RIGHT_BUTTON_PIN, INPUT);
-        pinMode(STICK_BUTTON_PIN, INPUT);
+        // Set up controllers
+        // TODO: figure out how to initialize those
+        joystick_controller = new JoystickController((int *(unsigned char))&analogRead, &pinMode),
+        keypad_controller = new KeypadController((int *(unsigned char))&digitalRead, &pinMode),
 
-        initializeDisplay();
+        // Initialize the hardware LCD display
+        display = LcdDisplay{};
+        display.setup();
 
         // Initializes the source of randomness from the
         // noise present on the first digital pin
@@ -30,9 +37,6 @@ void setup(void)
 
 void loop(void)
 {
-        LcdDisplay display = LcdDisplay{};
-        // TODO: step through the code and ensure that the main game loop works
-        // as expected.
         GameConfiguration config;
         collectGameConfiguration(&display, &config);
 
@@ -40,16 +44,14 @@ void loop(void)
         GameState *state =
             initializeGameState(config.grid_size, config.target_max_tile);
 
-        drawGameCanvas(&display, state);
+        draw_game_canvas(&display, state);
         update_game_grid(&display, state);
 
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char))&analogRead);
-                checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char))&digitalRead);
+                input_registered |= joystick_controller.poll_for_input(&dir);
+                input_registered |= keypad_controller.poll_for_input(&dir);
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
@@ -86,10 +88,9 @@ void waitForInput()
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char))&analogRead);
-                checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char))&digitalRead);
+                input_registered |= joystick_controller.poll_for_input(&dir);
+                input_registered |= keypad_controller.poll_for_input(&dir);
+
                 if (input_registered) {
                         break;
                 }
@@ -113,16 +114,14 @@ void collectGameConfiguration(Display *display, GameConfiguration *config)
         config->target_max_tile = available_target_max_tiles[game_target_idx];
         config->config_option = curr_opt_idx;
 
-        drawConfigurationMenu(display, config, config, false);
+        draw_configuration_menu(display, config, config, false);
 
         while (true) {
                 Direction dir;
                 bool input_registered = false;
+                input_registered |= joystick_controller.poll_for_input(&dir);
+                input_registered |= keypad_controller.poll_for_input(&dir);
 
-                checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char))&analogRead);
-                checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char))&digitalRead);
                 bool ready = false;
                 if (input_registered) {
                         GameConfiguration old_config;
@@ -171,7 +170,7 @@ void collectGameConfiguration(Display *display, GameConfiguration *config)
                         config->target_max_tile =
                             available_target_max_tiles[game_target_idx];
                         config->config_option = curr_opt_idx;
-                        drawConfigurationMenu(display, config, &old_config, true);
+                        draw_configuration_menu(display, config, &old_config, true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;
@@ -194,10 +193,8 @@ void collectGenericConfig(Configuration *config)
                 Direction dir;
                 bool input_registered = false;
 
-                checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char))&analogRead);
-                checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char))&digitalRead);
+                input_registered |= joystick_controller.poll_for_input(&dir);
+                input_registered |= keypad_controller.poll_for_input(&dir);
 
                 bool ready = false;
                 if (input_registered) {

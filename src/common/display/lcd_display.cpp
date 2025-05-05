@@ -5,6 +5,14 @@
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
 
+void LcdDisplay::setup()
+{
+        Config_Init();
+        LCD_Init();
+        LCD_SetBacklight(100);
+        Paint_Clear(BLACK);
+};
+
 void LcdDisplay::initialize()
 {
         Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
