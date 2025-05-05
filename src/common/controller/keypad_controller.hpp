@@ -28,12 +28,17 @@ class KeypadController : public Controller
          * Setup function used for e.g. initializing pins of the controller.
          * This is to be called only once inside of the `setup` Arduino
          * function.
+         *
+         * DEPRECATED: This will likely not be necessary in the future. Original plan
+         * was to initialize the pins there. The problem is that the function for
+         * doing this is overloaded so we cannot pass it as a pointer without
+         * contextual information (makes sense, it won't be possible to infer
+         * which function to call).
          */
          void setup() override;
 
-        KeypadController(int (*digital_read_)(unsigned char),
-                           void (*pin_mode_)(unsigned char, unsigned char))
-            : digital_read(digital_read_), pin_mode(pin_mode_)
+        KeypadController(int (*digital_read_)(unsigned char))
+            : digital_read(digital_read_)
         {
         }
 
@@ -48,15 +53,4 @@ class KeypadController : public Controller
          *
          */
         int (*digital_read)(unsigned char);
-
-        /**
-         * The arduino function used for assigning pin modes. Used for
-         * initializing the pins used by the joystick controller
-         *
-         * This is to be passed in when constructing the joystick controller.
-         * The reason is that we cannot import the Arduino specific functions
-         * inside of the C++ sources.
-         *
-         */
-        void (*pin_mode)(unsigned char, unsigned char);
 };

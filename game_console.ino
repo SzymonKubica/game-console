@@ -13,8 +13,8 @@
 
 
 LcdDisplay display;
-JoystickController joystick_controller;
-KeypadController keypad_controller;
+JoystickController *joystick_controller;
+KeypadController  *keypad_controller ;
 
 void setup(void)
 {
@@ -22,9 +22,14 @@ void setup(void)
         Serial.begin(115200);
 
         // Set up controllers
-        // TODO: figure out how to initialize those
-        joystick_controller = new JoystickController((int *(unsigned char))&analogRead, &pinMode),
-        keypad_controller = new KeypadController((int *(unsigned char))&digitalRead, &pinMode),
+        pinMode(STICK_BUTTON_PIN, INPUT);
+        joystick_controller = new JoystickController((int (*)(unsigned char))&analogRead),
+
+        pinMode(LEFT_BUTTON_PIN, INPUT);
+        pinMode(DOWN_BUTTON_PIN, INPUT);
+        pinMode(UP_BUTTON_PIN, INPUT);
+        pinMode(RIGHT_BUTTON_PIN, INPUT);
+        keypad_controller = new KeypadController((int (*)(unsigned char))&digitalRead),
 
         // Initialize the hardware LCD display
         display = LcdDisplay{};
@@ -50,8 +55,8 @@ void loop(void)
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller.poll_for_input(&dir);
-                input_registered |= keypad_controller.poll_for_input(&dir);
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
@@ -88,8 +93,8 @@ void waitForInput()
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller.poll_for_input(&dir);
-                input_registered |= keypad_controller.poll_for_input(&dir);
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
                         break;
@@ -119,8 +124,8 @@ void collectGameConfiguration(Display *display, GameConfiguration *config)
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller.poll_for_input(&dir);
-                input_registered |= keypad_controller.poll_for_input(&dir);
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
 
                 bool ready = false;
                 if (input_registered) {
@@ -193,8 +198,8 @@ void collectGenericConfig(Configuration *config)
                 Direction dir;
                 bool input_registered = false;
 
-                input_registered |= joystick_controller.poll_for_input(&dir);
-                input_registered |= keypad_controller.poll_for_input(&dir);
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
 
                 bool ready = false;
                 if (input_registered) {

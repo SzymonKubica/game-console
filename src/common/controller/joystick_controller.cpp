@@ -26,4 +26,4 @@ bool JoystickController::poll_for_input(Direction *input)
         return false;
 }
 
-void JoystickController::setup() { this->pin_mode(STICK_BUTTON_PIN, INPUT); }
+void JoystickController::setup() { }
