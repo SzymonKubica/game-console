@@ -15,4 +15,14 @@ void updateGameGrid(GameState *gs);
 void drawConfigurationMenu(GameConfiguration *config, GameConfiguration *previous_config, bool update);
 void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff, bool updateDetected);
 
+typedef struct Point {
+        int x;
+        int y;
+} Point;
+
+typedef enum FontSize {
+    Font16,
+} FontSize;
+
+
 #endif

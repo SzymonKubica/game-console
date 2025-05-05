@@ -553,7 +553,11 @@ void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff,
                        HEADING_FONT_SIZE) /
                       3;
 
-        // heading
-        // Paint_DrawString_EN(heading_x_pos, spacing, heading, &Font24, BLACK,
-                            // WHITE);
+        // TODO: add rendering similar to the 2048-specific menu
+        //
+        // 1. Step one: abstract away an interface that is required for drawing
+        //    strings, rounded rects and clearing the screen
+        // 2. Make the lib implement it
+        // 3. use ncurses or some other rendering thing to implement it
+        // 4. figure out how to test it without the actual UI.
 }

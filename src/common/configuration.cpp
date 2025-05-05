@@ -80,6 +80,8 @@ void shiftCurrentConfigOptionBy(Configuration *config, ConfigurationDiff *diff,
         }
 }
 
+/** For some reason when compiling the `max` function is not available.
+ */
 int max(int a, int b)
 {
         return (a > b) ? a : b;
