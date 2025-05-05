@@ -1,11 +1,9 @@
 #ifndef USER_INTERFACE_H
 #define USER_INTERFACE_H
 
-#include <string.h>
 #include <stdlib.h>
-#include "GUI_Paint.h"
-#include "LCD_Driver.h"
-#include "game2048.h"
+#include "../games/2048.h"
+#include "configuration.h"
 
 void initializeDisplay();
 void drawGameCanvas(GameState *state);
@@ -15,5 +13,6 @@ void drawGameWon(GameState *state);
 void updateGameGrid(GameState *gs);
 
 void drawConfigurationMenu(GameConfiguration *config, GameConfiguration *previous_config, bool update);
+void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff, bool updateDetected);
 
 #endif

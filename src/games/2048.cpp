@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include "game2048.h"
+#include "2048.h"
 
 #define UP 0
 #define RIGHT 1

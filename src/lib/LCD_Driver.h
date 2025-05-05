@@ -30,7 +30,7 @@
 #ifndef __LCD_DRIVER_H
 #define __LCD_DRIVER_H
 
-#include "DEV_Config.h"
+#include "../config/DEV_Config.h"
 
 #define LCD_WIDTH   240 //LCD width
 #define LCD_HEIGHT  280 //LCD height

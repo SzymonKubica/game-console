@@ -1,6 +1,7 @@
 #include "user_interface.h"
-#include "GUI_Paint.h"
-#include "LCD_Driver.h"
+#include "configuration.h"
+#include "../lib/GUI_Paint.h"
+#include "../lib/LCD_Driver.h"
 #include <cassert>
 #include <cstdio>
 
@@ -147,6 +148,7 @@ GridDimensions *calculateGridDimensions(int grid_size)
                              .y = score_start_y};
 
         int score_title_x = score_start.x + cell_x_spacing;
+
         int score_title_y = score_start.y + (score_cell_height - FONT_SIZE) / 2;
 
         gd->cell_height = cell_height;
@@ -541,7 +543,17 @@ void drawConfigurationMenu(GameConfiguration *config,
         }
 }
 
-void renderGenericConfigMenu(Configuration *previous, bool update)
+void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff,
+                             bool update)
 {
 
+        int text_max_length = findMaxConfigOptionNameLength(config) + 2;
+        int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
+        int spacing = (LCD_WIDTH - config->config_values_len * FONT_SIZE -
+                       HEADING_FONT_SIZE) /
+                      3;
+
+        // heading
+        // Paint_DrawString_EN(heading_x_pos, spacing, heading, &Font24, BLACK,
+                            // WHITE);
 }

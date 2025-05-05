@@ -10,7 +10,7 @@
 *----------------
 * | This version:   V1.0
 * | Date        :   2018-11-15
-* | Info        :    
+* | Info        :
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documnetation files (the "Software"), to deal
@@ -34,9 +34,9 @@
 #ifndef __GUI_PAINT_H
 #define __GUI_PAINT_H
 
-#include "DEV_Config.h"
+#include "../config/DEV_Config.h"
 #include "LCD_Driver.h"
-#include "fonts.h"
+#include "../fonts/fonts.h"
 #include "Debug.h"
 #include <avr/pgmspace.h>
 /**
@@ -80,8 +80,8 @@ typedef enum {
 **/
 
 #define WHITE         0xFFFF
-#define BLACK         0x0000    
-#define BLUE          0x001F  
+#define BLACK         0x0000
+#define BLUE          0x001F
 #define BRED          0XF81F
 #define GRED          0XFFE0
 #define GBLUE         0X07FF
@@ -90,16 +90,16 @@ typedef enum {
 #define GREEN         0x07E0
 #define CYAN          0x7FFF
 #define YELLOW        0xFFE0
-#define BROWN         0XBC40 
-#define BRRED         0XFC07 
-#define GRAY          0X8430 
-#define DARKBLUE      0X01CF  
-#define LIGHTBLUE     0X7D7C   
-#define GRAYBLUE      0X5458 
-#define LIGHTGREEN    0X841F 
-#define LGRAY         0XC618 
+#define BROWN         0XBC40
+#define BRRED         0XFC07
+#define GRAY          0X8430
+#define DARKBLUE      0X01CF
+#define LIGHTBLUE     0X7D7C
+#define GRAYBLUE      0X5458
+#define LIGHTGREEN    0X841F
+#define LGRAY         0XC618
 #define LGRAYBLUE     0XA651
-#define LBBLUE        0X2B12 
+#define LBBLUE        0X2B12
 
 
 #define IMAGE_BACKGROUND    WHITE
@@ -184,7 +184,7 @@ void Paint_DrawFloatNum(UWORD Xpoint, UWORD Ypoint, double Nummber,  UBYTE Decim
 void Paint_DrawTime(UWORD Xstart, UWORD Ystart, PAINT_TIME *pTime, sFONT* Font, UWORD Color_Background, UWORD Color_Foreground);
 
 //pic
-void Paint_DrawImage(const unsigned char *image,UWORD Startx, UWORD Starty,UWORD Endx, UWORD Endy); 
+void Paint_DrawImage(const unsigned char *image,UWORD Startx, UWORD Starty,UWORD Endx, UWORD Endy);
 
 
 #endif

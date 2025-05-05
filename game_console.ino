@@ -1,7 +1,8 @@
-#include "input.h"
-#include "game2048.h"
-#include "user_interface.h"
+#include "src/common/input.h"
+#include "src/common/configuration.h"
+#include "src/common/user_interface.h"
 
+#include "src/games/2048.h"
 
 #define INPUT_POLLING_DELAY 50
 #define MOVE_REGISTERED_DELAY 150
@@ -27,6 +28,8 @@ void setup(void)
 
 void loop(void)
 {
+        // TODO: step through the code and ensure that the main game loop works
+        // as expected.
         GameConfiguration config;
         collectGameConfiguration(&config);
 
@@ -40,9 +43,9 @@ void loop(void)
                 Direction dir;
                 bool input_registered = false;
                 checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char)) & analogRead);
+                                   (int (*)(unsigned char))&analogRead);
                 checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char)) & digitalRead);
+                                  (int (*)(unsigned char))&digitalRead);
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
@@ -80,9 +83,9 @@ void waitForInput()
                 Direction dir;
                 bool input_registered = false;
                 checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char)) & analogRead);
+                                   (int (*)(unsigned char))&analogRead);
                 checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char)) & digitalRead);
+                                  (int (*)(unsigned char))&digitalRead);
                 if (input_registered) {
                         break;
                 }
@@ -98,13 +101,13 @@ void collectGameConfiguration(GameConfiguration *config)
         int available_grid_sizes[] = {3, 4, 5};
         int available_target_max_tiles[] = {128, 256, 512, 1024, 2048, 4096};
 
-        ConfigOption curr_opt = GRID_SIZE;
-        int grid_size = 1;
-        int game_target = 4;
+        ConfigOption curr_opt_idx = GRID_SIZE;
+        int grid_size_idx = 1;
+        int game_target_idx = 4;
 
-        config->grid_size = available_grid_sizes[grid_size];
-        config->target_max_tile = available_target_max_tiles[game_target];
-        config->config_option = curr_opt;
+        config->grid_size = available_grid_sizes[grid_size_idx];
+        config->target_max_tile = available_target_max_tiles[game_target_idx];
+        config->config_option = curr_opt_idx;
 
         drawConfigurationMenu(config, config, false);
 
@@ -113,9 +116,9 @@ void collectGameConfiguration(GameConfiguration *config)
                 bool input_registered = false;
 
                 checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char)) & analogRead);
+                                   (int (*)(unsigned char))&analogRead);
                 checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char)) & digitalRead);
+                                  (int (*)(unsigned char))&digitalRead);
                 bool ready = false;
                 if (input_registered) {
                         GameConfiguration old_config;
@@ -124,46 +127,46 @@ void collectGameConfiguration(GameConfiguration *config)
                         old_config.config_option = config->config_option;
                         switch (dir) {
                         case DOWN:
-                                curr_opt = (ConfigOption)((curr_opt + 1) %
+                                curr_opt_idx = (ConfigOption)((curr_opt_idx + 1) %
                                                           AVAILABLE_OPTIONS);
                                 break;
                         case UP:
-                                curr_opt = (ConfigOption)((curr_opt - 1) %
+                                curr_opt_idx = (ConfigOption)((curr_opt_idx - 1) %
                                                           AVAILABLE_OPTIONS);
                                 break;
                         case LEFT:
-                                if (curr_opt == GRID_SIZE) {
-                                        if (grid_size == 0) {
-                                                grid_size = GRID_SIZES_LEN - 1;
+                                if (curr_opt_idx == GRID_SIZE) {
+                                        if (grid_size_idx == 0) {
+                                                grid_size_idx = GRID_SIZES_LEN - 1;
                                         } else {
-                                                grid_size--;
+                                                grid_size_idx--;
                                         }
                                 } else {
-                                        if (game_target == 0) {
-                                                game_target =
+                                        if (game_target_idx == 0) {
+                                                game_target_idx =
                                                     TARGET_MAX_TILES_LEN - 1;
                                         } else {
-                                                game_target--;
+                                                game_target_idx--;
                                         }
                                 }
                                 break;
                         case RIGHT:
-                                if (curr_opt == GRID_SIZE) {
-                                        grid_size =
-                                            (grid_size + 1) % GRID_SIZES_LEN;
-                                } else if (curr_opt == TARGET_MAX_TILE) {
-                                        game_target = (game_target + 1) %
+                                if (curr_opt_idx == GRID_SIZE) {
+                                        grid_size_idx =
+                                            (grid_size_idx + 1) % GRID_SIZES_LEN;
+                                } else if (curr_opt_idx == TARGET_MAX_TILE) {
+                                        game_target_idx = (game_target_idx + 1) %
                                                       TARGET_MAX_TILES_LEN;
                                 } else {
-                                  ready = true;
+                                        ready = true;
                                 }
                                 break;
                         }
 
-                        config->grid_size = available_grid_sizes[grid_size];
+                        config->grid_size = available_grid_sizes[grid_size_idx];
                         config->target_max_tile =
-                            available_target_max_tiles[game_target];
-                        config->config_option = curr_opt;
+                            available_target_max_tiles[game_target_idx];
+                        config->config_option = curr_opt_idx;
                         drawConfigurationMenu(config, &old_config, true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
@@ -174,42 +177,48 @@ void collectGameConfiguration(GameConfiguration *config)
         }
 }
 
-
+// This is supposed to be the generic function used for collecting the generic
+// input. In the final state the `collectGameConfiguration` is to be replaced by this.
 void collectGenericConfig(Configuration *config)
 {
-        renderGenericConfigMenu(config, false);
+        // We start with an empty diff object
+        ConfigurationDiff diff;
+        renderGenericConfigMenu(config, &diff, false);
 
         while (true) {
                 Direction dir;
                 bool input_registered = false;
 
                 checkJoystickInput(&dir, &input_registered,
-                                   (int (*)(unsigned char)) & analogRead);
+                                   (int (*)(unsigned char))&analogRead);
                 checkButtonsInput(&dir, &input_registered,
-                                  (int (*)(unsigned char)) & digitalRead);
+                                  (int (*)(unsigned char))&digitalRead);
+
                 bool ready = false;
                 if (input_registered) {
                         Configuration old_config;
                         switch (dir) {
                         case DOWN:
-                                curr_opt = (ConfigOption)((curr_opt + 1) %
-                                                          AVAILABLE_OPTIONS);
+                                switchEditedConfigOptionUp(config, &diff);
                                 break;
                         case UP:
-                                curr_opt = (ConfigOption)((curr_opt - 1) %
-                                                          AVAILABLE_OPTIONS);
+                                switchEditedConfigOptionDown(config, &diff);
                                 break;
                         case LEFT:
+                                switchCurrentConfigOptionDown(config, &diff);
                                 break;
                         case RIGHT:
+                                if (config->current_config_value ==
+                                    config->config_values_len - 1) {
+                                        ready = true;
+                                } else {
+                                        switchCurrentConfigOptionUp(config,
+                                                                    &diff);
+                                }
                                 break;
                         }
 
-                        config->grid_size = available_grid_sizes[grid_size];
-                        config->target_max_tile =
-                            available_target_max_tiles[game_target];
-                        config->config_option = curr_opt;
-                        renderGenericConfigMenu(config, &old_config, true);
+                        renderGenericConfigMenu(config, &diff, true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;

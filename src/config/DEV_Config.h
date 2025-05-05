@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <SPI.h>
-#include "Debug.h"
+#include "../lib/Debug.h"
 #include <avr/pgmspace.h>
 
 
