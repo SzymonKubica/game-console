@@ -1,5 +1,5 @@
 #include "user_interface.h"
-#include "configuration.h"
+#include "configuration.hpp"
 #include "../lib/GUI_Paint.h"
 #include "../lib/LCD_Driver.h"
 #include <cassert>
@@ -27,11 +27,6 @@ void initializeDisplay()
 /*******************************************************************************
   User Interface
 *******************************************************************************/
-
-typedef struct Point {
-        int x;
-        int y;
-} Point;
 
 /// Paints the white canvas for the game grid and the four blue
 /// dots in the corners

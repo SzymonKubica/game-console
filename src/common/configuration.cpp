@@ -1,4 +1,4 @@
-#include "configuration.h"
+#include "configuration.hpp"
 #include <cassert>
 #include <string.h>
 

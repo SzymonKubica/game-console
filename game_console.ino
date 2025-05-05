@@ -1,5 +1,5 @@
 #include "src/common/input.h"
-#include "src/common/configuration.h"
+#include "src/common/configuration.hpp"
 #include "src/common/user_interface.h"
 
 #include "src/games/2048.h"

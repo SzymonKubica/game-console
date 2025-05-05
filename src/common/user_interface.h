@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include "../games/2048.h"
-#include "configuration.h"
+#include "configuration.hpp"
 
 void initializeDisplay();
 void drawGameCanvas(GameState *state);
@@ -21,7 +21,7 @@ typedef struct Point {
 } Point;
 
 typedef enum FontSize {
-    Font16,
+    Size16,
 } FontSize;
 
 
