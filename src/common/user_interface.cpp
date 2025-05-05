@@ -2,6 +2,8 @@
 #include "configuration.hpp"
 #include "../lib/GUI_Paint.h"
 #include "../lib/LCD_Driver.h"
+#include "display/color.hpp"
+#include "display/display.hpp"
 #include <cassert>
 #include <cstdio>
 
@@ -15,7 +17,8 @@
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
-#define GRID_BG_COLOR WHITE
+
+#define GRID_BG_COLOR White
 
 void initializeDisplay()
 {
@@ -28,54 +31,14 @@ void initializeDisplay()
   User Interface
 *******************************************************************************/
 
-/// Paints the white canvas for the game grid and the four blue
-/// dots in the corners
-static void drawRoundedBorder(int color);
-static void drawRoundedRectangle(Point top_left, int width, int height,
-                                 int radius, int color);
-static void drawGameGridSlots(int grid_size);
-
-void drawGameCanvas(GameState *state)
+static void drawGameGridSlots(Display *display, int grid_size);
+void drawGameCanvas(Display *display, GameState *state)
 {
-        Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
-        Paint_Clear(BLACK);
-        drawRoundedBorder(DARKBLUE);
+        display->initialize();
+        display->clear(Black);
+        display->draw_rounded_border(DarkBlue);
         Point top_left = {.x = 70, .y = 70};
-        drawGameGridSlots(state->grid_size);
-}
-
-static void drawRoundedRectangle(Point start, int width, int height, int radius,
-                                 int color)
-{
-
-        Point top_left_corner = {.x = start.x + radius, .y = start.y + radius};
-
-        Point bottom_right_corner = {.x = start.x + width - radius,
-                                     .y = start.y + height - radius};
-
-        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
-        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
-
-        // Draw the four rounded corners.
-        for (int x : x_positions) {
-                for (int y : y_positions) {
-                        Paint_DrawCircle(x, y, radius, color, DOT_PIXEL_1X1,
-                                         DRAW_FILL_FULL);
-                }
-        }
-
-        Paint_DrawRectangle(top_left_corner.x, start.y,
-                            start.x + width - radius, start.y + radius, color,
-                            DOT_PIXEL_1X1, DRAW_FILL_FULL);
-
-        Paint_DrawRectangle(start.x, top_left_corner.y, start.x + width + 1,
-                            bottom_right_corner.y, color, DOT_PIXEL_1X1,
-                            DRAW_FILL_FULL);
-
-        // +1 is because the endY bound is not included
-        Paint_DrawRectangle(top_left_corner.x, start.y + height - radius,
-                            start.x + width - radius, start.y + height + 1,
-                            color, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+        drawGameGridSlots(display, state->grid_size);
 }
 
 /// Struct modelling all dimensional information required to properly render
@@ -97,7 +60,7 @@ typedef struct GridDimensions {
         int score_title_y;
 } GridDimensions;
 
-GridDimensions *calculateGridDimensions(int grid_size)
+GridDimensions *calculate_grid_dimensions(int grid_size)
 {
         GridDimensions *gd = (GridDimensions *)malloc(sizeof(GridDimensions));
         // HEIGHT and WIDTH are swapped because the display is mounted
@@ -166,20 +129,20 @@ GridDimensions *calculateGridDimensions(int grid_size)
 /// should only be called once at the start of the game to draw the grid. After
 /// that drawGameGrid should be called to update the contents of the grid slots
 /// with the numbers.
-static void drawGameGridSlots(int grid_size)
+static void drawGameGridSlots(Display *display, int grid_size)
 {
 
-        GridDimensions *gd = calculateGridDimensions(grid_size);
+        GridDimensions *gd = calculate_grid_dimensions(grid_size);
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
-        drawRoundedRectangle(score_start, gd->score_cell_width,
-                             gd->score_cell_height, gd->score_cell_height / 2,
-                             GRID_BG_COLOR);
+        display->draw_rounded_rectangle(
+            score_start, gd->score_cell_width, gd->score_cell_height,
+            gd->score_cell_height / 2, GRID_BG_COLOR);
 
         char *buffer = "Score:";
 
-        Paint_DrawString_EN(gd->score_title_x, gd->score_title_y, buffer,
-                            &Font16, GRID_BG_COLOR, BLACK);
+        Point score_title = {.x = gd->score_title_x, .y = gd->score_title_y};
+        display->draw_string(score_title, buffer, Size16, GRID_BG_COLOR, Black);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
@@ -189,7 +152,7 @@ static void drawGameGridSlots(int grid_size)
                             .y = gd->grid_start_y +
                                  i * (gd->cell_height + gd->cell_y_spacing)};
 
-                        drawRoundedRectangle(
+                        display->draw_rounded_rectangle(
                             start, gd->cell_width, gd->cell_height,
                             gd->cell_height / 2, GRID_BG_COLOR);
                 }
@@ -198,13 +161,13 @@ static void drawGameGridSlots(int grid_size)
         free(gd);
 }
 
-static void strReplace(char *str, char *oldWord, char *newWord);
+static void str_replace(char *str, char *oldWord, char *newWord);
 static int number_string_length(int number);
 
-void updateGameGrid(GameState *gs)
+void update_game_grid(Display *display, GameState *gs)
 {
         int grid_size = gs->grid_size;
-        GridDimensions *gd = calculateGridDimensions(grid_size);
+        GridDimensions *gd = calculate_grid_dimensions(grid_size);
 
         int score_title_length = 6 * FONT_WIDTH;
         char score_buffer[20];
@@ -212,15 +175,21 @@ void updateGameGrid(GameState *gs)
 
         int score_rounding_radius = gd->score_cell_height / 2;
 
-        Paint_ClearWindows(gd->score_title_x + score_title_length + FONT_WIDTH,
-                           gd->score_title_y,
-                           gd->score_start_x + gd->score_cell_width -
-                               score_rounding_radius,
-                           gd->score_title_y + FONT_SIZE, GRID_BG_COLOR);
+        Point clear_start = {.x = gd->score_title_x + score_title_length +
+                                  FONT_WIDTH,
+                             gd->score_title_y};
+        Point clear_end = {.x = gd->score_start_x + gd->score_cell_width -
+                                score_rounding_radius,
+                           gd->score_title_y + FONT_SIZE};
 
-        Paint_DrawString_EN(gd->score_title_x + score_title_length + FONT_WIDTH,
-                            gd->score_title_y, score_buffer, &Font16,
-                            GRID_BG_COLOR, BLACK);
+        display->clear_region(clear_start, clear_end, GRID_BG_COLOR);
+
+        Point score_start = {.x = gd->score_title_x + score_title_length +
+                                  FONT_WIDTH,
+                             .y = gd->score_title_y};
+
+        display->draw_string(score_start, score_buffer, Size16, GRID_BG_COLOR,
+                             Black);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
@@ -233,7 +202,7 @@ void updateGameGrid(GameState *gs)
                         if (gs->grid[i][j] != gs->old_grid[i][j]) {
                                 char *buffer = (char *)malloc(5 * sizeof(char));
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
-                                strReplace(buffer, "   0", "    ");
+                                str_replace(buffer, "   0", "    ");
                                 // We need to center the four characters of text
                                 // inside of the cell.
                                 int x_margin =
@@ -243,106 +212,28 @@ void updateGameGrid(GameState *gs)
                                 int digit_len =
                                     number_string_length(gs->old_grid[i][j]);
 
-                                Paint_ClearWindows(
-                                    start.x + x_margin +
-                                        (4 - digit_len) * FONT_WIDTH,
-                                    start.y + y_margin,
-                                    start.x + x_margin + 4 * FONT_WIDTH,
-                                    start.y + y_margin + FONT_SIZE,
-                                    GRID_BG_COLOR);
+                                Point clear_start = {.x = start.x + x_margin +
+                                                          (4 - digit_len) *
+                                                              FONT_WIDTH,
+                                                     .y = start.y + y_margin};
+                                Point clear_end = {
+                                    .x = start.x + x_margin + 4 * FONT_WIDTH,
+                                    .y = start.y + y_margin + FONT_SIZE};
+                                display->clear_region(clear_start, clear_end,
+                                                      GRID_BG_COLOR);
 
-                                Paint_DrawString_EN(
-                                    start.x + x_margin, start.y + y_margin,
-                                    buffer, &Font16, GRID_BG_COLOR, BLACK);
+                                Point start_with_margin = {.x = start.x +
+                                                                x_margin,
+                                                           start.y + y_margin};
+                                display->draw_string(start_with_margin, buffer,
+                                                     Size16, GRID_BG_COLOR,
+                                                     Black);
                                 gs->old_grid[i][j] = gs->grid[i][j];
                                 free(buffer);
                         }
                 }
         }
         free(gd);
-}
-
-static void drawRoundedBorder(int color)
-{
-        int rounding_radius = DISPLAY_CORNER_RADIUS;
-        int margin = SCREEN_BORDER_WIDTH;
-        int line_width = 2;
-        Point top_left_corner = {.x = rounding_radius + margin,
-                                 .y = rounding_radius + margin};
-        Point bottom_right_corner = {.x = LCD_HEIGHT - rounding_radius - margin,
-                                     .y = LCD_WIDTH - rounding_radius - margin};
-
-        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
-        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
-
-        Paint_Clear(BLACK);
-
-        // Draw the four rounded corners.
-        for (int x : x_positions) {
-                for (int y : y_positions) {
-                        Paint_DrawCircle(x, y, rounding_radius, color,
-                                         DOT_PIXEL_3X3, DRAW_FILL_EMPTY);
-                }
-        }
-
-        // Draw the four lines connecting the circles.
-        Paint_DrawLine(margin, top_left_corner.y, margin, bottom_right_corner.y,
-                       color, DOT_PIXEL_3X3, LINE_STYLE_SOLID);
-
-        Paint_DrawLine(LCD_HEIGHT - margin, top_left_corner.y,
-                       LCD_HEIGHT - margin, bottom_right_corner.y, color,
-                       DOT_PIXEL_3X3, LINE_STYLE_SOLID);
-
-        Paint_DrawLine(top_left_corner.x, margin, bottom_right_corner.x, margin,
-                       color, DOT_PIXEL_3X3, LINE_STYLE_SOLID);
-
-        Paint_DrawLine(top_left_corner.x, LCD_WIDTH - margin,
-                       bottom_right_corner.x, LCD_WIDTH - margin, color,
-                       DOT_PIXEL_3X3, LINE_STYLE_SOLID);
-
-        // Erase the middle bits of the four circles
-        Paint_ClearWindows(margin + line_width, top_left_corner.y,
-                           margin + line_width + 2 * rounding_radius,
-                           top_left_corner.y + rounding_radius + line_width,
-                           BLACK);
-
-        Paint_ClearWindows(
-            LCD_HEIGHT - margin - line_width - 1 - 2 * rounding_radius,
-            top_left_corner.y, LCD_HEIGHT - margin - line_width - 1,
-            top_left_corner.y + rounding_radius + line_width, BLACK);
-
-        Paint_ClearWindows(margin + line_width,
-                           bottom_right_corner.y - rounding_radius -
-                               line_width - margin,
-                           margin + line_width + 2 * rounding_radius,
-                           bottom_right_corner.y, BLACK);
-
-        Paint_ClearWindows(
-            LCD_HEIGHT - margin - line_width - 1 - 2 * rounding_radius,
-            bottom_right_corner.y - rounding_radius - line_width - margin,
-            LCD_HEIGHT - margin - line_width - 1, bottom_right_corner.y, BLACK);
-
-        // The four remaining vertical lines
-        Paint_ClearWindows(top_left_corner.x, margin + line_width,
-                           top_left_corner.x + rounding_radius + line_width,
-                           margin + line_width + rounding_radius, BLACK);
-
-        Paint_ClearWindows(top_left_corner.x,
-                           LCD_WIDTH - margin - line_width - 1 -
-                               rounding_radius,
-                           top_left_corner.x + rounding_radius + line_width,
-                           LCD_WIDTH - margin - line_width - 1, BLACK);
-
-        Paint_ClearWindows(
-            bottom_right_corner.x - rounding_radius - line_width - 1,
-            margin + line_width, bottom_right_corner.x - line_width - 1,
-            margin + line_width + rounding_radius, BLACK);
-
-        Paint_ClearWindows(
-            bottom_right_corner.x - rounding_radius - line_width - 1,
-            LCD_WIDTH - margin - line_width - 1 - rounding_radius,
-            bottom_right_corner.x - line_width - 1,
-            LCD_WIDTH - margin - line_width - 1, BLACK);
 }
 
 static int number_string_length(int number)
@@ -357,7 +248,7 @@ static int number_string_length(int number)
         return 1;
 }
 
-static void strReplace(char *str, char *oldWord, char *newWord)
+static void str_replace(char *str, char *oldWord, char *newWord)
 {
         char *pos, temp[1000];
         int index = 0;
@@ -374,34 +265,37 @@ static void strReplace(char *str, char *oldWord, char *newWord)
         }
 }
 
-void drawGameOver(GameState *state)
+void drawGameOver(Display *display, GameState *state)
 {
-        drawRoundedBorder(RED);
+        display->draw_rounded_border(Red);
 
         char *msg = "Game Over";
 
         int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
         int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
 
-        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, RED);
+        Point text_position = {.x = x_pos, .y = y_pos};
+
+        display->draw_string(text_position, msg, Size16, Black, Red);
 }
 
-void drawGameWon(GameState *state)
+void drawGameWon(Display *display, GameState *state)
 {
-        drawRoundedBorder(GREEN);
+        display->draw_rounded_border(Green);
 
         char *msg = "You Won!";
 
         int x_pos = (LCD_HEIGHT - strlen(msg) * FONT_WIDTH) / 2;
         int y_pos = (LCD_WIDTH - FONT_SIZE) / 2;
+        Point text_position = {.x = x_pos, .y = y_pos};
 
-        Paint_DrawString_EN(x_pos, y_pos, msg, &Font16, BLACK, GREEN);
+        display->draw_string(text_position, msg, Size16, Black, Green);
 }
 
 /// Draws the config menu given the old and new config values
 /// The old config given in `previous_config` is needed to determine which parts
 /// of the UI need to be redrawn
-void drawConfigurationMenu(GameConfiguration *config,
+void drawConfigurationMenu(Display *display, GameConfiguration *config,
                            GameConfiguration *previous_config, bool update)
 {
         // First set up all aata required to print
@@ -443,31 +337,41 @@ void drawConfigurationMenu(GameConfiguration *config,
         int option_cell_width = (text_max_length + 1) * FONT_WIDTH;
         int modifiable_cell_width = (5) * FONT_WIDTH;
 
-        int cell_bg_color = DARKBLUE;
+        Color cell_bg_color = DarkBlue;
 
         if (!update) {
-                Paint_NewImage(LCD_WIDTH, LCD_HEIGHT, 270, WHITE);
-                Paint_Clear(BLACK);
+                display->initialize();
+                display->clear(Black);
 
-                Paint_DrawString_EN(heading_x_pos, spacing, heading, &Font24,
-                                    BLACK, WHITE);
+                Point heading_start = {.x = heading_x_pos, .y = spacing};
+                display->draw_string(heading_start, heading, Size24, Black,
+                                     White);
 
                 // Draw the background for the two configuration cells.
-                drawRoundedRectangle(grid_size_cell_start, option_cell_width,
-                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
-                drawRoundedRectangle(target_tile_cell_start, option_cell_width,
-                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
-                drawRoundedRectangle(start_tile_cell_start, option_cell_width,
-                                     FONT_SIZE * 2, FONT_SIZE, cell_bg_color);
+                display->draw_rounded_rectangle(
+                    grid_size_cell_start, option_cell_width, FONT_SIZE * 2,
+                    FONT_SIZE, cell_bg_color);
+                display->draw_rounded_rectangle(
+                    target_tile_cell_start, option_cell_width, FONT_SIZE * 2,
+                    FONT_SIZE, cell_bg_color);
+                display->draw_rounded_rectangle(
+                    start_tile_cell_start, option_cell_width, FONT_SIZE * 2,
+                    FONT_SIZE, cell_bg_color);
 
-                Paint_DrawString_EN(left_margin, grid_size_y_pos, grid_size_str,
-                                    &Font16, cell_bg_color, WHITE);
-                Paint_DrawString_EN(left_margin, target_tile_y_pos, target_tile,
-                                    &Font16, cell_bg_color, WHITE);
+                Point grid_size_str_start = {.x = left_margin,
+                                             .y = grid_size_y_pos};
+                display->draw_string(grid_size_str_start, grid_size_str, Size16,
+                                     cell_bg_color, White);
+                Point target_tile_str_start = {.x = left_margin,
+                                               .y = target_tile_y_pos};
+                display->draw_string(target_tile_str_start, target_tile, Size16,
+                                     cell_bg_color, White);
+
                 int start_game_margin =
                     (LCD_HEIGHT - strlen(start) * FONT_WIDTH) / 2;
-                Paint_DrawString_EN(start_game_margin, start_tile_y_pos, start,
-                                    &Font16, cell_bg_color, WHITE);
+                display->draw_string(
+                    {.x = start_game_margin, .y = start_tile_y_pos}, start,
+                    Size16, cell_bg_color, White);
         }
 
         if (!update || (update && config->config_option !=
@@ -510,14 +414,14 @@ void drawConfigurationMenu(GameConfiguration *config,
         if (!update || config->grid_size != previous_config->grid_size) {
                 char grid_size_buffer[5];
                 sprintf(grid_size_buffer, "%4d", config->grid_size);
-                drawRoundedRectangle(grid_size_modifiable_cell_start,
-                                     modifiable_cell_width,
-                                     FONT_SIZE + FONT_SIZE / 2,
-                                     (FONT_SIZE + FONT_SIZE / 2) / 2, WHITE);
-                Paint_DrawString_EN(
-                    grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
-                    grid_size_modifiable_cell_start.y + FONT_SIZE / 4,
-                    grid_size_buffer, &Font16, WHITE, BLACK);
+                display->draw_rounded_rectangle(
+                    grid_size_modifiable_cell_start,
+                    modifiable_cell_width, FONT_SIZE + FONT_SIZE / 2,
+                    (FONT_SIZE + FONT_SIZE / 2) / 2, White);
+                display->draw_string(
+                    {.x = grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
+                     .y = grid_size_modifiable_cell_start.y + FONT_SIZE / 4},
+                    grid_size_buffer, Size16, White, Black);
         }
 
         if (!update ||
@@ -526,15 +430,15 @@ void drawConfigurationMenu(GameConfiguration *config,
                 sprintf(game_target_buffer, "%4d", config->target_max_tile);
 
                 // Draw / clear the modifiable cells
-                drawRoundedRectangle(target_tile_modifiable_cell_start,
+                display->draw_rounded_rectangle(target_tile_modifiable_cell_start,
                                      modifiable_cell_width,
                                      FONT_SIZE + FONT_SIZE / 2,
-                                     (FONT_SIZE + FONT_SIZE / 2) / 2, WHITE);
+                                     (FONT_SIZE + FONT_SIZE / 2) / 2, White);
 
-                Paint_DrawString_EN(
+                display->draw_string({.x=
                     grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
-                    target_tile_modifiable_cell_start.y + FONT_SIZE / 4,
-                    game_target_buffer, &Font16, WHITE, BLACK);
+                    .y = target_tile_modifiable_cell_start.y + FONT_SIZE / 4},
+                    game_target_buffer, Size16, White, Black);
         }
 }
 

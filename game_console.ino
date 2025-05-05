@@ -1,6 +1,8 @@
 #include "src/common/input.h"
 #include "src/common/configuration.hpp"
 #include "src/common/user_interface.h"
+#include "src/common/display/display.hpp"
+#include "src/common/display/lcd_display.hpp"
 
 #include "src/games/2048.h"
 
@@ -28,16 +30,18 @@ void setup(void)
 
 void loop(void)
 {
+        LcdDisplay display = LcdDisplay{};
         // TODO: step through the code and ensure that the main game loop works
         // as expected.
         GameConfiguration config;
-        collectGameConfiguration(&config);
+        collectGameConfiguration(&display, &config);
+
 
         GameState *state =
             initializeGameState(config.grid_size, config.target_max_tile);
 
-        drawGameCanvas(state);
-        updateGameGrid(state);
+        drawGameCanvas(&display, state);
+        update_game_grid(&display, state);
 
         while (true) {
                 Direction dir;
@@ -49,31 +53,31 @@ void loop(void)
 
                 if (input_registered) {
                         takeTurn(state, (int)dir);
-                        updateGameGrid(state);
+                        update_game_grid(&display, state);
                         delay(MOVE_REGISTERED_DELAY);
                 }
                 delay(INPUT_POLLING_DELAY);
 
                 if (isGameOver(state)) {
-                        handleGameOver(state);
+                        handleGameOver(&display, state);
                         break;
                 }
                 if (isGameFinished(state)) {
-                        handleGameFinished(state);
+                        handleGameFinished(&display, state);
                         break;
                 }
         }
 }
 
-void handleGameOver(GameState *state)
+void handleGameOver(Display *display, GameState *state)
 {
-        drawGameOver(state);
+        drawGameOver(display, state);
         waitForInput();
 }
 
-void handleGameFinished(GameState *state)
+void handleGameFinished(Display *display,GameState *state)
 {
-        drawGameWon(state);
+        drawGameWon(display, state);
         waitForInput();
 }
 
@@ -92,7 +96,7 @@ void waitForInput()
         }
 }
 
-void collectGameConfiguration(GameConfiguration *config)
+void collectGameConfiguration(Display *display, GameConfiguration *config)
 {
         const int AVAILABLE_OPTIONS = 3;
         const int GRID_SIZES_LEN = 3;
@@ -109,7 +113,7 @@ void collectGameConfiguration(GameConfiguration *config)
         config->target_max_tile = available_target_max_tiles[game_target_idx];
         config->config_option = curr_opt_idx;
 
-        drawConfigurationMenu(config, config, false);
+        drawConfigurationMenu(display, config, config, false);
 
         while (true) {
                 Direction dir;
@@ -167,7 +171,7 @@ void collectGameConfiguration(GameConfiguration *config)
                         config->target_max_tile =
                             available_target_max_tiles[game_target_idx];
                         config->config_option = curr_opt_idx;
-                        drawConfigurationMenu(config, &old_config, true);
+                        drawConfigurationMenu(display, config, &old_config, true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;
@@ -181,9 +185,10 @@ void collectGameConfiguration(GameConfiguration *config)
 // input. In the final state the `collectGameConfiguration` is to be replaced by this.
 void collectGenericConfig(Configuration *config)
 {
+        LcdDisplay display = LcdDisplay{};
         // We start with an empty diff object
         ConfigurationDiff diff;
-        renderGenericConfigMenu(config, &diff, false);
+        renderGenericConfigMenu(&display, config, &diff, false);
 
         while (true) {
                 Direction dir;
@@ -218,7 +223,7 @@ void collectGenericConfig(Configuration *config)
                                 break;
                         }
 
-                        renderGenericConfigMenu(config, &diff, true);
+                        renderGenericConfigMenu(&display, config, &diff, true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;

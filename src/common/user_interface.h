@@ -4,25 +4,22 @@
 #include <stdlib.h>
 #include "../games/2048.h"
 #include "configuration.hpp"
+#include "display/display.hpp"
+
+
 
 void initializeDisplay();
-void drawGameCanvas(GameState *state);
-void draw(GameState *state);
-void drawGameOver(GameState *state);
-void drawGameWon(GameState *state);
-void updateGameGrid(GameState *gs);
+void drawGameCanvas(Display *display, GameState *state);
+void draw(Display *display,GameState *state);
+void drawGameOver(Display *display,GameState *state);
+void drawGameWon(Display *display,GameState *state);
+void update_game_grid(Display *display,GameState *gs);
 
-void drawConfigurationMenu(GameConfiguration *config, GameConfiguration *previous_config, bool update);
-void renderGenericConfigMenu(Configuration *config, ConfigurationDiff *diff, bool updateDetected);
+void drawConfigurationMenu(Display *display,GameConfiguration *config, GameConfiguration *previous_config, bool update);
+void renderGenericConfigMenu(Display *display,Configuration *config, ConfigurationDiff *diff, bool updateDetected);
 
-typedef struct Point {
-        int x;
-        int y;
-} Point;
 
-typedef enum FontSize {
-    Size16,
-} FontSize;
+
 
 
 #endif
