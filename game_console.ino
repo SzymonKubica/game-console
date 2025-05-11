@@ -192,7 +192,9 @@ void collect_game_configuration(Display *display, GameConfiguration *config)
 
 // This is supposed to be the generic function used for collecting the generic
 // input. In the final state the `collect_game_configuration` is to be replaced
-// by this.
+// by this. This is to be migrated to some c++ source file so that it can be reused
+// for different games. The idea here is that each game would define the config
+// struct that it needs to collect and the config menu would get rendered automatically.
 void collect_generic_config(Configuration *config)
 {
         LcdDisplay display = LcdDisplay{};

@@ -3,5 +3,8 @@ CompileFlags:
   Add: [
     # This somehow matically adds the includes for the stdlib for clangd
     "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/lib/gcc/arm-none-eabi/7.2.1/include",
-    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include"
+    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include",
+    # The two below are supposed to add the standard c++ headers such as <cassert>
+    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include/c++/7.2.1",
+    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include/c++/7.2.1/arm-none-eabi"
   ]
