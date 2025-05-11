@@ -1,0 +1,7 @@
+CompileFlags:
+  Remove: ["-nostdlib"]
+  Add: [
+    # This somehow matically adds the includes for the stdlib for clangd
+    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/lib/gcc/arm-none-eabi/7.2.1/include",
+    "-isystem", "/home/szymon/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/arm-none-eabi/include"
+  ]
