@@ -293,11 +293,12 @@ inline int get_centering_margin(int screen_width, int text_length,
 void render_configuration_bar_centered(Display *display, int y_start,
                                        int option_text_max_len,
                                        int value_text_max_len,
-                                       char *option_text,
+                                       char *option_text, int value,
+                                       bool first_render,
                                        bool rerender_value_cell);
 /// Draws the config menu given the old and new config values
-/// The old config given in `previous_config` is needed to determine which parts
-/// of the UI need to be updated.
+/// The old config given in `previous_config` is needed to determine which
+/// parts of the UI need to be updated.
 ///
 /// The overall layout of the config menu looks as follows:
 ///                     ____________________
@@ -311,14 +312,16 @@ void render_configuration_bar_centered(Display *display, int y_start,
 ///            |    Config Option n      | Value | |
 ///             -----------------------------------
 ///
-/// The function calculates positions of the heading bar and all configuration
-/// bars. The nomenclature in the function variable names is as follows:
+/// The function calculates positions of the heading bar and all
+/// configuration bars. The nomenclature in the function variable names is
+/// as follows:
 /// - `config_bar` refers to the entire body of the configuration option bar
 ///   refer to the diagram above.
-/// - `option_text` refers to the name of the configuration option on each bar
+/// - `option_text` refers to the name of the configuration option on each
+/// bar
 ///   e.g. 'Config Option 1' above.
-/// - `value_cell` refers to the cell on each of the config bars that holds the
-/// actual
+/// - `value_cell` refers to the cell on each of the config bars that holds
+/// the actual
 ///   value that is being modified by the configuration bar.
 ///
 /// TODO:
@@ -328,8 +331,8 @@ void render_configuration_bar_centered(Display *display, int y_start,
 ///      well defined.
 /// Already done:
 ///   - interactions with the display class are passed through an interface
-///     which allows that we run the game on some display that is not Arduino
-///     based
+///     which allows that we run the game on some display that is not
+///     Arduino based
 void draw_configuration_menu(Display *display, GameConfiguration *config,
                              GameConfiguration *previous_config, bool update)
 {
@@ -378,17 +381,23 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         if (!update) {
                 display->initialize();
                 display->clear(Black);
+        }
+
+        render_configuration_bar_centered(
+            display, grid_size_config_bar_y, option_text_max_len,
+            max_game_target_text_len, grid_size_option_text, config->grid_size,
+            !update, config->grid_size != previous_config->grid_size);
+        render_configuration_bar_centered(
+            display, target_config_bar_y, option_text_max_len,
+            max_game_target_text_len, target_option_text,
+            config->target_max_tile, !update,
+            config->target_max_tile != previous_config->target_max_tile);
+
+        if (!update) {
 
                 Point heading_start = {.x = heading_x_pos, .y = spacing};
                 display->draw_string(heading_start, heading_text, Size24, Black,
                                      White);
-
-                render_configuration_bar_centered(
-                    display, grid_size_config_bar_y, option_text_max_len,
-                    max_game_target_text_len, grid_size_option_text);
-                render_configuration_bar_centered(
-                    display, target_config_bar_y, option_text_max_len,
-                    max_game_target_text_len, target_option_text);
 
                 display->draw_rounded_rectangle(
                     start_tile_cell_start, option_cell_width, FONT_SIZE * 2,
@@ -448,38 +457,6 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                                          DOT_PIXEL_1X1, DRAW_FILL_FULL);
                 }
         }
-
-        // this updates the grid size
-        if (!update || config->grid_size != previous_config->grid_size) {
-                char grid_size_buffer[5];
-                sprintf(grid_size_buffer, "%4d", config->grid_size);
-                display->draw_rounded_rectangle(
-                    grid_size_modifiable_cell_start, modifiable_cell_width,
-                    FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
-                    White);
-                display->draw_string(
-                    {.x = grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
-                     .y = grid_size_modifiable_cell_start.y + FONT_SIZE / 4},
-                    grid_size_buffer, Size16, White, Black);
-        }
-
-        // this updates the game target tile
-        if (!update ||
-            config->target_max_tile != previous_config->target_max_tile) {
-                char game_target_buffer[5];
-                sprintf(game_target_buffer, "%4d", config->target_max_tile);
-
-                // Draw / clear the modifiable cells
-                display->draw_rounded_rectangle(
-                    target_tile_modifiable_cell_start, modifiable_cell_width,
-                    FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
-                    White);
-
-                display->draw_string(
-                    {.x = grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
-                     .y = target_tile_modifiable_cell_start.y + FONT_SIZE / 4},
-                    game_target_buffer, Size16, White, Black);
-        }
 }
 
 /// This is supposed to be a generic utility function responsible for rendering
@@ -487,8 +464,9 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 void render_configuration_bar_centered(Display *display, int y_start,
                                        int option_text_max_len,
                                        int value_text_max_len,
-                                       char *option_text,
-                                       bool rerender_value_cell, int value)
+                                       char *option_text, int value,
+                                       bool first_render,
+                                       bool rerender_value_cell)
 {
         Color cell_bg_color = DarkBlue;
 
@@ -538,17 +516,20 @@ void render_configuration_bar_centered(Display *display, int y_start,
         int value_cell_y = y_start - value_cell_v_padding;
         Point value_cell_start = {.x = value_cell_x, .y = value_cell_y};
 
-        // Draw the background for the two configuration cells.
-        display->draw_rounded_rectangle(config_bar_start, config_bar_width,
-                                        FONT_SIZE * 2, FONT_SIZE,
-                                        cell_bg_color);
-        // Draw the actual name of the config bar.
-        Point grid_size_str_start = {.x = left_margin, .y = y_start};
-        display->draw_string(grid_size_str_start, option_text, Size16,
-                             cell_bg_color, White);
+        if (first_render) {
+                // Draw the background for the two configuration cells.
+                display->draw_rounded_rectangle(config_bar_start,
+                                                config_bar_width, FONT_SIZE * 2,
+                                                FONT_SIZE, cell_bg_color);
+                // Draw the actual name of the config bar.
+                Point grid_size_str_start = {.x = left_margin, .y = y_start};
+                display->draw_string(grid_size_str_start, option_text, Size16,
+                                     cell_bg_color, White);
+        }
 
-        int modifiable_cell_width = value_text_max_len * FONT_WIDTH + 2 * h_padding;
-        if (rerender_value_cell) {
+        int modifiable_cell_width =
+            value_text_max_len * FONT_WIDTH + 2 * h_padding;
+        if (first_render || rerender_value_cell) {
                 char grid_size_buffer[5];
                 sprintf(grid_size_buffer, "%4d", value);
                 display->draw_rounded_rectangle(
