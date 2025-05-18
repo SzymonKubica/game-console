@@ -289,6 +289,12 @@ void draw_game_won(Display *display, GameState *state)
 
 inline int get_centering_margin(int screen_width, int text_length,
                                 int font_width);
+
+void render_configuration_bar_centered(Display *display, int y_start,
+                                       int option_text_max_len,
+                                       int value_text_max_len,
+                                       char *option_text,
+                                       bool rerender_value_cell);
 /// Draws the config menu given the old and new config values
 /// The old config given in `previous_config` is needed to determine which parts
 /// of the UI need to be updated.
@@ -333,19 +339,11 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         char *target_option_text = "Game target:";
         char *start_text = "Start Game";
 
-        // For all selector buttons we need to find the one that has the longest
-        // text and then put two spaces between the text of that one and the
-        // selector option blob (the thing that displays the actual value of
-        // the selected option).
-        int separator_between_option_text_and_value = 2;
         int max_game_target_text_len = 4;
+        int option_text_max_len = strlen(target_option_text);
 
-        // This represents the width of the largest configuration option
-        // component in the generic menu renderer we need to find the longest
-        // length of the option text and use this. This is used for properly
-        // centering the configuration option blob on the screen.
-        int text_max_length = strlen(target_option_text) +
-                              separator_between_option_text_and_value +
+        int option_value_separator = 2;
+        int text_max_length = option_text_max_len + option_value_separator +
                               max_game_target_text_len;
 
         // We exctract the display dimensions and font sizes into shorter
@@ -369,26 +367,8 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         int target_config_bar_y = 2 * spacing + 4 * FONT_SIZE;
         int start_config_bar_y = 2 * spacing + 7 * FONT_SIZE;
 
-        Point grid_size_cell_start = {.x = left_margin - FONT_WIDTH / 2,
-                                      .y = grid_size_config_bar_y -
-                                           FONT_SIZE / 2};
-
-        Point target_tile_cell_start = {.x = left_margin - FONT_WIDTH / 2,
-                                        .y = target_config_bar_y -
-                                             FONT_SIZE / 2};
-
         Point start_tile_cell_start = {.x = left_margin - FONT_WIDTH / 2,
                                        .y = start_config_bar_y - FONT_SIZE / 2};
-
-        Point grid_size_modifiable_cell_start = {
-            .x = (int)(left_margin +
-                       (strlen(target_option_text) + 1) * FONT_WIDTH),
-            .y = grid_size_config_bar_y - FONT_SIZE / 4};
-
-        Point target_tile_modifiable_cell_start = {
-            .x = (int)(left_margin +
-                       (strlen(target_option_text) + 1) * FONT_WIDTH),
-            .y = target_config_bar_y - FONT_SIZE / 4};
 
         int option_cell_width = (text_max_length + 1) * FONT_WIDTH;
         int modifiable_cell_width = (5) * FONT_WIDTH;
@@ -403,13 +383,13 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                 display->draw_string(heading_start, heading_text, Size24, Black,
                                      White);
 
-                // Draw the background for the two configuration cells.
-                display->draw_rounded_rectangle(
-                    grid_size_cell_start, option_cell_width, FONT_SIZE * 2,
-                    FONT_SIZE, cell_bg_color);
-                display->draw_rounded_rectangle(
-                    target_tile_cell_start, option_cell_width, FONT_SIZE * 2,
-                    FONT_SIZE, cell_bg_color);
+                render_configuration_bar_centered(
+                    display, grid_size_config_bar_y, option_text_max_len,
+                    max_game_target_text_len, grid_size_option_text);
+                render_configuration_bar_centered(
+                    display, target_config_bar_y, option_text_max_len,
+                    max_game_target_text_len, target_option_text);
+
                 display->draw_rounded_rectangle(
                     start_tile_cell_start, option_cell_width, FONT_SIZE * 2,
                     FONT_SIZE, cell_bg_color);
@@ -506,9 +486,12 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 /// a single configuration bar.
 void render_configuration_bar_centered(Display *display, int y_start,
                                        int option_text_max_len,
-                                       int value_text_max_len, char *option_text)
+                                       int value_text_max_len,
+                                       char *option_text,
+                                       bool rerender_value_cell, int value)
 {
         Color cell_bg_color = DarkBlue;
+
         // For all selector buttons we need to find the one that has the longest
         // text and then put two spaces between the text of that one and the
         // selector option blob (the thing that displays the actual value of
@@ -551,18 +534,32 @@ void render_configuration_bar_centered(Display *display, int y_start,
                 FONT_WIDTH;
         // The value cell has to be smaller than the containing config bar,
         // because of this we add negative padding to make it fit.
-        int value_cell_v_padding = -1 * FONT_SIZE / 4;
-        int value_cell_y = y_start + value_cell_v_padding;
+        int value_cell_v_padding = FONT_SIZE / 4;
+        int value_cell_y = y_start - value_cell_v_padding;
         Point value_cell_start = {.x = value_cell_x, .y = value_cell_y};
 
         // Draw the background for the two configuration cells.
         display->draw_rounded_rectangle(config_bar_start, config_bar_width,
                                         FONT_SIZE * 2, FONT_SIZE,
                                         cell_bg_color);
-        Point grid_size_str_start = {.x = left_margin,
-                                     .y = y_start};
+        // Draw the actual name of the config bar.
+        Point grid_size_str_start = {.x = left_margin, .y = y_start};
         display->draw_string(grid_size_str_start, option_text, Size16,
                              cell_bg_color, White);
+
+        int modifiable_cell_width = value_text_max_len * FONT_WIDTH + 2 * h_padding;
+        if (rerender_value_cell) {
+                char grid_size_buffer[5];
+                sprintf(grid_size_buffer, "%4d", value);
+                display->draw_rounded_rectangle(
+                    value_cell_start, modifiable_cell_width,
+                    FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
+                    White);
+                display->draw_string(
+                    {.x = value_cell_start.x + h_padding,
+                     .y = value_cell_start.y + value_cell_v_padding},
+                    grid_size_buffer, Size16, White, Black);
+        }
 }
 
 inline int get_centering_margin(int screen_width, int font_width,
