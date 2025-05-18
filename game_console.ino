@@ -33,7 +33,7 @@ void setup(void)
             new KeypadController((int (*)(unsigned char))&digitalRead),
 
         // Initialize the hardware LCD display
-            display = LcdDisplay{};
+        display = LcdDisplay{};
         display.setup();
 
         // Initializes the source of randomness from the

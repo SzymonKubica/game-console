@@ -23,7 +23,8 @@ GameState *initialize_game_state(int size, int target_max_tile)
         gs->score = 0;
         gs->occupied_tiles = 0;
         gs->grid_size = size;
-        gs->target_max_tile = target_max_tile, gs->grid = create_game_grid(size);
+        gs->target_max_tile = target_max_tile,
+        gs->grid = create_game_grid(size);
         gs->old_grid = create_game_grid(size);
 
         spawn_tile(gs);
