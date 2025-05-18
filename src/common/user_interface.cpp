@@ -287,9 +287,10 @@ void draw_game_won(Display *display, GameState *state)
         display->draw_string(text_position, msg, Size16, Black, Green);
 }
 
+/* Helper functions used by draw_configuration_menu */
+
 inline int get_centering_margin(int screen_width, int text_length,
                                 int font_width);
-
 void render_config_bar_centered(Display *display, int y_start,
                                 int option_text_max_len, int value_text_max_len,
                                 char *option_text, char *value_text,
@@ -308,41 +309,40 @@ void render_circle_selector(Display *display, bool already_rendered, int x_axis,
                             int prev_pos_idx, int curr_pos_idx, int radius,
                             Color bg_color = Black,
                             Color circle_color = DarkBlue);
-/// Draws the config menu given the old and new config values
-/// The old config given in `previous_config` is needed to determine which
-/// parts of the UI need to be updated.
-///
-/// The overall layout of the config menu looks as follows:
-///                     ____________________
-///                    |       Heading      |
-///                     --------------------
-///             ___________________________________
-///            |    Config Option 1      | Value | |
-///             -----------------------------------
-///                     ...
-///             ___________________________________
-///            |    Config Option n      | Value | |
-///             -----------------------------------
-///
-/// The function calculates positions of the heading bar and all
-/// configuration bars. The nomenclature in the function variable names is
-/// as follows:
-/// - `config_bar` refers to the entire body of the configuration option bar
-///   refer to the diagram above.
-/// - `option_text` refers to the name of the configuration option on each
-/// bar
-///   e.g. 'Config Option 1' above.
-/// - `value_cell` refers to the cell on each of the config bars that holds
-/// the actual
-///   value that is being modified by the configuration bar.
-///
-/// TODO:
-///   3. ensure that the structures used to encode the old and new state are
-///      well defined.
-/// Already done:
-///   - interactions with the display class are passed through an interface
-///     which allows that we run the game on some display that is not
-///     Arduino based
+int calculate_section_spacing(int display_height, int config_bar_num,
+                              int bar_height, int gap_between_bars_height,
+                              FontSize heading_font_size);
+int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
+                                    int bar_height, int bar_gap_height,
+                                    int config_bar_num);
+
+/** Draws the config menu given the old and new config values
+ *  The old config given in `previous_config` is needed to determine which
+ *  parts of the UI need to be updated.
+ *
+ *  The overall layout of the config menu looks as follows:
+ *                      ____________________
+ *                     |       Heading      |
+ *                      --------------------
+ *              ___________________________________
+ *             |    Config Option 1      | Value | |
+ *              -----------------------------------
+ *                      ...
+ *              ___________________________________
+ *             |    Config Option n      | Value | |
+ *              -----------------------------------
+ *
+ *  The function calculates positions of the heading bar and all
+ *  configuration bars. The nomenclature in the function variable names is
+ *  as follows:
+ *  - `config_bar` refers to the entire body of the configuration option bar
+ *    refer to the diagram above.
+ *  - `option_text` refers to the name of the configuration option on each
+ *  bar
+ *    e.g. 'Config Option 1' above.
+ *  - `value_cell` refers to the cell on each of the config bars that holds
+ *  the actual value that is being modified by the configuration bar.
+ */
 void draw_configuration_menu(Display *display, GameConfiguration *config,
                              GameConfiguration *previous_config,
                              bool already_rendered)
@@ -351,8 +351,7 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                 display->initialize();
                 display->clear(Black);
         }
-
-        // First set up all aata required to print
+        /* Display strings */
         char *heading_text = "2048";
         char *grid_size_option_text = "Grid size:";
         char *target_option_text = "Game target:";
@@ -360,7 +359,6 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 
         int max_game_target_text_len = 4;
         int option_text_max_len = strlen(target_option_text);
-
         int option_value_separator = 2;
         int text_max_length = option_text_max_len + option_value_separator +
                               max_game_target_text_len;
@@ -371,36 +369,20 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         int w = display->get_width();
         int fw = FONT_WIDTH;
         int fh = FONT_SIZE;
-
         int left_margin = get_centering_margin(w, fw, text_max_length);
 
-        // Here we want the 3 following spacings to be equal:
-        // - space from the top of the screen to the game title (heading)
-        // - space from the heading to the config bars
-        // - space from the config bars to the bottom of the screen.
-        // We do this by taking the total height, subtacting the combined
-        // height of all config bars + the game title (heading) and dividing
-        // by 3 (the number of spacings)
-        int spacings_num = 3;
         int bar_height = 2 * fh;
         int config_bar_num = 3;
-        int gap_between_bars_height = fh;
-        int total_gaps = 2;
-        int config_bars_height = config_bar_num * bar_height;
-        int total_gaps_height = total_gaps * gap_between_bars_height;
-        int total_config_section = config_bars_height + total_gaps_height;
-        // Having calculated all intermediate heights, we get the final spacing.
-        int y_spacing =
-            (h - total_config_section - HEADING_FONT_SIZE) / spacings_num;
+        int bar_gap_height = fh;
+        int y_spacing = calculate_section_spacing(h, config_bar_num, bar_height,
+                                                  bar_gap_height, Size24);
 
-        // Given the spacing we can derive vertical positions of the config
-        // bars.
-        int heading_end = y_spacing + HEADING_FONT_SIZE;
-        int grid_size_bar_y = heading_end + y_spacing;
-        int target_config_bar_y =
-            grid_size_bar_y + bar_height + gap_between_bars_height;
-        int start_config_bar_y =
-            target_config_bar_y + bar_height + gap_between_bars_height;
+        int *bar_positions = calculate_config_bar_positions(
+            y_spacing, Size24, bar_height, bar_gap_height, config_bar_num);
+        int grid_size_bar_y = bar_positions[0];
+        int target_config_bar_y = bar_positions[1];
+        int start_text_bar_y = bar_positions[2];
+        free(bar_positions);
 
         // We need to create string buffers for the values of the current config
         // options and pass them into the rendering functions so that they can
@@ -427,17 +409,23 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
             max_game_target_text_len, target_option_text, target_text,
             already_rendered,
             config->target_max_tile != previous_config->target_max_tile);
-        render_text_bar_centered(display, start_config_bar_y,
-                                 option_text_max_len, max_game_target_text_len,
-                                 start_text, already_rendered);
+        render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
+                                 max_game_target_text_len, start_text,
+                                 already_rendered);
 
+        // Before we render the indicator dot we need to calculate its positions.
+        // Note that the dot needs to appear exactly on the middle axis of the
+        // config bars, because of this we need to add the horizontal padding to
+        // the y positions of the config bars to center the dot.
+        // This is to be considered for refactoring but currently this pattern is
+        // not crystalized enough to abstract it.
         int padding = 1; // 0.5 fw on either side
         int bar_width = (text_max_length + padding) * fw;
         int circle_x = left_margin + bar_width + FONT_WIDTH;
         int h_padding = fh / 2;
         int circle_ys[] = {grid_size_bar_y + h_padding,
                            target_config_bar_y + h_padding,
-                           start_config_bar_y + h_padding};
+                           start_text_bar_y + h_padding};
         int circle_ys_len = sizeof(circle_ys) / sizeof(circle_ys[0]);
         int r = 5;
 
@@ -652,6 +640,54 @@ void render_circle_selector(Display *display, bool already_rendered, int x_axis,
                 // Draw the new circle
                 Point new_pos = {.x = x_axis, .y = y_positions[curr_pos_idx]};
                 display->draw_circle(new_pos, radius, circle_color, 1, true);
+        }
+}
+
+/**
+ * Calculates the amount of spacing required so that the 3 following spacings
+ * are equal:
+ * - space from the top of the screen to the game / config title (heading)
+ * - space from the heading to the config bars
+ * - space from the config bars to the bottom of the screen.
+ * We do this by taking the total height, subtacting the combined
+ * height of all config bars + the game title (heading) and dividing
+ * by 3 (the number of spacings)
+ * inputs
+ */
+int calculate_section_spacing(int display_height, int config_bar_num,
+                              int bar_height, int gap_between_bars_height,
+                              FontSize heading_font_size)
+{
+        int spacings_num = 3;
+        int total_gaps = config_bar_num - 1;
+        int config_bars_height = config_bar_num * bar_height;
+        int total_gaps_height = total_gaps * gap_between_bars_height;
+        int total_config = config_bars_height + total_gaps_height;
+        // Having calculated all intermediate heights, we get the final spacing.
+        return (display_height - total_config - (int)heading_font_size) /
+               spacings_num;
+}
+/**
+ * Given the initial spacing in front of the config heading and the number,
+ * sizes and gap size between the config bars, calculates the array of their y
+ * positions and returns a pointer to it.
+ *
+ * The caller is responsible for freeing up this memory after the positions are
+ * used.
+ *
+ */
+int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
+                                    int bar_height, int bar_gap_height,
+                                    int config_bar_num)
+{
+        int heading_end = y_spacing + heading_font_size;
+
+        int *bar_positions = (int *)malloc(config_bar_num * sizeof(int));
+
+        int curr_bar_y = heading_end + y_spacing;
+        for (int i = 0; i < config_bar_num; i++) {
+                bar_positions[i] =
+                    curr_bar_y + (bar_height + bar_gap_height) * i;
         }
 }
 
