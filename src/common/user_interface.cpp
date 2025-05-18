@@ -293,7 +293,7 @@ inline int get_centering_margin(int screen_width, int text_length,
 void render_configuration_bar_centered(Display *display, int y_start,
                                        int option_text_max_len,
                                        int value_text_max_len,
-                                       char *option_text, int value,
+                                       char *option_text, char *value_text,
                                        bool first_render,
                                        bool rerender_value_cell);
 /// Draws the config menu given the old and new config values
@@ -334,7 +334,8 @@ void render_configuration_bar_centered(Display *display, int y_start,
 ///     which allows that we run the game on some display that is not
 ///     Arduino based
 void draw_configuration_menu(Display *display, GameConfiguration *config,
-                             GameConfiguration *previous_config, bool update)
+                             GameConfiguration *previous_config,
+                             bool already_rendered)
 {
         // First set up all aata required to print
         char *heading_text = "2048";
@@ -378,22 +379,33 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 
         Color cell_bg_color = DarkBlue;
 
-        if (!update) {
+        if (!already_rendered) {
                 display->initialize();
                 display->clear(Black);
         }
 
+        // We need to create string buffers for the values of the current config
+        // options and pass them into the rendering functions so that they can
+        // be displayed. This is done outside of the rendering function as we
+        // want to have ability to render any config value (even strings) and
+        // so it does not make sense to pass ints into the function and do
+        // `sprintf` there.
+        char grid_size_text[5];
+        sprintf(grid_size_text, "%4d", config->grid_size);
+        char target_text[5];
+        sprintf(target_text, "%4d", config->target_max_tile);
+
         render_configuration_bar_centered(
             display, grid_size_config_bar_y, option_text_max_len,
-            max_game_target_text_len, grid_size_option_text, config->grid_size,
-            !update, config->grid_size != previous_config->grid_size);
+            max_game_target_text_len, grid_size_option_text, grid_size_text,
+            already_rendered, config->grid_size != previous_config->grid_size);
         render_configuration_bar_centered(
             display, target_config_bar_y, option_text_max_len,
-            max_game_target_text_len, target_option_text,
-            config->target_max_tile, !update,
+            max_game_target_text_len, target_option_text, target_text,
+            already_rendered,
             config->target_max_tile != previous_config->target_max_tile);
 
-        if (!update) {
+        if (!already_rendered) {
 
                 Point heading_start = {.x = heading_x_pos, .y = spacing};
                 display->draw_string(heading_start, heading_text, Size24, Black,
@@ -421,8 +433,9 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 
         // This is responsible for drawing the selector circle telling you
         // which config option is currently being used.
-        if (!update || (update && config->config_option !=
-                                      previous_config->config_option)) {
+        if (!already_rendered ||
+            (already_rendered &&
+             config->config_option != previous_config->config_option)) {
                 // First clear both circles
                 int selector_circle_radius = 5;
                 Paint_DrawCircle(left_margin + option_cell_width + FONT_WIDTH,
@@ -459,14 +472,55 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
         }
 }
 
-/// This is supposed to be a generic utility function responsible for rendering
-/// a single configuration bar.
+/**
+ * Allows for rendering a centered configuration bar. A config bar consists of
+ * two parts: the option text and the value cell. The option text displays the
+ * name of the config option whereas the value cell shows the currently selected
+ * value. It is supposed to render as follows:
+ *   _____________________________________________
+ *  /                     _______________________ \
+ * |     Option text     |       Value cell      | |
+ *  \                     ----------------------- /
+ *   ---------------------------------------------
+ * So the configuration bar is a large rounded rect that has the smaller rounded
+ * rect for the actual value. It is very important that the background of the
+ * value cell is white and the text is black. This is required by the specifics
+ * of the display that we are using for the console. Given that it only allows
+ * for redrawing one pixel at a time, and the speed of redrawing white/black is
+ * the highest (less information required to transfer over the wire), we need
+ * to opt for black-on-white text for parts of the game that get redrawn
+ * frequently.
+ *
+ * The function takes the following parameters:
+ * @param `display` A pointer to the implementation of the display to render on.
+ * @param `y_start` The y coordinate of the top left corner of the config bar.
+ * This function only enforces horizontal centering, the caller is responsible
+ *        for enforcing proper vertical spacing using this argument.
+ * @param `option_text_max_len` The maximum length of the option text, required
+ * for centering. The idea here is that if you want to render multiple
+ * configuration bars, you need to find the max across their option names and
+ * pass it in when rendering each bar. This will ensure that all config bars are
+ *        of the same width and are properly centered.
+ * @param `value_text_max_len` The max length of the value text in the value
+ * cell, similar to the `option_text_max_len` it is used for proper centering
+ * and consistent spacing across multiple config bars rendered on the same UI.
+ * @param `option_text` The text for the name of the config option to display on
+ *        the config bar.
+ * @param `is_already_rendered` Because of the limited speed of the display of
+ *        the console, we need to be really efficient with what we render. If
+ *        we want the config menu to be snappy, there is no point in redrawing
+ *        the entire bar if the value cell changes. Because of this the caller
+ *        needs to specify this flag to inform the function whether it is
+ * supposed to render everything or just redraw the value cell.
+ * @param `update_value_cell` If set, the function will only redraw the value
+ * cell, the entire config bar will not be rerendered
+ */
 void render_configuration_bar_centered(Display *display, int y_start,
                                        int option_text_max_len,
                                        int value_text_max_len,
-                                       char *option_text, int value,
-                                       bool first_render,
-                                       bool rerender_value_cell)
+                                       char *option_text, char *value_text,
+                                       bool is_already_rendered,
+                                       bool update_value_cell)
 {
         Color cell_bg_color = DarkBlue;
 
@@ -516,7 +570,7 @@ void render_configuration_bar_centered(Display *display, int y_start,
         int value_cell_y = y_start - value_cell_v_padding;
         Point value_cell_start = {.x = value_cell_x, .y = value_cell_y};
 
-        if (first_render) {
+        if (!is_already_rendered) {
                 // Draw the background for the two configuration cells.
                 display->draw_rounded_rectangle(config_bar_start,
                                                 config_bar_width, FONT_SIZE * 2,
@@ -529,9 +583,7 @@ void render_configuration_bar_centered(Display *display, int y_start,
 
         int modifiable_cell_width =
             value_text_max_len * FONT_WIDTH + 2 * h_padding;
-        if (first_render || rerender_value_cell) {
-                char grid_size_buffer[5];
-                sprintf(grid_size_buffer, "%4d", value);
+        if (!is_already_rendered || update_value_cell) {
                 display->draw_rounded_rectangle(
                     value_cell_start, modifiable_cell_width,
                     FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
@@ -539,7 +591,7 @@ void render_configuration_bar_centered(Display *display, int y_start,
                 display->draw_string(
                     {.x = value_cell_start.x + h_padding,
                      .y = value_cell_start.y + value_cell_v_padding},
-                    grid_size_buffer, Size16, White, Black);
+                    value_text, Size16, White, Black);
         }
 }
 
