@@ -74,4 +74,14 @@ class LcdDisplay : public Display
          */
         virtual void clear_region(Point top_left, Point bottom_right,
                                   Color clear_color) override;
+
+        /**
+         * Returns the height of the display.
+         */
+        virtual int get_height() override;
+
+        /**
+         * Returns the width of the display.
+         */
+        virtual int get_width() override;
 };

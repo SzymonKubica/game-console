@@ -183,3 +183,9 @@ sFONT *map_font_size(FontSize font_size)
                 return &Font16;
         }
 }
+
+// We return the width for the height as the display is mounted horizontally.
+int LcdDisplay::get_height() { return LCD_WIDTH; };
+
+// We return the height for the width as the display is mounted horizontally.
+int LcdDisplay::get_width() { return LCD_HEIGHT; };

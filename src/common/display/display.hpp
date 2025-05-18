@@ -71,4 +71,14 @@ class Display
          */
         virtual void clear_region(Point top_left, Point bottom_right,
                                   Color clear_color) = 0;
+
+        /**
+         * Returns the height of the display.
+         */
+        virtual int get_height() = 0;
+
+        /**
+         * Returns the width of the display.
+         */
+        virtual int get_width() = 0;
 };

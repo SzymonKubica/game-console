@@ -121,8 +121,8 @@ GridDimensions *calculate_grid_dimensions(int grid_size)
 /**
  * Draws the background slots for the grid tiles, this takes a long time and
  * should only be called once at the start of the game to draw the grid. After
- * that update_game_grid should be called to update the contents of the grid slots
- * with the numbers.
+ * that update_game_grid should be called to update the contents of the grid
+ * slots with the numbers.
  */
 static void draw_game_grid(Display *display, int grid_size)
 {
@@ -287,25 +287,55 @@ void draw_game_won(Display *display, GameState *state)
         display->draw_string(text_position, msg, Size16, Black, Green);
 }
 
+inline int get_centering_margin(int screen_width, int text_length, int font_width);
 /// Draws the config menu given the old and new config values
 /// The old config given in `previous_config` is needed to determine which parts
 /// of the UI need to be updated
+/// TODO:
+///   1. remove all magic numbers
+///   2. understand the core structure of the rendering
+///   3. ensure that the structures used to encode the old and new state are
+///      well defined.
+/// Already done:
+///   - interactions with the display class are passed through an interface
+///     which allows that we run the game on some display that is not Arduino
+///     based
 void draw_configuration_menu(Display *display, GameConfiguration *config,
-                           GameConfiguration *previous_config, bool update)
+                             GameConfiguration *previous_config, bool update)
 {
         // First set up all aata required to print
-        char *heading = "2048";
-        char *grid_size_str = "Grid size:";
-        char *target_tile = "Game target:";
-        char *start = "Start Game";
+        char *heading_text = "2048";
+        char *grid_size_tile_text = "Grid size:";
+        char *target_tile_text = "Game target:";
+        char *start_text = "Start Game";
 
-        int text_max_length = strlen(target_tile) + 2 + 4; // max 4096 target
-        int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
+        // For all selector buttons we need to find the one that has the longest
+        // text and then put two spaces between the text of that one and the
+        // selector option blob (the thing that displays the actual value of
+        // the selected option).
+        int separator_between_option_text_and_value = 2;
+        int max_game_target_text_len = 4;
 
-        int spacing = (LCD_WIDTH - 6 * FONT_SIZE - HEADING_FONT_SIZE) / 3;
+        // This represents the width of the largest configuration option component
+        // in the generic menu renderer we need to find the longest length of the
+        // option text and use this. This is used for properly centering the
+        // configuration option blob on the screen.
+        int text_max_length = strlen(target_tile_text) +
+                              separator_between_option_text_and_value +
+                              max_game_target_text_len;
 
-        int heading_x_pos =
-            (LCD_HEIGHT - strlen(heading) * HEADING_FONT_WIDTH) / 2;
+        // We exctract the display dimensions and font sizes into shorter variable names to
+        // make the code easier to read.
+        int h = display->get_height();
+        int w = display->get_width();
+        int fw = FONT_WIDTH;
+        int fh = FONT_SIZE;
+
+        int left_margin = get_centering_margin(w, fw, text_max_length);
+
+        int spacing = (h - 6 * FONT_SIZE - HEADING_FONT_SIZE) / 3;
+
+        int heading_x_pos = (w - strlen(heading_text) * HEADING_FONT_WIDTH) / 2;
 
         // First calculate the positions of the two configuration cells.
         int grid_size_y_pos = 2 * spacing + FONT_SIZE;
@@ -322,11 +352,13 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                                        .y = start_tile_y_pos - FONT_SIZE / 2};
 
         Point grid_size_modifiable_cell_start = {
-            .x = (int)(left_margin + (strlen(target_tile) + 1) * FONT_WIDTH),
+            .x = (int)(left_margin +
+                       (strlen(target_tile_text) + 1) * FONT_WIDTH),
             .y = grid_size_y_pos - FONT_SIZE / 4};
 
         Point target_tile_modifiable_cell_start = {
-            .x = (int)(left_margin + (strlen(target_tile) + 1) * FONT_WIDTH),
+            .x = (int)(left_margin +
+                       (strlen(target_tile_text) + 1) * FONT_WIDTH),
             .y = target_tile_y_pos - FONT_SIZE / 4};
 
         int option_cell_width = (text_max_length + 1) * FONT_WIDTH;
@@ -339,7 +371,7 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                 display->clear(Black);
 
                 Point heading_start = {.x = heading_x_pos, .y = spacing};
-                display->draw_string(heading_start, heading, Size24, Black,
+                display->draw_string(heading_start, heading_text, Size24, Black,
                                      White);
 
                 // Draw the background for the two configuration cells.
@@ -355,17 +387,17 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
 
                 Point grid_size_str_start = {.x = left_margin,
                                              .y = grid_size_y_pos};
-                display->draw_string(grid_size_str_start, grid_size_str, Size16,
-                                     cell_bg_color, White);
+                display->draw_string(grid_size_str_start, grid_size_tile_text,
+                                     Size16, cell_bg_color, White);
                 Point target_tile_str_start = {.x = left_margin,
                                                .y = target_tile_y_pos};
-                display->draw_string(target_tile_str_start, target_tile, Size16,
-                                     cell_bg_color, White);
+                display->draw_string(target_tile_str_start, target_tile_text,
+                                     Size16, cell_bg_color, White);
 
                 int start_game_margin =
-                    (LCD_HEIGHT - strlen(start) * FONT_WIDTH) / 2;
+                    (LCD_HEIGHT - strlen(start_text) * FONT_WIDTH) / 2;
                 display->draw_string(
-                    {.x = start_game_margin, .y = start_tile_y_pos}, start,
+                    {.x = start_game_margin, .y = start_tile_y_pos}, start_text,
                     Size16, cell_bg_color, White);
         }
 
@@ -410,9 +442,9 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                 char grid_size_buffer[5];
                 sprintf(grid_size_buffer, "%4d", config->grid_size);
                 display->draw_rounded_rectangle(
-                    grid_size_modifiable_cell_start,
-                    modifiable_cell_width, FONT_SIZE + FONT_SIZE / 2,
-                    (FONT_SIZE + FONT_SIZE / 2) / 2, White);
+                    grid_size_modifiable_cell_start, modifiable_cell_width,
+                    FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
+                    White);
                 display->draw_string(
                     {.x = grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
                      .y = grid_size_modifiable_cell_start.y + FONT_SIZE / 4},
@@ -425,20 +457,25 @@ void draw_configuration_menu(Display *display, GameConfiguration *config,
                 sprintf(game_target_buffer, "%4d", config->target_max_tile);
 
                 // Draw / clear the modifiable cells
-                display->draw_rounded_rectangle(target_tile_modifiable_cell_start,
-                                     modifiable_cell_width,
-                                     FONT_SIZE + FONT_SIZE / 2,
-                                     (FONT_SIZE + FONT_SIZE / 2) / 2, White);
+                display->draw_rounded_rectangle(
+                    target_tile_modifiable_cell_start, modifiable_cell_width,
+                    FONT_SIZE + FONT_SIZE / 2, (FONT_SIZE + FONT_SIZE / 2) / 2,
+                    White);
 
-                display->draw_string({.x=
-                    grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
-                    .y = target_tile_modifiable_cell_start.y + FONT_SIZE / 4},
+                display->draw_string(
+                    {.x = grid_size_modifiable_cell_start.x + FONT_WIDTH / 2,
+                     .y = target_tile_modifiable_cell_start.y + FONT_SIZE / 4},
                     game_target_buffer, Size16, White, Black);
         }
 }
 
+inline int get_centering_margin(int screen_width, int font_width, int text_length) {
+    return (screen_width - text_length * font_width) / 2;
+
+}
+
 void render_generic_config_menu(Configuration *config, ConfigurationDiff *diff,
-                             bool update)
+                                bool update)
 {
 
         int text_max_length = find_max_config_option_name_length(config) + 2;
