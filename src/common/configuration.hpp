@@ -12,8 +12,10 @@ template <typename T> struct ConfigurationValue {
          * available configuration value options.
          */
         T *available_values;
-        /// Numer of available configuration options for this
-        /// `ConfigurationValue`.
+        /**
+         * Numer of available configuration options for this
+         * `ConfigurationValue`.
+         */
         int available_values_len;
         /// Currently selected option for this configuration value.
         int currently_selected;
@@ -31,23 +33,29 @@ template <typename T> struct ConfigurationValue {
  * that should be used for rendering in the UI.
  */
 struct Configuration {
-        /// Represents the configuration value that is currently selected in the
-        /// UI and is being edited by the user.
+        /**
+         * Represents the configuration value that is currently selected in the
+         * UI and is being edited by the user.
+         */
         int current_config_value;
         /// Stores the number of configurable values.
         int config_values_len;
-        /// Configuration values are represented as a void pointer to an array
-        /// of pointers to configuration values of unspecified types.
-        /// This is to allow for collecting string / int type inputs.
-        ///
-        /// Idea: it might be simpler to always do strings as we'll need those
-        /// for rendering anyway. In which case for int-type inputs we could
-        /// simply represent them as strings and then parse them once the
-        /// configuration is collected
+        /**
+         * Configuration values are represented as a void pointer to an array
+         * of pointers to configuration values of unspecified types.
+         * This is to allow for collecting string / int type inputs.
+         *
+         * Idea: it might be simpler to always do strings as we'll need those
+         * for rendering anyway. In which case for int-type inputs we could
+         * simply represent them as strings and then parse them once the
+         * configuration is collected
+         */
         void **configuration_values;
-        /// Maintains information about the types of the configurable values
-        /// the idea is that a single configuration should allow for setting
-        /// both integer and string valuea out of finite lists of options.
+        /**
+         * Maintains information about the types of the configurable values
+         * the idea is that a single configuration should allow for setting
+         * both integer and string valuea out of finite lists of options.
+         */
         ConfigurationOptionType *type_map;
         /// Name of the configuration group.
         char *name;
