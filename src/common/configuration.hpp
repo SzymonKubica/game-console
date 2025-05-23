@@ -7,8 +7,10 @@ typedef enum ConfigurationOptionType {
 } ConfigurationOptionType;
 
 template <typename T> struct ConfigurationValue {
-        /// Pointer to the head of the array that stores the finite list of
-        /// available configuration value options.
+        /**
+         * Pointer to the head of the array that stores the finite list of
+         * available configuration value options.
+         */
         T *available_values;
         /// Numer of available configuration options for this
         /// `ConfigurationValue`.
@@ -19,7 +21,7 @@ template <typename T> struct ConfigurationValue {
         char *name;
         /// Max config option string length for UI rendering purposes
         int max_config_option_len;
-} ;
+};
 
 /**
  * A generic container for game configuration values. It allows for storing
@@ -29,13 +31,19 @@ template <typename T> struct ConfigurationValue {
  * that should be used for rendering in the UI.
  */
 struct Configuration {
-        /// Represents the configuration value that is currently selecte in the
+        /// Represents the configuration value that is currently selected in the
         /// UI and is being edited by the user.
         int current_config_value;
-        /// Should store the number of configurable values.
+        /// Stores the number of configurable values.
         int config_values_len;
         /// Configuration values are represented as a void pointer to an array
         /// of pointers to configuration values of unspecified types.
+        /// This is to allow for collecting string / int type inputs.
+        ///
+        /// Idea: it might be simpler to always do strings as we'll need those
+        /// for rendering anyway. In which case for int-type inputs we could
+        /// simply represent them as strings and then parse them once the
+        /// configuration is collected
         void **configuration_values;
         /// Maintains information about the types of the configurable values
         /// the idea is that a single configuration should allow for setting
@@ -44,7 +52,6 @@ struct Configuration {
         /// Name of the configuration group.
         char *name;
 };
-
 
 /**
  * Encapsulates the difference in the configuration that has been recorded
@@ -59,21 +66,35 @@ struct Configuration {
  *   a boolean flag indicating which one has actually changed.
  */
 struct ConfigurationDiff {
-        /// If true, the diff indicates that the currently edited configuration
-        /// option has changed and we need to redraw the indicator dot.
+        /**
+         * If true, the diff indicates that the currently edited configuration
+         * option has changed and we need to update the indicator showing which
+         * selector option is currently selected.
+         */
         bool option_switched;
+        /**
+         * The two indexes below control tell us what was the previous position
+         * of the indicator and the new one. This is used for redrawing the
+         * indicator.
+         */
         int previously_edited_option;
         int currently_edited_option;
-        /// If `option_switched` is false, this field tells us which
-        /// configuration field has been updated and needs to be redrawn.
+        /**
+         * If `option_switched` is false, this field tells us which
+         * configuration field has been updated and needs to be redrawn.
+         */
         int modified_option_index;
 };
 
-void switch_edited_config_option_down(Configuration *config, ConfigurationDiff *diff);
-void switch_edited_config_option_up(Configuration *config, ConfigurationDiff *diff);
+void switch_edited_config_option_down(Configuration *config,
+                                      ConfigurationDiff *diff);
+void switch_edited_config_option_up(Configuration *config,
+                                    ConfigurationDiff *diff);
 
-void switch_current_config_option_up(Configuration *config, ConfigurationDiff *diff);
-void switch_current_config_option_down(Configuration *config, ConfigurationDiff *diff);
+void switch_current_config_option_up(Configuration *config,
+                                     ConfigurationDiff *diff);
+void switch_current_config_option_down(Configuration *config,
+                                       ConfigurationDiff *diff);
 int find_max_config_option_name_length(Configuration *config);
 
 #endif
