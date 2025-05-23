@@ -343,7 +343,7 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
  *  - `value_cell` refers to the cell on each of the config bars that holds
  *  the actual value that is being modified by the configuration bar.
  */
-void draw_configuration_menu(Display *display, GameConfiguration *config,
+void render_config_menu(Display *display, GameConfiguration *config,
                              GameConfiguration *previous_config,
                              bool already_rendered)
 {
@@ -542,6 +542,10 @@ void render_config_bar_centered(Display *display, int y_start,
         if (!is_already_rendered || update_value_cell) {
                 int value_cell_width = value_text_max_len * fw + 2 * h_padding;
                 int value_cell_height = fh + v_padding;
+                // We here we redraw the entire value cell (with the white
+                // background so it is quite fast) If we need to render more
+                // text we could make it more optimised to only redraw over the
+                // place where actual characters are printed.
                 display->draw_rounded_rectangle(
                     value_cell_start, value_cell_width, value_cell_height,
                     value_cell_height / 2, White);
