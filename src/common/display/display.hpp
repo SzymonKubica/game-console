@@ -81,4 +81,13 @@ class Display
          * Returns the width of the display.
          */
         virtual int get_width() = 0;
+
+        /**
+         * For displays with rounded corners it returns the radius in pixels.
+         * This is needed for drawing borders with rounded corners around the
+         * display.
+         */
+        virtual int get_display_corner_radius() = 0;
+
+
 };

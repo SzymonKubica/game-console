@@ -7,11 +7,6 @@
 #include "display/display.hpp"
 
 void setup_display();
-void draw_game_canvas(Display *display, GameState *state);
-void draw(Display *display, GameState *state);
-void draw_game_over(Display *display, GameState *state);
-void draw_game_won(Display *display, GameState *state);
-void update_game_grid(Display *display, GameState *gs);
 
 void render_config_menu(Display *display, GameConfiguration *config,
                              GameConfiguration *previous_config, bool update);
