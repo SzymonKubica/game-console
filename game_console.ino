@@ -119,7 +119,7 @@ void collect_game_configuration(Display *display, GameConfiguration *config)
         config->target_max_tile = available_target_max_tiles[game_target_idx];
         config->config_option = curr_opt_idx;
 
-        draw_configuration_menu(display, config, config, false);
+        render_config_menu(display, config, config, false);
 
         while (true) {
                 Direction dir;
@@ -179,7 +179,7 @@ void collect_game_configuration(Display *display, GameConfiguration *config)
                         config->target_max_tile =
                             available_target_max_tiles[game_target_idx];
                         config->config_option = curr_opt_idx;
-                        draw_configuration_menu(display, config, &old_config,
+                        render_config_menu(display, config, &old_config,
                                                 true);
                         delay(MOVE_REGISTERED_DELAY);
                         if (ready) {
