@@ -4,7 +4,6 @@
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
-
 void LcdDisplay::setup()
 {
         Config_Init();
