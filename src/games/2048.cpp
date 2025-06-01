@@ -207,6 +207,64 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
         }
 }
 
+// This is supposed to be the generic function used for collecting the generic
+// input. In the final state the `collect_game_configuration` is to be replaced
+// by this. This is to be migrated to some c++ source file so that it can be
+// reused for different games. The idea here is that each game would define the
+// config struct that it needs to collect and the config menu would get rendered
+// automatically. This is work in progress and is currently not used anywhere
+/*
+void collect_generic_config(Configuration *config)
+{
+        LcdDisplay display = LcdDisplay{};
+        // We start with an empty diff object
+        ConfigurationDiff diff;
+        render_generic_config_menu(&display, config, &diff, false);
+
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                bool ready = false;
+                if (input_registered) {
+                        Configuration old_config;
+                        switch (dir) {
+                        case DOWN:
+                                switch_edited_config_option_up(config, &diff);
+                                break;
+                        case UP:
+                                switch_edited_config_option_down(config, &diff);
+                                break;
+                        case LEFT:
+                                switch_current_config_option_down(config,
+                                                                  &diff);
+                                break;
+                        case RIGHT:
+                                if (config->current_config_value ==
+                                    config->config_values_len - 1) {
+                                        ready = true;
+                                } else {
+                                        switch_current_config_option_up(config,
+                                                                        &diff);
+                                }
+                                break;
+                        }
+
+                        render_generic_config_menu(&display, config, &diff,
+                                                   true);
+                        delay(MOVE_REGISTERED_DELAY);
+                        if (ready) {
+                                break;
+                        }
+                }
+                delay(INPUT_POLLING_DELAY);
+        }
+}
+*/
+
 /*******************************************************************************
   Initialization Code
 *******************************************************************************/
