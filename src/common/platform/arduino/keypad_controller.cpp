@@ -1,5 +1,4 @@
 #include "keypad_controller.hpp"
-#include "../compatibility.hpp"
 
 bool KeypadController::poll_for_input(Direction *input) {
         int leftButton = this->digital_read(LEFT_BUTTON_PIN);

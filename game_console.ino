@@ -10,7 +10,6 @@ LcdDisplay display;
 JoystickController *joystick_controller;
 KeypadController *keypad_controller;
 
-
 void setup(void)
 {
         // Initialise serial port for debugging
@@ -40,5 +39,5 @@ void setup(void)
 void loop(void)
 {
         enter_game_loop(&display, joystick_controller, keypad_controller,
-                        new ArduinoDelay());
+                        new ArduinoDelay((void (*)(int))&delay));
 }

@@ -1,5 +1,4 @@
 #include "joystick_controller.hpp"
-#include "../compatibility.hpp"
 
 bool JoystickController::poll_for_input(Direction *input)
 {

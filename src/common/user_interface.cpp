@@ -1,8 +1,8 @@
 #include "user_interface.h"
 #include "configuration.hpp"
 #include "../lib/LCD_Driver.h"
-#include "display/color.hpp"
-#include "display/display.hpp"
+#include "platform/interface/color.hpp"
+#include "platform/interface/display.hpp"
 #include <cassert>
 #include <cstdio>
 

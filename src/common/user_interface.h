@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "../games/2048.h"
 #include "configuration.hpp"
-#include "display/display.hpp"
+#include "platform/interface/display.hpp"
 
 void setup_display();
 

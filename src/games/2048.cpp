@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "2048.h"
 
-#include "../common/display/display.hpp"
+#include "../common/platform/interface/display.hpp"
 #include "../common/user_interface.h"
 
 #define UP 0

@@ -1,9 +1,9 @@
 #ifndef GAME2048_H
 #define GAME2048_H
 
-#include "../common/display/display.hpp"
-#include "../common/timing/delay.hpp"
-#include "../common/controller/controller.hpp"
+#include "../common/platform/interface/display.hpp"
+#include "../common/platform/interface/delay.hpp"
+#include "../common/platform/interface/controller.hpp"
 
 typedef enum ConfigOption {
         GRID_SIZE = 0,

@@ -1,6 +1,6 @@
 #include "lcd_display.hpp"
-#include "../../lib/GUI_Paint.h"
-#include "../../lib/LCD_Driver.h"
+#include "../../../lib/GUI_Paint.h"
+#include "../../../lib/LCD_Driver.h"
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
