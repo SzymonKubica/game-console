@@ -1,4 +1,4 @@
-#include "controller.hpp"
+#include "../interface/controller.hpp"
 
 #define LEFT_BUTTON_PIN 9
 #define DOWN_BUTTON_PIN 15

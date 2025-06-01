@@ -1,4 +1,4 @@
-#include "controller.hpp"
+#include "../interface/controller.hpp"
 
 /**
  * The joystick reports the current position using two potentiometers. Those

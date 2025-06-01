@@ -1,9 +1,8 @@
-#include "src/common/controller/controller.hpp"
-#include "src/common/controller/joystick_controller.hpp"
-#include "src/common/controller/keypad_controller.hpp"
-#include "src/common/display/display.hpp"
-#include "src/common/display/lcd_display.hpp"
-#include "src/common/timing/delay.hpp"
+#include "src/common/platform/arduino/joystick_controller.hpp"
+#include "src/common/platform/arduino/keypad_controller.hpp"
+#include "src/common/platform/interface/display.hpp"
+#include "src/common/platform/arduino/lcd_display.hpp"
+#include "src/common/platform/arduino/arduino_delay.cpp"
 
 #include "src/games/2048.h"
 
@@ -11,10 +10,6 @@ LcdDisplay display;
 JoystickController *joystick_controller;
 KeypadController *keypad_controller;
 
-class ArduinoDelay : public DelayProvider
-{
-        void delay_ms(int ms) override { delay(ms); }
-};
 
 void setup(void)
 {

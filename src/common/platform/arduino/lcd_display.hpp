@@ -1,6 +1,5 @@
 #pragma once
-#include "display.hpp"
-#include "../user_interface.h"
+#include "../interface/display.hpp"
 
 /**
  * @brief LcdDisplay class that implements the Display interface for the
