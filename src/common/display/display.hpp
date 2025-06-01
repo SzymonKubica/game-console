@@ -3,7 +3,7 @@
 #include "../font_size.hpp"
 #include "color.hpp"
 
-/**
+/*
  * @brief Display interface that needs to be implemented by classes that will be
  * used for drawing our games.
  *

@@ -2,5 +2,5 @@
 - [] figure out how to generate sudoku
 - [] design the input model for sudoku
 
-- [] move the the 2028 game rendering code to the 2048 files and make it use the
+- [x] move the the 2028 game rendering code to the 2048 files and make it use the
      display interface

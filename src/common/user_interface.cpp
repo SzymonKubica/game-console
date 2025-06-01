@@ -1,6 +1,5 @@
 #include "user_interface.h"
 #include "configuration.hpp"
-#include "../lib/GUI_Paint.h"
 #include "../lib/LCD_Driver.h"
 #include "display/color.hpp"
 #include "display/display.hpp"

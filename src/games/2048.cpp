@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include "2048.h"
 
+#include "../common/display/display.hpp"
+#include "../common/user_interface.h"
+
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -18,9 +21,183 @@
 // this should be configurable
 #define SCREEN_BORDER_WIDTH 3
 
+// This should be sourced from a module that controlls those constants
+#define INPUT_POLLING_DELAY 50
+#define MOVE_REGISTERED_DELAY 150
+
 static void copy_grid(int **source, int **destination, int size);
 
 void initialize_randomness_seed(int seed) { srand(seed); }
+
+void handle_game_over(Display *display, GameState *state,
+                      Controller *joystick_controller,
+                      Controller *keypad_controller);
+void handle_game_finished(Display *display, GameState *state,
+                          Controller *joystick_controller,
+                          Controller *keypad_controller);
+void collect_game_configuration(Display *display, GameConfiguration *config);
+void enter_game_loop(Display *display, Controller *joystick_controller,
+                     Controller *keypad_controller,
+                     DelayProvider *delay_provider)
+{
+        GameConfiguration config;
+        collect_game_configuration(display, &config);
+
+        GameState *state =
+            initialize_game_state(config.grid_size, config.target_max_tile);
+
+        draw_game_canvas(display, state);
+        update_game_grid(display, state);
+
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                if (input_registered) {
+                        take_turn(state, (int)dir);
+                        update_game_grid(display, state);
+                        delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                }
+                delay_provider->delay_ms(INPUT_POLLING_DELAY);
+
+                if (is_game_over(state)) {
+                        handle_game_over(display, state, joystick_controller,
+                                         keypad_controller);
+                        break;
+                }
+                if (is_game_finished(state)) {
+                        handle_game_finished(display, state,
+                                             joystick_controller,
+                                             keypad_controller);
+                        break;
+                }
+        }
+}
+
+void wait_for_input(Controller *joystick_controller,
+                    Controller *keypad_controller);
+void handle_game_over(Display *display, GameState *state,
+                      Controller *joystick_controller,
+                      Controller *keypad_controller)
+{
+        draw_game_over(display, state);
+        wait_for_input(joystick_controller, keypad_controller);
+}
+
+void handle_game_finished(Display *display, GameState *state,
+                          Controller *joystick_controller,
+                          Controller *keypad_controller)
+{
+        draw_game_won(display, state);
+        wait_for_input(joystick_controller, keypad_controller);
+}
+
+void wait_for_input(Controller *joystick_controller,
+                    Controller *keypad_controller)
+{
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                if (input_registered) {
+                        break;
+                }
+        }
+}
+
+void collect_game_configuration(Display *display, GameConfiguration *config,
+                                Controller *joystick_controller,
+                                Controller *keypad_controller,
+                                DelayProvider *delay_provider)
+{
+        const int AVAILABLE_OPTIONS = 3;
+        const int GRID_SIZES_LEN = 3;
+        const int TARGET_MAX_TILES_LEN = 6;
+
+        int available_grid_sizes[] = {3, 4, 5};
+        int available_target_max_tiles[] = {128, 256, 512, 1024, 2048, 4096};
+
+        ConfigOption curr_opt_idx = GRID_SIZE;
+        int grid_size_idx = 1;
+        int game_target_idx = 4;
+
+        config->grid_size = available_grid_sizes[grid_size_idx];
+        config->target_max_tile = available_target_max_tiles[game_target_idx];
+        config->config_option = curr_opt_idx;
+
+        render_config_menu(display, config, config, false);
+
+        while (true) {
+                Direction dir;
+                bool input_registered = false;
+                input_registered |= joystick_controller->poll_for_input(&dir);
+                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                bool ready = false;
+                if (input_registered) {
+                        GameConfiguration old_config;
+                        old_config.grid_size = config->grid_size;
+                        old_config.target_max_tile = config->target_max_tile;
+                        old_config.config_option = config->config_option;
+                        switch (dir) {
+                        case DOWN:
+                                curr_opt_idx =
+                                    (ConfigOption)((curr_opt_idx + 1) %
+                                                   AVAILABLE_OPTIONS);
+                                break;
+                        case UP:
+                                curr_opt_idx =
+                                    (ConfigOption)((curr_opt_idx - 1) %
+                                                   AVAILABLE_OPTIONS);
+                                break;
+                        case LEFT:
+                                if (curr_opt_idx == GRID_SIZE) {
+                                        if (grid_size_idx == 0) {
+                                                grid_size_idx =
+                                                    GRID_SIZES_LEN - 1;
+                                        } else {
+                                                grid_size_idx--;
+                                        }
+                                } else {
+                                        if (game_target_idx == 0) {
+                                                game_target_idx =
+                                                    TARGET_MAX_TILES_LEN - 1;
+                                        } else {
+                                                game_target_idx--;
+                                        }
+                                }
+                                break;
+                        case RIGHT:
+                                if (curr_opt_idx == GRID_SIZE) {
+                                        grid_size_idx = (grid_size_idx + 1) %
+                                                        GRID_SIZES_LEN;
+                                } else if (curr_opt_idx == TARGET_MAX_TILE) {
+                                        game_target_idx =
+                                            (game_target_idx + 1) %
+                                            TARGET_MAX_TILES_LEN;
+                                } else {
+                                        ready = true;
+                                }
+                                break;
+                        }
+
+                        config->grid_size = available_grid_sizes[grid_size_idx];
+                        config->target_max_tile =
+                            available_target_max_tiles[game_target_idx];
+                        config->config_option = curr_opt_idx;
+                        render_config_menu(display, config, &old_config, true);
+                        delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                        if (ready) {
+                                break;
+                        }
+                }
+                delay_provider->delay_ms(INPUT_POLLING_DELAY);
+        }
+}
 
 /*******************************************************************************
   Initialization Code
@@ -300,7 +477,6 @@ static void copy_grid(int **source, int **destination, int size)
         }
 }
 
-
 static void draw_game_grid(Display *display, int grid_size);
 void draw_game_canvas(Display *display, GameState *state)
 {
@@ -363,8 +539,7 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 
         int grid_start_x =
             SCREEN_BORDER_WIDTH + cell_x_spacing + remainder_width / 2;
-        int grid_start_y =
-            SCREEN_BORDER_WIDTH + corner_radius + corner_offset;
+        int grid_start_y = SCREEN_BORDER_WIDTH + corner_radius + corner_offset;
 
         // We first draw a slot for the score
         int score_cell_width =
@@ -570,4 +745,3 @@ void draw_game_won(Display *display, GameState *state)
 
         display->draw_string(text_position, msg, Size16, Black, Green);
 }
-
