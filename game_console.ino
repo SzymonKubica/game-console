@@ -13,10 +13,10 @@ LcdDisplay display;
 JoystickController *joystick_controller;
 KeypadController *keypad_controller;
 
-class ArduinoDelay : DelayProvider
+class ArduinoDelay : public DelayProvider
 {
         void delay_ms(int ms) override { delay(ms); }
-}
+};
 
 void setup(void)
 {
@@ -46,37 +46,8 @@ void setup(void)
 
 void loop(void)
 {
-        GameConfiguration config;
-        collect_game_configuration(&display, &config);
-
-        GameState *state =
-            initialize_game_state(config.grid_size, config.target_max_tile);
-
-        draw_game_canvas(&display, state);
-        update_game_grid(&display, state);
-
-        while (true) {
-                Direction dir;
-                bool input_registered = false;
-                input_registered |= joystick_controller->poll_for_input(&dir);
-                input_registered |= keypad_controller->poll_for_input(&dir);
-
-                if (input_registered) {
-                        take_turn(state, (int)dir);
-                        update_game_grid(&display, state);
-                        delay(MOVE_REGISTERED_DELAY);
-                }
-                delay(INPUT_POLLING_DELAY);
-
-                if (is_game_over(state)) {
-                        handle_game_over(&display, state);
-                        break;
-                }
-                if (is_game_finished(state)) {
-                        handle_game_finished(&display, state);
-                        break;
-                }
-        }
+        enter_game_loop(&display, joystick_controller, keypad_controller,
+                        new ArduinoDelay());
 }
 
 // This is supposed to be the generic function used for collecting the generic

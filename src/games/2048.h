@@ -39,7 +39,7 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-void enter_game_loop(Display display, Controller *joystick_controller,
+void enter_game_loop(Display *display, Controller *joystick_controller,
                      Controller *keypad_controller, DelayProvider *delay_provider);
 
 #endif

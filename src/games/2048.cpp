@@ -35,13 +35,21 @@ void handle_game_over(Display *display, GameState *state,
 void handle_game_finished(Display *display, GameState *state,
                           Controller *joystick_controller,
                           Controller *keypad_controller);
-void collect_game_configuration(Display *display, GameConfiguration *config);
+void collect_game_configuration(Display *display, GameConfiguration *config,
+                                Controller *joystick_controller,
+                                Controller *keypad_controller,
+                                DelayProvider *delay_provider);
 void enter_game_loop(Display *display, Controller *joystick_controller,
                      Controller *keypad_controller,
                      DelayProvider *delay_provider)
 {
         GameConfiguration config;
-        collect_game_configuration(display, &config);
+        // TODO: this passing of the controllers and delay providers is a bit unwieldy
+        // ideally every function of the game, unless it is pure logic should have
+        // access to the display, controllers and the delay provider. This should
+        // be encapsulated in some 'platform' object.
+        collect_game_configuration(display, &config, joystick_controller,
+                                   keypad_controller, delay_provider);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
