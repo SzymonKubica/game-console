@@ -1,14 +1,12 @@
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_WIDTH 280
 
-void SfmlDisplay::setup()
-{
-        sf::RenderWindow window(sf::VideoMode({DISPLAY_WIDTH, DISPLAY_HEIGHT}),
-                                "SFML works!");
-        this->window = &window;
+void SfmlDisplay::setup() {
+
 };
 
 void SfmlDisplay::initialize() {}
@@ -56,7 +54,7 @@ void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
                               Color fg_color)
 {
-        const sf::Font font("arial.ttf");
+        const sf::Font font("/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
         sf::Text text(font, string_buffer, font_size);
         text.setFillColor(map_color(fg_color));
         this->window->draw(text);

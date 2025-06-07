@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
@@ -16,8 +17,8 @@
 
 // TODO: migrate those somewhere else to remove dep on LCD driver which is
 // platformj-specific.
-#define LCD_WIDTH   240 //LCD width
-#define LCD_HEIGHT  280 //LCD height
+#define LCD_WIDTH 240  // LCD width
+#define LCD_HEIGHT 280 // LCD height
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
@@ -85,8 +86,8 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
  *  the actual value that is being modified by the configuration bar.
  */
 void render_config_menu(Display *display, GameConfiguration *config,
-                             GameConfiguration *previous_config,
-                             bool already_rendered)
+                        GameConfiguration *previous_config,
+                        bool already_rendered)
 {
         if (!already_rendered) {
                 display->initialize();
@@ -154,12 +155,12 @@ void render_config_menu(Display *display, GameConfiguration *config,
                                  max_game_target_text_len, start_text,
                                  already_rendered);
 
-        // Before we render the indicator dot we need to calculate its positions.
-        // Note that the dot needs to appear exactly on the middle axis of the
-        // config bars, because of this we need to add the horizontal padding to
-        // the y positions of the config bars to center the dot.
-        // This is to be considered for refactoring but currently this pattern is
-        // not crystalized enough to abstract it.
+        // Before we render the indicator dot we need to calculate its
+        // positions. Note that the dot needs to appear exactly on the middle
+        // axis of the config bars, because of this we need to add the
+        // horizontal padding to the y positions of the config bars to center
+        // the dot. This is to be considered for refactoring but currently this
+        // pattern is not crystalized enough to abstract it.
         int padding = 1; // 0.5 fw on either side
         int bar_width = (text_max_length + padding) * fw;
         int circle_x = left_margin + bar_width + FONT_WIDTH;
@@ -434,6 +435,7 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
                 bar_positions[i] =
                     curr_bar_y + (bar_height + bar_gap_height) * i;
         }
+        return bar_positions;
 }
 
 inline int get_centering_margin(int screen_width, int font_width,

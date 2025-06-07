@@ -88,6 +88,11 @@ class SfmlDisplay : public Display
          * display.
          */
         virtual int get_display_corner_radius() override;
+
+        SfmlDisplay (sf::RenderWindow *window)
+            : window(window)
+        {
+        }
       private:
         sf::RenderWindow *window;
 };
