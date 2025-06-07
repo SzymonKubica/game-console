@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <cstring>
 #include <stdio.h>
 #include "2048.h"
 

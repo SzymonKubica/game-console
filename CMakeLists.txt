@@ -4,7 +4,7 @@ project(GameConsoleEmulator
   VERSION 1.0)
 
 # This configures the language version required by the project.
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
@@ -14,11 +14,18 @@ configure_file(emulator_config.h.in emulator_config.h)
 
 
 # This is supposed to all all sources in the project to be built
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
-include_directories(${CMAKE_SOURCE_DIR}/src)
+file(GLOB_RECURSE SFML_PLATFORM_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/common/platform/sfml/*.cpp)
+file(GLOB_RECURSE PLATFORM_DEFS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/common/platform/interface/*.cpp)
+file(GLOB COMMON_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/common/*.cpp)
+file(GLOB GAME_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/games/*.cpp)
 
+add_executable(game-console-emulator
+  ${SFML_PLATFORM_SOURCES}
+  ${PLATFORM_DEFS}
+  ${COMMON_SOURCES}
+  ${GAME_SOURCES}
+  emulator_entrypoint.cpp)
 
-add_executable(game-console-emulator ${SOURCES} emulator_entrypoint.cpp)
 target_include_directories(game-console-emulator PUBLIC
   "${PROJECT_BINARY_DIR}"
 )

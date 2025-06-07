@@ -1,10 +1,10 @@
 #include "user_interface.h"
 #include "configuration.hpp"
-#include "../lib/LCD_Driver.h"
 #include "platform/interface/color.hpp"
 #include "platform/interface/display.hpp"
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
@@ -13,6 +13,11 @@
 #define HEADING_FONT_WIDTH 17
 #define TOP_LEFT_CORNER_X 23
 #define TOP_LEFT_CORNER_Y 38
+
+// TODO: migrate those somewhere else to remove dep on LCD driver which is
+// platformj-specific.
+#define LCD_WIDTH   240 //LCD width
+#define LCD_HEIGHT  280 //LCD height
 
 #define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
