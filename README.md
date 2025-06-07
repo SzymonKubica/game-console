@@ -37,3 +37,13 @@ at a time. This limits the space of possible games that we can implement.
 Anything that requires a large number of pixels to be redrawn between game ticks
 is not available. Because of this, this platform is best suited for implementing
 text-based games such as 2048 or sudoku.
+
+## Emulated execution
+
+The game console can also be executed on a regular linux machine as an sfml-based
+graphical application. This is configured as a CMake project which is configured
+in CMakeLists.txt
+
+To build the emulator for the first time navigate to emulator-build and run `cmake ..`
+which will configure your local CMake.
+To rebuild the emulator, navigate to `emulator-build` and run `cmake --build .`

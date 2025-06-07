@@ -1,0 +1,3 @@
+#define EMULATOR_VERSION_MAJOR @GameConsoleEmulator_VERSION_MAJOR@
+#define EMULATOR_VERSION_MINOR @GameConsoleEmulator_VERSION_MINOR@
+
