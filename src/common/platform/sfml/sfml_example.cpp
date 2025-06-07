@@ -18,4 +18,5 @@ int sfml_main()
         window.draw(shape);
         window.display();
     }
+    return 0;
 }

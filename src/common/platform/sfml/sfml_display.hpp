@@ -1,5 +1,6 @@
 #pragma once
 #include "../interface/display.hpp"
+#include <SFML/Graphics.hpp>
 
 /**
  * @brief SfmlDisplay class that implements the Display interface for the
@@ -87,4 +88,6 @@ class SfmlDisplay : public Display
          * display.
          */
         virtual int get_display_corner_radius() override;
+      private:
+        sf::RenderWindow *window;
 };
