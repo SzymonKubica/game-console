@@ -1,5 +1,6 @@
 #include <iostream>
 #include "emulator_config.h"
+#include "src/common/platform/sfml/sfml_example.hpp"
 
 void print_version(char *argv[]);
 int main(int argc, char* argv[])
@@ -8,6 +9,7 @@ int main(int argc, char* argv[])
   double const inputValue = std::stod(argv[1]);
   std::cout << "Emulator started!" << std::endl;
   std::cout << "Testing C++ features " << inputValue << std::endl;
+  sfml_main();
 }
 
 void print_version(char *argv[])

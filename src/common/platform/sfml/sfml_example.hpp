@@ -1,0 +1,2 @@
+
+int sfml_main();
