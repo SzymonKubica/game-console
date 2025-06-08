@@ -42,8 +42,33 @@ void SfmlDisplay::draw_rectangle(Point start, int width, int height,
 void SfmlDisplay::draw_rounded_rectangle(Point start, int width, int height,
                                          int radius, Color color)
 {
-        // No rounding for now, todo
-        draw_rectangle(start, width, height, color, 0, true);
+        Point top_left_corner = {.x = start.x + radius, .y = start.y + radius};
+
+        Point bottom_right_corner = {.x = start.x + width - radius,
+                                     .y = start.y + height - radius};
+
+        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
+        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
+
+        // Draw the four rounded corners.
+        for (int x : x_positions) {
+                for (int y : y_positions) {
+                        draw_circle({.x = x, .y = y}, radius, color, 1, true);
+                }
+        }
+
+        // This needs to be cleaned up
+        draw_rectangle({.x = top_left_corner.x, .y = start.y},
+                       width - 2 * radius, height, color, 1, true);
+
+        // small rectangle on the left
+        draw_rectangle({.x = start.x, .y = top_left_corner.y}, width + 1,
+                       height - 2 * radius, color, 1, true);
+
+        // +1 is because the endY bound is not included
+        // The big rectangle in the middle
+        draw_rectangle({.x = top_left_corner.x, .y = start.y + height - radius},
+                       width - 2 * radius, radius + 1, color, 1, true);
 };
 void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
@@ -53,6 +78,7 @@ void SfmlDisplay::draw_string(Point start, char *string_buffer,
             "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
         sf::Text text(font, string_buffer, font_size);
         text.setFillColor(map_color(fg_color));
+        text.setPosition({(float)start.x, (float)start.y});
         texture->draw(text);
         texture->display();
         refresh();
