@@ -70,6 +70,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                 input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
+                        std::cout << "About to take turn" << std::endl;
                         take_turn(state, (int)dir);
                         update_game_grid(display, state);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
@@ -165,9 +166,12 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
                                                    AVAILABLE_OPTIONS);
                                 break;
                         case UP:
-                                curr_opt_idx =
-                                    (ConfigOption)((curr_opt_idx - 1) %
-                                                   AVAILABLE_OPTIONS);
+                                if (curr_opt_idx == GRID_SIZE) {
+                                        curr_opt_idx = READY_TO_GO;
+                                } else {
+                                        curr_opt_idx =
+                                            (ConfigOption)(curr_opt_idx - 1);
+                                }
                                 break;
                         case LEFT:
                                 if (curr_opt_idx == GRID_SIZE) {
@@ -304,7 +308,10 @@ int **create_game_grid(int size)
 {
         int **g = (int **)malloc(size * sizeof(int));
         for (int i = 0; i < size; i++) {
-                g[i] = (int *)calloc(size, sizeof(int));
+                g[i] = (int *)malloc(size * sizeof(int));
+                for (int j = 0; j < size; j++) {
+                        g[i][j] = 0; // Initialize all tiles to 0
+                }
         }
         return g;
 }
@@ -385,7 +392,10 @@ static void merge(GameState *gs, int direction)
 static void merge_row(GameState *gs, int i, int direction)
 {
         int curr = 0;
-        int *merged_row = (int *)calloc(gs->grid_size, sizeof(int));
+        int *merged_row = (int *)malloc(gs->grid_size * sizeof(int));
+        for (int j = 0; j < gs->grid_size; j++) {
+                merged_row[j] = 0; // Initialize the merged row
+        }
         int merged_num = 0;
 
         int size = gs->grid_size;
@@ -502,7 +512,9 @@ void take_turn(GameState *gs, int direction)
         if (theGridChangedFrom(gs, oldGrid)) {
                 spawn_tile(gs);
         }
-        free_game_grid(oldGrid, gs->grid_size);
+        // TODO: reenable or we'll be in trouble on arduino (not enough memory
+        // for this leak )
+        // free_game_grid(oldGrid, gs->grid_size);
 }
 
 static bool theGridChangedFrom(GameState *gs, int **oldGrid)
