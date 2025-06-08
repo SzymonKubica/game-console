@@ -168,7 +168,7 @@ void render_config_menu(Display *display, GameConfiguration *config,
         int circle_ys[] = {grid_size_bar_y + h_padding,
                            target_config_bar_y + h_padding,
                            start_text_bar_y + h_padding};
-        int circle_ys_len = sizeof(circle_ys) / sizeof(circle_ys[0]);
+        int circle_ys_len = 3;
         int r = 5;
 
         render_circle_selector(display, already_rendered, circle_x, circle_ys,

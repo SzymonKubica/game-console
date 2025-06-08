@@ -4,7 +4,7 @@ project(GameConsoleEmulator
   VERSION 1.0)
 
 # This configures the language version required by the project.
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 

@@ -136,14 +136,16 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
 
         int available_grid_sizes[] = {3, 4, 5};
         int available_target_max_tiles[] = {128, 256, 512, 1024, 2048, 4096};
+        ConfigOption available_config_options[] = {GRID_SIZE, TARGET_MAX_TILE,
+                                                   READY_TO_GO};
 
-        ConfigOption curr_opt_idx = GRID_SIZE;
+        int curr_opt_idx = 0;
         int grid_size_idx = 1;
         int game_target_idx = 4;
 
         config->grid_size = available_grid_sizes[grid_size_idx];
         config->target_max_tile = available_target_max_tiles[game_target_idx];
-        config->config_option = curr_opt_idx;
+        config->config_option = available_config_options[curr_opt_idx];
 
         render_config_menu(display, config, config, false);
 
@@ -162,15 +164,13 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
                         switch (dir) {
                         case DOWN:
                                 curr_opt_idx =
-                                    (ConfigOption)((curr_opt_idx + 1) %
-                                                   AVAILABLE_OPTIONS);
+                                    (curr_opt_idx + 1) % AVAILABLE_OPTIONS;
                                 break;
                         case UP:
-                                if (curr_opt_idx == GRID_SIZE) {
-                                        curr_opt_idx = READY_TO_GO;
+                                if (curr_opt_idx == 0) {
+                                        curr_opt_idx = AVAILABLE_OPTIONS - 1;
                                 } else {
-                                        curr_opt_idx =
-                                            (ConfigOption)(curr_opt_idx - 1);
+                                        curr_opt_idx--;
                                 }
                                 break;
                         case LEFT:
@@ -207,7 +207,8 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
                         config->grid_size = available_grid_sizes[grid_size_idx];
                         config->target_max_tile =
                             available_target_max_tiles[game_target_idx];
-                        config->config_option = curr_opt_idx;
+                        config->config_option =
+                            available_config_options[curr_opt_idx];
                         render_config_menu(display, config, &old_config, true);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                         if (ready) {
