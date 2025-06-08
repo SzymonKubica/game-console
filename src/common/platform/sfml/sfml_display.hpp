@@ -16,7 +16,8 @@ class SfmlDisplay : public Display
          * particular implementation of the display. In case of the hardware
          * display, this is supposed to initialize the display driver and erease
          * its previous contents. Note that this should be called inside of
-         * the `setup` Arduino function and is intended to be executed only once.
+         * the `setup` Arduino function and is intended to be executed only
+         * once.
          */
         virtual void setup() override;
         /**
@@ -89,10 +90,20 @@ class SfmlDisplay : public Display
          */
         virtual int get_display_corner_radius() override;
 
-        SfmlDisplay (sf::RenderWindow *window)
-            : window(window)
+        /**
+         * For displays that require redrawing every frame, we need to provide
+         * ability to refresh their contents. Note that on the arduino LCD
+         * display this will be a no-op as that display does not require
+         * refreshing.
+         */
+        virtual void refresh() override;
+
+        SfmlDisplay(sf::RenderWindow *window, sf::RenderTexture *texture)
+            : window(window), texture(texture)
         {
         }
+
       private:
         sf::RenderWindow *window;
+        sf::RenderTexture *texture;
 };

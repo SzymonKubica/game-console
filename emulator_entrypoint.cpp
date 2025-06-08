@@ -21,11 +21,19 @@ int main(int argc, char *argv[])
         std::cout << "Emulator started!" << std::endl;
 
         sf::RenderWindow window(sf::VideoMode({DISPLAY_WIDTH, DISPLAY_HEIGHT}),
-                                "SFML works!");
+                                "game-console-emulator");
+
+        // The problem with simply rendering to the window is that we would need
+        // to redraw everythign every frame. This is not the behaviour we want
+        // as the arduino display doesn't work this way. In Arduino lcd, once
+        // we draw something, it stays there until something is drawn on top of
+        // it. We achieve this behaviour by using a RenderTexture
+        sf::RenderTexture texture({DISPLAY_WIDTH, DISPLAY_HEIGHT});
+
         std::cout << "Window rendered!" << std::endl;
 
         std::cout << "Initializing the display..." << std::endl;
-        display = new SfmlDisplay(&window);
+        display = new SfmlDisplay(&window, &texture);
         display->setup();
         std::cout << "Display initialized!" << std::endl;
 

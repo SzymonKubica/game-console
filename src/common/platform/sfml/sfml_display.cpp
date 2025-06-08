@@ -1,21 +1,14 @@
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
-#include <iostream>
 
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_WIDTH 280
 
-void SfmlDisplay::setup() {
-
-};
+void SfmlDisplay::setup() {};
 
 void SfmlDisplay::initialize() {}
 
-void SfmlDisplay::clear(Color color)
-{
-        this->window->clear();
-        this->window->display();
-};
+void SfmlDisplay::clear(Color color) { this->window->clear(); };
 
 void SfmlDisplay::draw_rounded_border(Color color) {}
 
@@ -30,8 +23,9 @@ void SfmlDisplay::draw_circle(Point center, int radius, Color color,
         circle.setPosition(
             {(float)(center.x - radius), (float)(center.y - radius)});
         circle.setFillColor(map_color(color));
-        this->window->draw(circle);
-        this->window->display();
+        texture->draw(circle);
+        texture->display();
+        refresh();
 };
 
 void SfmlDisplay::draw_rectangle(Point start, int width, int height,
@@ -41,30 +35,33 @@ void SfmlDisplay::draw_rectangle(Point start, int width, int height,
         sf::RectangleShape rectangle({(float)width, (float)height});
         rectangle.setPosition({(float)start.x, (float)start.y});
         rectangle.setFillColor(map_color(color));
-        this->window->draw(rectangle);
-        this->window->display();
+        texture->draw(rectangle);
+        texture->display();
+        refresh();
 };
 void SfmlDisplay::draw_rounded_rectangle(Point start, int width, int height,
                                          int radius, Color color)
 {
         // No rounding for now, todo
-        this->draw_rectangle(start, width, height, color, 0, true);
+        draw_rectangle(start, width, height, color, 0, true);
 };
 void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
                               Color fg_color)
 {
-        const sf::Font font("/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
+        const sf::Font font(
+            "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
         sf::Text text(font, string_buffer, font_size);
         text.setFillColor(map_color(fg_color));
-        this->window->draw(text);
-        this->window->display();
+        texture->draw(text);
+        texture->display();
+        refresh();
 };
 void SfmlDisplay::clear_region(Point top_left, Point bottom_right,
                                Color clear_color)
 {
-        this->draw_rectangle(top_left, bottom_right.x - top_left.x,
-                             bottom_right.y - top_left.y, clear_color, 0, true);
+        draw_rectangle(top_left, bottom_right.x - top_left.x,
+                       bottom_right.y - top_left.y, clear_color, 0, true);
 };
 
 int SfmlDisplay::get_height() { return DISPLAY_HEIGHT; }
@@ -72,6 +69,19 @@ int SfmlDisplay::get_height() { return DISPLAY_HEIGHT; }
 int SfmlDisplay::get_width() { return DISPLAY_WIDTH; }
 
 int SfmlDisplay::get_display_corner_radius() { return 0; };
+
+void SfmlDisplay::refresh()
+{
+        // Now we start rendering to the window, clear it first
+        // texture->display();
+        window->clear();
+        // Draw the texture
+        sf::Sprite sprite(texture->getTexture());
+        window->draw(sprite);
+
+        // End the current frame and display its contents on screen
+        window->display();
+};
 
 sf::Color map_color(Color color)
 {

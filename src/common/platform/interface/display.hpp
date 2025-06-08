@@ -91,4 +91,11 @@ class Display
         virtual int get_display_corner_radius() = 0;
 
 
+        /**
+         * For displays that require redrawing every frame, we need to provide
+         * ability to refresh their contents. Note that on the arduino LCD display
+         * this will be a no-op as that display does not require refreshing.
+         */
+        virtual void refresh() = 0;
+
 };

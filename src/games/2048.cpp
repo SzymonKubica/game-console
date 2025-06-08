@@ -57,6 +57,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
 
         draw_game_canvas(display, state);
         update_game_grid(display, state);
+        display->refresh();
 
         while (true) {
                 Direction dir;
@@ -82,6 +83,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                                              keypad_controller);
                         break;
                 }
+                display->refresh();
         }
 }
 
