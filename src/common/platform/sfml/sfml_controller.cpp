@@ -1,5 +1,5 @@
 // We use SFML only if running under the emulator
-#ifdef EMULTAOR
+#ifdef EMULATOR
 #include "sfml_controller.hpp"
 #include <SFML/Graphics.hpp>
 

@@ -1,4 +1,4 @@
-#ifdef EMULTAOR
+#ifdef EMULATOR
 #include "../interface/controller.hpp"
 
 class SfmlInputController : public Controller

@@ -1,4 +1,4 @@
-#ifdef EMULTAOR
+#ifdef EMULATOR
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
 

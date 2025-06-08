@@ -1,7 +1,5 @@
 #include "emulator_config.h"
 
-#define EMULATOR
-
 #include "../src/common/platform/sfml/sfml_display.hpp"
 #include "../src/common/platform/sfml/emulator_delay.cpp"
 #include "../src/common/platform/sfml/sfml_controller.hpp"
@@ -21,7 +19,11 @@ void print_version(char *argv[]);
 int main(int argc, char *argv[])
 {
         print_version(argv);
+
         std::cout << "Emulator started!" << std::endl;
+#ifdef EMULATOR
+        std::cout << "Emulator enabled!" << std::endl;
+#endif
 
         sf::RenderWindow window(sf::VideoMode({DISPLAY_WIDTH, DISPLAY_HEIGHT}),
                                 "game-console-emulator");

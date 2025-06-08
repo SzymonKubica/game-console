@@ -1,4 +1,4 @@
-#ifdef EMULTAOR
+#ifdef EMULATOR
 #include "../interface/delay.hpp"
 #include <chrono>
 #include <thread>

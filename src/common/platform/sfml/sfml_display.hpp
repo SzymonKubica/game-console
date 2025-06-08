@@ -1,4 +1,4 @@
-#ifdef EMULTAOR
+#ifdef EMULATOR
 #pragma once
 #include "../interface/display.hpp"
 #include <SFML/Graphics.hpp>
