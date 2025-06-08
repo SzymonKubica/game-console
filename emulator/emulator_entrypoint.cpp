@@ -1,10 +1,13 @@
-#include <iostream>
 #include "emulator_config.h"
-#include "src/common/platform/sfml/sfml_display.hpp"
-#include "src/common/platform/sfml/emulator_delay.cpp"
-#include "src/common/platform/sfml/sfml_controller.hpp"
 
-#include "src/games/2048.h"
+#define EMULATOR
+
+#include "../src/common/platform/sfml/sfml_display.hpp"
+#include "../src/common/platform/sfml/emulator_delay.cpp"
+#include "../src/common/platform/sfml/sfml_controller.hpp"
+
+#include "../src/games/2048.h"
+#include <iostream>
 
 // TODO: clean up the mainteinance of the size constants
 #define DISPLAY_HEIGHT 240

@@ -1,3 +1,4 @@
+#ifdef EMULTAOR
 #include "../interface/delay.hpp"
 #include <chrono>
 #include <thread>
@@ -10,3 +11,4 @@ class EmulatorDelay : public DelayProvider
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
         }
 };
+#endif

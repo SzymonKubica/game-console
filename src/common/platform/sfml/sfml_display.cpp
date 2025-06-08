@@ -1,3 +1,4 @@
+#ifdef EMULTAOR
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
 
@@ -8,11 +9,11 @@ void SfmlDisplay::setup() {};
 
 void SfmlDisplay::initialize() {}
 
-void SfmlDisplay::clear(Color color) { this->window->clear(); };
+sf::Color map_color(Color color);
+void SfmlDisplay::clear(Color color) { window->clear(map_color(color)); };
 
 void SfmlDisplay::draw_rounded_border(Color color) {}
 
-sf::Color map_color(Color color);
 void SfmlDisplay::draw_circle(Point center, int radius, Color color,
                               int border_width, bool filled)
 {
@@ -147,3 +148,4 @@ sf::Color map_color(Color color)
         }
         return sf::Color::White;
 }
+#endif

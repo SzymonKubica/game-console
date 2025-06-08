@@ -1,3 +1,4 @@
+#ifdef EMULTAOR
 #include "../interface/controller.hpp"
 
 class SfmlInputController : public Controller
@@ -32,3 +33,4 @@ class SfmlInputController : public Controller
          */
         void setup() override;
 };
+#endif

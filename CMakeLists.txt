@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # above gets inserted into the emulator_config.h header file.
 configure_file(emulator_config.h.in emulator_config.h)
 
+add_definitions(-DEMULATOR)
 
 # This is supposed to all all sources in the project to be built
 file(GLOB_RECURSE SFML_PLATFORM_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/common/platform/sfml/*.cpp)
@@ -26,7 +27,7 @@ add_executable(game-console-emulator
   ${PLATFORM_DEFS}
   ${COMMON_SOURCES}
   ${GAME_SOURCES}
-  emulator_entrypoint.cpp)
+  emulator/emulator_entrypoint.cpp)
 
 target_include_directories(game-console-emulator PUBLIC
   "${PROJECT_BINARY_DIR}"

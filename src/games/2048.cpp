@@ -3,6 +3,7 @@
 #include <string.h>
 #include <cstring>
 #include <stdio.h>
+#include <iostream>
 #include "2048.h"
 
 #include "../common/platform/interface/display.hpp"
@@ -45,17 +46,20 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                      DelayProvider *delay_provider)
 {
         GameConfiguration config;
-        // TODO: this passing of the controllers and delay providers is a bit unwieldy
-        // ideally every function of the game, unless it is pure logic should have
-        // access to the display, controllers and the delay provider. This should
-        // be encapsulated in some 'platform' object.
+        // TODO: this passing of the controllers and delay providers is a bit
+        // unwieldy ideally every function of the game, unless it is pure logic
+        // should have access to the display, controllers and the delay
+        // provider. This should be encapsulated in some 'platform' object.
         collect_game_configuration(display, &config, joystick_controller,
                                    keypad_controller, delay_provider);
 
+        std::cout << "Collected game configuration!" << std::endl;
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
 
+        std::cout << "Game state initialized" << std::endl;
         draw_game_canvas(display, state);
+        std::cout << "Game canvas drawn" << std::endl;
         update_game_grid(display, state);
         display->refresh();
 
@@ -552,7 +556,6 @@ void draw_game_canvas(Display *display, GameState *state)
         display->initialize();
         display->clear(Black);
         display->draw_rounded_border(DarkBlue);
-        Point top_left = {.x = 70, .y = 70};
         draw_game_grid(display, state->grid_size);
 }
 
@@ -640,6 +643,8 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
         gd->score_start_y = score_start.y;
         gd->score_title_x = score_title_x;
         gd->score_title_y = score_title_y;
+
+        return gd;
 }
 
 /**
@@ -652,16 +657,18 @@ static void draw_game_grid(Display *display, int grid_size)
 {
 
         GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
+        std::cout << "Calculated grid dimensions." << std::endl;
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
         display->draw_rounded_rectangle(
             score_start, gd->score_cell_width, gd->score_cell_height,
             gd->score_cell_height / 2, GRID_BG_COLOR);
 
-        char *buffer = "Score:";
+        const char *buffer = "Score:";
 
         Point score_title = {.x = gd->score_title_x, .y = gd->score_title_y};
-        display->draw_string(score_title, buffer, Size16, GRID_BG_COLOR, Black);
+        display->draw_string(score_title, (char *)buffer, Size16, GRID_BG_COLOR,
+                             Black);
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
@@ -680,7 +687,7 @@ static void draw_game_grid(Display *display, int grid_size)
         free(gd);
 }
 
-static void str_replace(char *str, char *oldWord, char *newWord);
+static void str_replace(char *str, const char *oldWord, const char *newWord);
 static int number_string_length(int number);
 
 void update_game_grid(Display *display, GameState *gs)
@@ -696,10 +703,10 @@ void update_game_grid(Display *display, GameState *gs)
 
         Point clear_start = {.x = gd->score_title_x + score_title_length +
                                   FONT_WIDTH,
-                             gd->score_title_y};
+                             .y = gd->score_title_y};
         Point clear_end = {.x = gd->score_start_x + gd->score_cell_width -
                                 score_rounding_radius,
-                           gd->score_title_y + FONT_SIZE};
+                           .y = gd->score_title_y + FONT_SIZE};
 
         display->clear_region(clear_start, clear_end, GRID_BG_COLOR);
 
@@ -719,9 +726,12 @@ void update_game_grid(Display *display, GameState *gs)
                                  i * (gd->cell_height + gd->cell_y_spacing)};
 
                         if (gs->grid[i][j] != gs->old_grid[i][j]) {
-                                char *buffer = (char *)malloc(5 * sizeof(char));
+                                char buffer[5];
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
+
+                                std::cout << "Before str_replace" << std::endl;
                                 str_replace(buffer, "   0", "    ");
+                                std::cout << "After str_replace" << std::endl;
                                 // We need to center the four characters of text
                                 // inside of the cell.
                                 int x_margin =
@@ -741,14 +751,13 @@ void update_game_grid(Display *display, GameState *gs)
                                 display->clear_region(clear_start, clear_end,
                                                       GRID_BG_COLOR);
 
-                                Point start_with_margin = {.x = start.x +
-                                                                x_margin,
-                                                           start.y + y_margin};
+                                Point start_with_margin = {
+                                    .x = start.x + x_margin,
+                                    .y = start.y + y_margin};
                                 display->draw_string(start_with_margin, buffer,
                                                      Size16, GRID_BG_COLOR,
                                                      Black);
                                 gs->old_grid[i][j] = gs->grid[i][j];
-                                free(buffer);
                         }
                 }
         }
@@ -767,7 +776,7 @@ static int number_string_length(int number)
         return 1;
 }
 
-static void str_replace(char *str, char *oldWord, char *newWord)
+static void str_replace(char *str, const char *oldWord, const char *newWord)
 {
         char *pos, temp[1000];
         int index = 0;

@@ -1,3 +1,4 @@
+#ifdef EMULTAOR
 #pragma once
 #include "../interface/display.hpp"
 #include <SFML/Graphics.hpp>
@@ -107,3 +108,4 @@ class SfmlDisplay : public Display
         sf::RenderWindow *window;
         sf::RenderTexture *texture;
 };
+#endif

@@ -1,8 +1,27 @@
+// We use SFML only if running under the emulator
+#ifdef EMULTAOR
 #include "sfml_controller.hpp"
+#include <SFML/Graphics.hpp>
 
-// TODO: this is a no-op for now, need to figure out how to get input from sfml
 bool SfmlInputController::poll_for_input(Direction *input) {
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+    *input = Direction::LEFT;
+    return true;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+    *input = Direction::RIGHT;
+    return true;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+    *input = Direction::UP;
+    return true;
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+    *input = Direction::DOWN;
+    return true;
+  }
   return false;
 };
 
 void SfmlInputController::setup() {};
+#endif
