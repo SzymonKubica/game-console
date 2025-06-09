@@ -300,8 +300,8 @@ GameState *initialize_game_state(int size, int target_max_tile)
 void free_game_grid(int **grid, int size);
 void free_game_state(GameState *gs)
 {
-        // free_game_grid(gs->grid, gs->grid_size);
-        // free(gs);
+        free_game_grid(gs->grid, gs->grid_size);
+        free(gs);
 }
 
 // Allocates a new game grid as a two-dimensional array
@@ -320,9 +320,9 @@ int **create_game_grid(int size)
 void free_game_grid(int **grid, int size)
 {
         for (int i = 0; i < size; i++) {
-                // free(grid[i]);
+                free(grid[i]);
         }
-        // free(grid);
+        free(grid);
 }
 
 /*******************************************************************************
@@ -440,7 +440,7 @@ static void merge_row(GameState *gs, int i, int direction)
                         gs->grid[i][j] = merged_row[j];
                 }
         }
-        // free(merged_row);
+        free(merged_row);
 }
 
 // Reverses a given row of four elements in place
@@ -515,7 +515,7 @@ void take_turn(GameState *gs, int direction)
         }
         // TODO: reenable or we'll be in trouble on arduino (not enough memory
         // for this leak )
-        // free_game_grid(oldGrid, gs->grid_size);
+        free_game_grid(oldGrid, gs->grid_size);
 }
 
 static bool theGridChangedFrom(GameState *gs, int **oldGrid)
@@ -697,7 +697,7 @@ static void draw_game_grid(Display *display, int grid_size)
                 }
         }
 
-        // free(gd);
+        free(gd);
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);
@@ -774,7 +774,7 @@ void update_game_grid(Display *display, GameState *gs)
                         }
                 }
         }
-        // free(gd);
+        free(gd);
 }
 
 static int number_string_length(int number)
