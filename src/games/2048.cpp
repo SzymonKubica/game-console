@@ -743,7 +743,7 @@ void update_game_grid(Display *display, GameState *gs)
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
 
                                 std::cout << "Before str_replace" << std::endl;
-                                //str_replace(buffer, "   0", "    ");
+                                str_replace(buffer, "   0", "    ");
                                 std::cout << "After str_replace" << std::endl;
                                 // We need to center the four characters of text
                                 // inside of the cell.
