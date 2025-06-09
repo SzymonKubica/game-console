@@ -597,11 +597,8 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
         int width = display->get_width();
         int corner_radius = display->get_display_corner_radius();
         GridDimensions *gd = (GridDimensions *)malloc(sizeof(GridDimensions));
-        // HEIGHT and WIDTH are swapped because the display is mounted
-        // horizontally. We subtract 4 times the border width to add padding
-        // around the grid.
-        int usable_width = height - 2 * SCREEN_BORDER_WIDTH;
-        int usable_height = width - 2 * corner_radius;
+        int usable_width = width - 2 * SCREEN_BORDER_WIDTH;
+        int usable_height = height - 2 * corner_radius;
 
         int cell_height = FONT_SIZE + FONT_SIZE / 2;
         int cell_width = 4 * FONT_WIDTH + FONT_WIDTH / 2;
