@@ -300,8 +300,8 @@ GameState *initialize_game_state(int size, int target_max_tile)
 void free_game_grid(int **grid, int size);
 void free_game_state(GameState *gs)
 {
-        free_game_grid(gs->grid, gs->grid_size);
-        free(gs);
+        // free_game_grid(gs->grid, gs->grid_size);
+        // free(gs);
 }
 
 // Allocates a new game grid as a two-dimensional array
@@ -320,9 +320,9 @@ int **create_game_grid(int size)
 void free_game_grid(int **grid, int size)
 {
         for (int i = 0; i < size; i++) {
-                free(grid[i]);
+                // free(grid[i]);
         }
-        free(grid);
+        // free(grid);
 }
 
 /*******************************************************************************
@@ -440,7 +440,7 @@ static void merge_row(GameState *gs, int i, int direction)
                         gs->grid[i][j] = merged_row[j];
                 }
         }
-        free(merged_row);
+        // free(merged_row);
 }
 
 // Reverses a given row of four elements in place
@@ -697,7 +697,7 @@ static void draw_game_grid(Display *display, int grid_size)
                 }
         }
 
-        free(gd);
+        // free(gd);
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);
@@ -743,7 +743,7 @@ void update_game_grid(Display *display, GameState *gs)
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
 
                                 std::cout << "Before str_replace" << std::endl;
-                                str_replace(buffer, "   0", "    ");
+                                //str_replace(buffer, "   0", "    ");
                                 std::cout << "After str_replace" << std::endl;
                                 // We need to center the four characters of text
                                 // inside of the cell.
@@ -774,7 +774,7 @@ void update_game_grid(Display *display, GameState *gs)
                         }
                 }
         }
-        free(gd);
+        // free(gd);
 }
 
 static int number_string_length(int number)
@@ -791,19 +791,15 @@ static int number_string_length(int number)
 
 static void str_replace(char *str, const char *oldWord, const char *newWord)
 {
-        char *pos, temp[1000];
-        int index = 0;
-        int owlen;
+        std::string wrapped_str(str);
+        std::string to_replace(oldWord);
+        std::string replacement(newWord);
 
-        owlen = strlen(oldWord);
-
-        while ((pos = strstr(str, oldWord)) != NULL) {
-                strcpy(temp, str);
-                index = pos - str;
-                str[index] = '\0';
-                strcat(str, newWord);
-                strcat(str, temp + index + owlen);
+        size_t pos = wrapped_str.find(to_replace);
+        if (pos != std::string::npos) {
+                wrapped_str.replace(pos, to_replace.length(), replacement);
         }
+        std::strcpy(str, wrapped_str.c_str());
 }
 
 void draw_game_over(Display *display, GameState *state)

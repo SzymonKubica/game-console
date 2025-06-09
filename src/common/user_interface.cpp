@@ -124,7 +124,7 @@ void render_config_menu(Display *display, GameConfiguration *config,
         int grid_size_bar_y = bar_positions[0];
         int target_config_bar_y = bar_positions[1];
         int start_text_bar_y = bar_positions[2];
-        free(bar_positions);
+        //free(bar_positions);
 
         // We need to create string buffers for the values of the current config
         // options and pass them into the rendering functions so that they can
