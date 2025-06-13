@@ -56,7 +56,6 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
         std::cout << "Collected game configuration!" << std::endl;
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
-
         std::cout << "Game state initialized" << std::endl;
         draw_game_canvas(display, state);
         std::cout << "Game canvas drawn" << std::endl;
@@ -285,13 +284,9 @@ static void spawn_tile(GameState *gs);
 int **create_game_grid(int size);
 GameState *initialize_game_state(int size, int target_max_tile)
 {
-        GameState *gs = (GameState *)malloc(sizeof(GameState));
-        gs->score = 0;
-        gs->occupied_tiles = 0;
-        gs->grid_size = size;
-        gs->target_max_tile = target_max_tile,
-        gs->grid = create_game_grid(size);
-        gs->old_grid = create_game_grid(size);
+        GameState *gs =
+            new GameState(create_game_grid(size), create_game_grid(size), 0, 0,
+                          size, target_max_tile);
 
         spawn_tile(gs);
         return gs;
@@ -307,7 +302,8 @@ void free_game_state(GameState *gs)
 // Allocates a new game grid as a two-dimensional array
 int **create_game_grid(int size)
 {
-        int **g = (int **)malloc(size * sizeof(int));
+        // TODO: figure out why we need to square the size here, I have no idea
+        int **g = (int **)malloc(size * size * sizeof(int));
         for (int i = 0; i < size; i++) {
                 g[i] = (int *)malloc(size * sizeof(int));
                 for (int j = 0; j < size; j++) {
@@ -591,12 +587,45 @@ typedef struct GridDimensions {
         int score_title_y;
 } GridDimensions;
 
-GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
+class GridDimensionsC
+{
+      public:
+        int cell_height;
+        int cell_width;
+        int cell_x_spacing;
+        int cell_y_spacing;
+        int padding; // Padding added to the left of the grid if the available
+                     // space isn't evenly divided into grid_size
+        int grid_start_x;
+        int grid_start_y;
+        int score_cell_height;
+        int score_cell_width;
+        int score_start_x;
+        int score_start_y;
+        int score_title_x;
+        int score_title_y;
+
+        GridDimensionsC(int cell_height, int cell_width, int cell_x_spacing,
+                        int cell_y_spacing, int padding, int grid_start_x,
+                        int grid_start_y, int score_cell_height,
+                        int score_cell_width, int score_start_x,
+                        int score_start_y, int score_title_x, int score_title_y)
+            : cell_height(cell_height), cell_width(cell_width),
+              cell_x_spacing(cell_x_spacing), cell_y_spacing(cell_y_spacing),
+              padding(padding), grid_start_x(grid_start_x),
+              grid_start_y(grid_start_y), score_cell_height(score_cell_height),
+              score_cell_width(score_cell_width), score_start_x(score_start_x),
+              score_start_y(score_start_y), score_title_x(score_title_x),
+              score_title_y(score_title_y)
+        {
+        }
+};
+
+GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
 {
         int height = display->get_height();
         int width = display->get_width();
         int corner_radius = display->get_display_corner_radius();
-        GridDimensions *gd = (GridDimensions *)malloc(sizeof(GridDimensions));
         int usable_width = width - 2 * SCREEN_BORDER_WIDTH;
         int usable_height = height - 2 * corner_radius;
 
@@ -639,6 +668,7 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 
         int score_title_y = score_start.y + (score_cell_height - FONT_SIZE) / 2;
 
+        /*
         gd->cell_height = cell_height;
         gd->cell_width = cell_width;
         gd->cell_x_spacing = cell_x_spacing;
@@ -653,8 +683,13 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
         gd->score_start_y = score_start.y;
         gd->score_title_x = score_title_x;
         gd->score_title_y = score_title_y;
+        */
 
-        return gd;
+        return new GridDimensionsC(
+            cell_height, cell_height, cell_x_spacing, cell_y_spacing,
+            remainder_width, grid_start_x, grid_start_y, score_cell_height,
+            score_cell_width, score_start.x, score_start.y, score_title_x,
+            score_title_y);
 }
 
 /**
@@ -666,7 +701,7 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 static void draw_game_grid(Display *display, int grid_size)
 {
 
-        GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
+        GridDimensionsC *gd = calculate_grid_dimensions(display, grid_size);
         std::cout << "Calculated grid dimensions." << std::endl;
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
@@ -694,7 +729,7 @@ static void draw_game_grid(Display *display, int grid_size)
                 }
         }
 
-        free(gd);
+        std::cout << "Game grid drawn successfully" << std::endl;
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);
@@ -703,7 +738,7 @@ static int number_string_length(int number);
 void update_game_grid(Display *display, GameState *gs)
 {
         int grid_size = gs->grid_size;
-        GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
+        GridDimensionsC *gd = calculate_grid_dimensions(display, grid_size);
 
         int score_title_length = 6 * FONT_WIDTH;
         char score_buffer[20];

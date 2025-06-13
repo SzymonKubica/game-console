@@ -17,14 +17,24 @@ typedef struct GameConfiguration {
         ConfigOption config_option;
 } GameConfiguration;
 
-typedef struct GameState {
+class GameState
+{
+      public:
         int **grid;
         int **old_grid;
         int score;
         int occupied_tiles;
         int grid_size;
         int target_max_tile;
-} GameState;
+
+        GameState(int **grid, int **old_grid, int score, int occupied_tiles,
+                  int grid_size, int target_max_tile)
+            : grid(grid), old_grid(old_grid), score(score),
+              occupied_tiles(occupied_tiles), grid_size(grid_size),
+              target_max_tile(target_max_tile)
+        {
+        }
+};
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
@@ -40,6 +50,7 @@ bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
 void enter_game_loop(Display *display, Controller *joystick_controller,
-                     Controller *keypad_controller, DelayProvider *delay_provider);
+                     Controller *keypad_controller,
+                     DelayProvider *delay_provider);
 
 #endif
