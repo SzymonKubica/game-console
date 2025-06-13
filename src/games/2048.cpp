@@ -17,6 +17,10 @@
 // TODO: move those to the display interface or some shared library.
 // the code shouldn't be littered with those random static defines.
 #define FONT_SIZE 16
+// #define FONT_WIDTH 11
+//// We need to figure out how to deal with the font width
+// for the emulator as obviously it is not pixel-accurate the same as what we
+// have on the actual hardware
 #define FONT_WIDTH 11
 #define GRID_BG_COLOR White
 
@@ -630,7 +634,7 @@ GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
         int usable_height = height - 2 * corner_radius;
 
         int cell_height = FONT_SIZE + FONT_SIZE / 2;
-        int cell_width = 4 * FONT_WIDTH + FONT_WIDTH / 2;
+        int cell_width = 4 * FONT_WIDTH + (FONT_WIDTH / 2);
 
         int cell_y_spacing =
             (usable_height - cell_height * grid_size) / (grid_size - 1);
@@ -686,7 +690,7 @@ GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
         */
 
         return new GridDimensionsC(
-            cell_height, cell_height, cell_x_spacing, cell_y_spacing,
+            cell_height, cell_width, cell_x_spacing, cell_y_spacing,
             remainder_width, grid_start_x, grid_start_y, score_cell_height,
             score_cell_width, score_start.x, score_start.y, score_title_x,
             score_title_y);
@@ -774,9 +778,7 @@ void update_game_grid(Display *display, GameState *gs)
                                 char buffer[5];
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
 
-                                std::cout << "Before str_replace" << std::endl;
                                 str_replace(buffer, "   0", "    ");
-                                std::cout << "After str_replace" << std::endl;
                                 // We need to center the four characters of text
                                 // inside of the cell.
                                 int x_margin =
@@ -786,12 +788,15 @@ void update_game_grid(Display *display, GameState *gs)
                                 int digit_len =
                                     number_string_length(gs->old_grid[i][j]);
 
-                                Point clear_start = {.x = start.x + x_margin +
-                                                          (4 - digit_len) *
-                                                              FONT_WIDTH,
-                                                     .y = start.y + y_margin};
+                                int FONT_INCOMPATIBILITY_TOLERANCE = 1;
+                                Point clear_start = {
+                                    .x = start.x + x_margin +
+                                         (4 - digit_len) * FONT_WIDTH -
+                                         3 * FONT_INCOMPATIBILITY_TOLERANCE,
+                                    .y = start.y + y_margin};
                                 Point clear_end = {
-                                    .x = start.x + x_margin + 4 * FONT_WIDTH,
+                                    .x = start.x + x_margin + 4 * FONT_WIDTH +
+                                         FONT_INCOMPATIBILITY_TOLERANCE,
                                     .y = start.y + y_margin + FONT_SIZE};
                                 display->clear_region(clear_start, clear_end,
                                                       GRID_BG_COLOR);

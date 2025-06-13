@@ -10,7 +10,12 @@ void SfmlDisplay::setup() {};
 void SfmlDisplay::initialize() {}
 
 sf::Color map_color(Color color);
-void SfmlDisplay::clear(Color color) { window->clear(map_color(color)); };
+void SfmlDisplay::clear(Color color)
+{
+        texture->clear(map_color(color));
+        texture->display();
+        refresh();
+};
 
 void SfmlDisplay::draw_rounded_border(Color color) {}
 
@@ -75,6 +80,7 @@ void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
                               Color fg_color)
 {
+        // The font probably needs to live in the project resources for portability
         const sf::Font font(
             "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
         sf::Text text(font, string_buffer, font_size);
@@ -95,7 +101,7 @@ int SfmlDisplay::get_height() { return DISPLAY_HEIGHT; }
 
 int SfmlDisplay::get_width() { return DISPLAY_WIDTH; }
 
-int SfmlDisplay::get_display_corner_radius() { return 0; };
+int SfmlDisplay::get_display_corner_radius() { return 40; };
 
 void SfmlDisplay::refresh()
 {
