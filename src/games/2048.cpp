@@ -3,7 +3,8 @@
 #include <string.h>
 #include <cstring>
 #include <stdio.h>
-#include <iostream>
+#include <string>
+//#include <iostream>
 #include "2048.h"
 
 #include "../common/platform/interface/display.hpp"
@@ -57,12 +58,12 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
         collect_game_configuration(display, &config, joystick_controller,
                                    keypad_controller, delay_provider);
 
-        std::cout << "Collected game configuration!" << std::endl;
+        //std::cout << "Collected game configuration!" << std::endl;
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
-        std::cout << "Game state initialized" << std::endl;
+        //std::cout << "Game state initialized" << std::endl;
         draw_game_canvas(display, state);
-        std::cout << "Game canvas drawn" << std::endl;
+        //std::cout << "Game canvas drawn" << std::endl;
         update_game_grid(display, state);
         display->refresh();
 
@@ -73,7 +74,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                 input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
-                        std::cout << "About to take turn" << std::endl;
+                        //std::cout << "About to take turn" << std::endl;
                         take_turn(state, (int)dir);
                         update_game_grid(display, state);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
@@ -307,7 +308,7 @@ void free_game_state(GameState *gs)
 int **create_game_grid(int size)
 {
         // TODO: figure out why we need to square the size here, I have no idea
-        int **g = (int **)malloc(size * size * sizeof(int));
+        int **g = (int **)malloc(size * sizeof(int *));
         for (int i = 0; i < size; i++) {
                 g[i] = (int *)malloc(size * sizeof(int));
                 for (int j = 0; j < size; j++) {
@@ -706,7 +707,7 @@ static void draw_game_grid(Display *display, int grid_size)
 {
 
         GridDimensionsC *gd = calculate_grid_dimensions(display, grid_size);
-        std::cout << "Calculated grid dimensions." << std::endl;
+        //std::cout << "Calculated grid dimensions." << std::endl;
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
         display->draw_rounded_rectangle(
@@ -733,7 +734,7 @@ static void draw_game_grid(Display *display, int grid_size)
                 }
         }
 
-        std::cout << "Game grid drawn successfully" << std::endl;
+        //std::cout << "Game grid drawn successfully" << std::endl;
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);

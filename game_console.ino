@@ -1,6 +1,5 @@
 #include "src/common/platform/arduino/joystick_controller.hpp"
 #include "src/common/platform/arduino/keypad_controller.hpp"
-#include "src/common/platform/interface/display.hpp"
 #include "src/common/platform/arduino/lcd_display.hpp"
 #include "src/common/platform/arduino/arduino_delay.cpp"
 
@@ -18,14 +17,14 @@ void setup(void)
         // Set up controllers
         pinMode(STICK_BUTTON_PIN, INPUT);
         joystick_controller =
-            new JoystickController((int (*)(unsigned char))&analogRead),
+            new JoystickController((int (*)(unsigned char))&analogRead);
 
         pinMode(LEFT_BUTTON_PIN, INPUT);
         pinMode(DOWN_BUTTON_PIN, INPUT);
         pinMode(UP_BUTTON_PIN, INPUT);
         pinMode(RIGHT_BUTTON_PIN, INPUT);
         keypad_controller =
-            new KeypadController((int (*)(unsigned char))&digitalRead),
+            new KeypadController((int (*)(unsigned char))&digitalRead);
 
         // Initialize the hardware LCD display
         display = LcdDisplay{};
