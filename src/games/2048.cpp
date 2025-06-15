@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <cstring>
-#include <stdio.h>
+//#include <stdio.h>
 #include <string>
 //#include <iostream>
 #include "2048.h"

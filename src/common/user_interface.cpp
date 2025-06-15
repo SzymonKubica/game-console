@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
+//#include <iostream>
 
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
