@@ -74,7 +74,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                 input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
-                        LOG_DEBUG(GAME_2048, "Input registered: %s", )
+                        LOG_DEBUG(GAME_2048, "Input registered: %s", direction_to_string(dir))
                         take_turn(state, (int)dir);
                         update_game_grid(display, state);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);

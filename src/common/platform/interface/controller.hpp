@@ -1,15 +1,6 @@
 #pragma once
-/**
- * Enum modeling the four possible directions of user input.
- */
-typedef enum Direction { UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3 } Direction;
 
-const char *direction_str[] = {
-    [UP] = "Up",
-    [LEFT] = "Left",
-    [RIGHT] = "Right",
-    [DOWN] = "Down",
-};
+#include "direction.hpp"
 
 class Controller
 {
