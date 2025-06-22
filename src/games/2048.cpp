@@ -2,14 +2,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <cstring>
-//#include <stdio.h>
 #include <string>
-//#include <iostream>
 #include "2048.h"
 
+#include "../common/logging.hpp"
 #include "../common/platform/interface/display.hpp"
 #include "../common/user_interface.h"
 
+#define GAME_2048 "2048"
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -36,13 +36,13 @@ static void copy_grid(int **source, int **destination, int size);
 
 void initialize_randomness_seed(int seed) { srand(seed); }
 
-void handle_game_over(Display *display, GameState *state,
+static void handle_game_over(Display *display, GameState *state,
                       Controller *joystick_controller,
                       Controller *keypad_controller);
-void handle_game_finished(Display *display, GameState *state,
+static void handle_game_finished(Display *display, GameState *state,
                           Controller *joystick_controller,
                           Controller *keypad_controller);
-void collect_game_configuration(Display *display, GameConfiguration *config,
+static void collect_game_configuration(Display *display, GameConfiguration *config,
                                 Controller *joystick_controller,
                                 Controller *keypad_controller,
                                 DelayProvider *delay_provider);
@@ -58,12 +58,12 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
         collect_game_configuration(display, &config, joystick_controller,
                                    keypad_controller, delay_provider);
 
-        //std::cout << "Collected game configuration!" << std::endl;
+        // std::cout << "Collected game configuration!" << std::endl;
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
-        //std::cout << "Game state initialized" << std::endl;
+        // std::cout << "Game state initialized" << std::endl;
         draw_game_canvas(display, state);
-        //std::cout << "Game canvas drawn" << std::endl;
+        // std::cout << "Game canvas drawn" << std::endl;
         update_game_grid(display, state);
         display->refresh();
 
@@ -74,7 +74,7 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                 input_registered |= keypad_controller->poll_for_input(&dir);
 
                 if (input_registered) {
-                        //std::cout << "About to take turn" << std::endl;
+                        LOG_DEBUG(GAME_2048, "Input registered: %s", )
                         take_turn(state, (int)dir);
                         update_game_grid(display, state);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
@@ -573,26 +573,9 @@ void draw_game_canvas(Display *display, GameState *state)
         draw_game_grid(display, state->grid_size);
 }
 
-/// Struct modelling all dimensional information required to properly render
+/// Class modelling all dimensional information required to properly render
 /// and space out the grid slots that are used to display the game tiles.
-typedef struct GridDimensions {
-        int cell_height;
-        int cell_width;
-        int cell_x_spacing;
-        int cell_y_spacing;
-        int padding; // Padding added to the left of the grid if the available
-                     // space isn't evenly divided into grid_size
-        int grid_start_x;
-        int grid_start_y;
-        int score_cell_height;
-        int score_cell_width;
-        int score_start_x;
-        int score_start_y;
-        int score_title_x;
-        int score_title_y;
-} GridDimensions;
-
-class GridDimensionsC
+class GridDimensions
 {
       public:
         int cell_height;
@@ -610,7 +593,7 @@ class GridDimensionsC
         int score_title_x;
         int score_title_y;
 
-        GridDimensionsC(int cell_height, int cell_width, int cell_x_spacing,
+        GridDimensions(int cell_height, int cell_width, int cell_x_spacing,
                         int cell_y_spacing, int padding, int grid_start_x,
                         int grid_start_y, int score_cell_height,
                         int score_cell_width, int score_start_x,
@@ -626,7 +609,7 @@ class GridDimensionsC
         }
 };
 
-GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
+GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 {
         int height = display->get_height();
         int width = display->get_width();
@@ -673,24 +656,7 @@ GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
 
         int score_title_y = score_start.y + (score_cell_height - FONT_SIZE) / 2;
 
-        /*
-        gd->cell_height = cell_height;
-        gd->cell_width = cell_width;
-        gd->cell_x_spacing = cell_x_spacing;
-        gd->cell_y_spacing = cell_y_spacing;
-        gd->padding = remainder_width;
-        gd->grid_start_x = grid_start_x;
-        gd->grid_start_y = grid_start_y;
-
-        gd->score_cell_height = score_cell_height;
-        gd->score_cell_width = score_cell_width;
-        gd->score_start_x = score_start.x;
-        gd->score_start_y = score_start.y;
-        gd->score_title_x = score_title_x;
-        gd->score_title_y = score_title_y;
-        */
-
-        return new GridDimensionsC(
+        return new GridDimensions(
             cell_height, cell_width, cell_x_spacing, cell_y_spacing,
             remainder_width, grid_start_x, grid_start_y, score_cell_height,
             score_cell_width, score_start.x, score_start.y, score_title_x,
@@ -706,8 +672,8 @@ GridDimensionsC *calculate_grid_dimensions(Display *display, int grid_size)
 static void draw_game_grid(Display *display, int grid_size)
 {
 
-        GridDimensionsC *gd = calculate_grid_dimensions(display, grid_size);
-        //std::cout << "Calculated grid dimensions." << std::endl;
+        GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
+        LOG_DEBUG(GAME_2048, "Calculated grid dimensions.");
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
         display->draw_rounded_rectangle(
@@ -734,7 +700,7 @@ static void draw_game_grid(Display *display, int grid_size)
                 }
         }
 
-        //std::cout << "Game grid drawn successfully" << std::endl;
+        // std::cout << "Game grid drawn successfully" << std::endl;
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);
@@ -743,7 +709,7 @@ static int number_string_length(int number);
 void update_game_grid(Display *display, GameState *gs)
 {
         int grid_size = gs->grid_size;
-        GridDimensionsC *gd = calculate_grid_dimensions(display, grid_size);
+        GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
 
         int score_title_length = 6 * FONT_WIDTH;
         char score_buffer[20];
@@ -844,7 +810,7 @@ void draw_game_over(Display *display, GameState *state)
 {
         display->draw_rounded_border(Red);
 
-        char *msg = "Game Over";
+        const char *msg = "Game Over";
 
         int height = display->get_height();
         int width = display->get_width();
@@ -853,14 +819,14 @@ void draw_game_over(Display *display, GameState *state)
 
         Point text_position = {.x = x_pos, .y = y_pos};
 
-        display->draw_string(text_position, msg, Size16, Black, Red);
+        display->draw_string(text_position, (char *)msg, Size16, Black, Red);
 }
 
 void draw_game_won(Display *display, GameState *state)
 {
         display->draw_rounded_border(Green);
 
-        char *msg = "You Won!";
+        const char *msg = "You Won!";
 
         int height = display->get_height();
         int width = display->get_width();
@@ -868,5 +834,5 @@ void draw_game_won(Display *display, GameState *state)
         int y_pos = (width - FONT_SIZE) / 2;
         Point text_position = {.x = x_pos, .y = y_pos};
 
-        display->draw_string(text_position, msg, Size16, Black, Green);
+        display->draw_string(text_position, (char *)msg, Size16, Black, Green);
 }

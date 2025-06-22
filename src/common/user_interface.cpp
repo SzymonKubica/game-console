@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-//#include <iostream>
+// #include <iostream>
 
 /* Constants for configuring the UI. */
 #define FONT_SIZE 16
@@ -35,13 +35,13 @@ inline int get_centering_margin(int screen_width, int text_length,
                                 int font_width);
 void render_config_bar_centered(Display *display, int y_start,
                                 int option_text_max_len, int value_text_max_len,
-                                char *option_text, char *value_text,
+                                const char *option_text, const char *value_text,
                                 bool is_already_rendered,
                                 bool update_value_cell,
                                 Color cell_bg_color = DarkBlue);
 void render_text_bar_centered(Display *display, int y_start,
                               int option_text_max_len, int value_text_max_len,
-                              char *text, bool is_already_rendered,
+                              const char *text, bool is_already_rendered,
                               Color bg_color = DarkBlue,
                               Color text_color = White,
                               int font_width = FONT_WIDTH,
@@ -94,10 +94,10 @@ void render_config_menu(Display *display, GameConfiguration *config,
                 display->clear(Black);
         }
         /* Display strings */
-        char *heading_text = "2048";
-        char *grid_size_option_text = "Grid size:";
-        char *target_option_text = "Game target:";
-        char *start_text = "Start Game";
+        const char *heading_text = "2048";
+        const char *grid_size_option_text = "Grid size:";
+        const char *target_option_text = "Game target:";
+        const char *start_text = "Start Game";
 
         int max_game_target_text_len = 4;
         int option_text_max_len = strlen(target_option_text);
@@ -221,7 +221,7 @@ void render_config_menu(Display *display, GameConfiguration *config,
  */
 void render_config_bar_centered(Display *display, int y_start,
                                 int option_text_max_len, int value_text_max_len,
-                                char *option_text, char *value_text,
+                                const char *option_text, const char *value_text,
                                 bool is_already_rendered,
                                 bool update_value_cell, Color cell_bg_color)
 {
@@ -276,8 +276,8 @@ void render_config_bar_centered(Display *display, int y_start,
                                                 fh, cell_bg_color);
                 // Draw the actual name of the config bar.
                 Point grid_size_str_start = {.x = left_margin, .y = y_start};
-                display->draw_string(grid_size_str_start, option_text, Size16,
-                                     cell_bg_color, White);
+                display->draw_string(grid_size_str_start, (char *)option_text,
+                                     Size16, cell_bg_color, White);
         }
 
         // Draw / update the value of the cell
@@ -294,7 +294,7 @@ void render_config_bar_centered(Display *display, int y_start,
                 display->draw_string(
                     {.x = value_cell_start.x + h_padding,
                      .y = value_cell_start.y + value_cell_v_padding},
-                    value_text, Size16, White, Black);
+                    (char *)value_text, Size16, White, Black);
         }
 }
 /**
@@ -312,7 +312,7 @@ void render_config_bar_centered(Display *display, int y_start,
  */
 void render_text_bar_centered(Display *display, int y_start,
                               int option_text_max_len, int value_text_max_len,
-                              char *text, bool is_already_rendered,
+                              const char *text, bool is_already_rendered,
                               Color bg_color, Color text_color, int font_width,
                               FontSize font_size)
 {
@@ -353,7 +353,7 @@ void render_text_bar_centered(Display *display, int y_start,
                 // Draw the actual text of the text bar. Note that it will be
                 // centered inside of the large bar.
                 Point grid_size_str_start = {.x = text_x, .y = y_start};
-                display->draw_string(grid_size_str_start, text, font_size,
+                display->draw_string(grid_size_str_start, (char *)text, font_size,
                                      bg_color, text_color);
         }
 }

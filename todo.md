@@ -8,9 +8,6 @@
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
 
-- [_] find a good way for logging (preferably not compiled in when running on
-      Arduino -> including the entire cstdlib is probably the root cause of the
-      build image being so large)
 
 # Done
 - [x] move the the 2028 game rendering code to the 2048 files and make it use the
@@ -31,3 +28,11 @@
       Note that, after removing this header, the memory requirement dropped from 82% to 29% which is
       more than enough what we need.
 
+- [x] find a good way for logging (preferably not compiled in when running on
+      Arduino -> including the entire cstdlib is probably the root cause of the
+      build image being so large)
+
+      The solution here was to borrow the simple logger from the old weather station
+      code. Turns out `printf` doesn't require nearly as much space as `<iostream>` and
+      so we can use the logging library without conditionally compiling it only for the
+      emulated version.
