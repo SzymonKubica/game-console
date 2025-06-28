@@ -58,12 +58,9 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
         collect_game_configuration(display, &config, joystick_controller,
                                    keypad_controller, delay_provider);
 
-        // std::cout << "Collected game configuration!" << std::endl;
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
-        // std::cout << "Game state initialized" << std::endl;
         draw_game_canvas(display, state);
-        // std::cout << "Game canvas drawn" << std::endl;
         update_game_grid(display, state);
         display->refresh();
 
@@ -479,13 +476,13 @@ static void transpose(GameState *gs)
 *******************************************************************************/
 
 // Helper functions for the game loop
-static bool theGridChangedFrom(GameState *gs, int **oldGrid);
-static bool isBoardFull(GameState *gs);
-static bool noMovePossible(GameState *gs);
+static bool grid_changed_from(GameState *gs, int **oldGrid);
+static bool is_board_full(GameState *gs);
+static bool no_move_possible(GameState *gs);
 
 bool is_game_over(GameState *gs)
 {
-        return isBoardFull(gs) && noMovePossible(gs);
+        return is_board_full(gs) && no_move_possible(gs);
 }
 
 bool is_game_finished(GameState *gs)
@@ -500,7 +497,7 @@ bool is_game_finished(GameState *gs)
         return false;
 }
 
-static bool isBoardFull(GameState *gs)
+static bool is_board_full(GameState *gs)
 {
         return gs->occupied_tiles >= gs->grid_size * gs->grid_size;
 }
@@ -511,7 +508,7 @@ void take_turn(GameState *gs, int direction)
         copy_grid(gs->grid, oldGrid, gs->grid_size);
         merge(gs, direction);
 
-        if (theGridChangedFrom(gs, oldGrid)) {
+        if (grid_changed_from(gs, oldGrid)) {
                 spawn_tile(gs);
         }
         // TODO: reenable or we'll be in trouble on arduino (not enough memory
@@ -519,7 +516,7 @@ void take_turn(GameState *gs, int direction)
         free_game_grid(oldGrid, gs->grid_size);
 }
 
-static bool theGridChangedFrom(GameState *gs, int **oldGrid)
+static bool grid_changed_from(GameState *gs, int **oldGrid)
 {
         for (int i = 0; i < gs->grid_size; i++) {
                 for (int j = 0; j < gs->grid_size; j++) {
@@ -531,7 +528,7 @@ static bool theGridChangedFrom(GameState *gs, int **oldGrid)
         return false;
 }
 
-static bool noMovePossible(GameState *gs)
+static bool no_move_possible(GameState *gs)
 {
         // A move is always possible if not all tiles are occupied.
         if (gs->occupied_tiles < gs->grid_size * gs->grid_size) {

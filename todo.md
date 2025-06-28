@@ -7,6 +7,19 @@
 - [_] document the gdb workflow
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
+- [_] find out why the game doesn't restart on the emulator
+- [_] refactor 2028 game logic
+
+# Ideas
+- make the top part with the game name editable. Upon changing the game, the other
+  config bars should be redrawn
+- save high score in some arduino persistent memory (EEPROM is for that and 8kB
+  should be plenty.)
+- games that can be implemented with the limited display:
+  - snake
+  - sudoku (assuming we can fit 9x9 grid)
+  - game of life (controlling the input and pausing / playing the simulation could be fun)
+  - some fun animations
 
 
 # Done
