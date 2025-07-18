@@ -9,6 +9,9 @@
 - [_] maybe using gdb in neovim?
 - [_] find out why the game doesn't restart on the emulator
 - [_] refactor 2028 game logic
+- [_] add platform context object to reduce the number of params for functions
+      that have need to interact with the controllers and the display.
+
 
 # Ideas
 - make the top part with the game name editable. Upon changing the game, the other
