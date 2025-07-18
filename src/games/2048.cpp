@@ -639,7 +639,7 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 
         // We first draw a slot for the score
         int score_cell_width =
-            height - 2 * (SCREEN_BORDER_WIDTH + corner_radius);
+            width - 2 * (SCREEN_BORDER_WIDTH + corner_radius);
         int score_cell_height = cell_height;
 
         int score_start_y =

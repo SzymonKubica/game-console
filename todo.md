@@ -3,6 +3,9 @@
 - [_] finish the generic code for rendering the UI and replace the existing 2048 UI with it
 - [_] figure out how to generate sudoku
 - [_] design the input model for sudoku
+- [_] design the input model for minesweeper
+- [_] think about the sudoku game logic
+- [_] add the font to the project resources to ensure portability
 
 - [_] document the gdb workflow
 - [_] figure out how to use the graphical gdb showing code snippets

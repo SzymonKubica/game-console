@@ -2,8 +2,13 @@
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
 
+// TODO: move those defines to common constants so that changes to them affect
+// both the emulator and the production build.
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_WIDTH 280
+
+#define DISPLAY_CORNER_RADIUS 40
+#define SCREEN_BORDER_WIDTH 3
 
 void SfmlDisplay::setup() {};
 
@@ -17,7 +22,114 @@ void SfmlDisplay::clear(Color color)
         refresh();
 };
 
-void SfmlDisplay::draw_rounded_border(Color color) {}
+/**
+ * Draws a rounded border around the game display, this might not be the most
+ * efficient solution using the SFML API, but it uses the same logic as the
+ * LCD display implementation for consistency.
+ */
+void SfmlDisplay::draw_rounded_border(Color color)
+{
+        int rounding_radius = DISPLAY_CORNER_RADIUS;
+        int margin = SCREEN_BORDER_WIDTH;
+        int line_width = 3;
+        int width = get_width();
+        int height = get_height();
+        Point top_left_corner = {.x = rounding_radius + margin,
+                                 .y = rounding_radius + margin};
+        Point bottom_right_corner = {.x = width - rounding_radius - margin,
+                                     .y = height - rounding_radius - margin};
+
+        int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
+        int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
+
+        clear(Black);
+
+        // Draw the four rounded corners.
+        for (int x : x_positions) {
+                for (int y : y_positions) {
+                        draw_circle({.x = x, .y = y}, rounding_radius, color, 3,
+                                    false);
+                }
+        }
+
+        // Draw the four lines connecting the circles.
+        // This is the first vertical line on the left
+        draw_rectangle({.x = 0, .y = top_left_corner.y}, 0,
+                       bottom_right_corner.y - top_left_corner.y, color, 3,
+                       true);
+
+        // This is the second vertical line on the left
+        draw_rectangle({.x = width, .y = top_left_corner.y}, 0,
+                       bottom_right_corner.y - top_left_corner.y, color, 3,
+                       true);
+
+        // This is the first horizontal line at the top
+        draw_rectangle({.x = top_left_corner.x, .y = 0},
+                       bottom_right_corner.x - top_left_corner.x, 0, color, 3,
+                       true);
+
+        // This is the second horizontal line at the bottom
+        draw_rectangle({.x = top_left_corner.x, .y = height},
+                       bottom_right_corner.x - top_left_corner.x, 0, color, 3,
+                       true);
+
+        int circle_diameter = 2 * rounding_radius;
+        // Erase the middle bits of the four circles
+        // This clears bottom half of the top left circle
+        clear_region({.x = margin, .y = top_left_corner.y - margin},
+                     {.x = margin + line_width + circle_diameter,
+                      .y = top_left_corner.y + rounding_radius + line_width},
+                     Black);
+
+        // This clears bottom half of the top right circle
+        clear_region({.x = width - margin - line_width - circle_diameter - 1,
+                      .y = top_left_corner.y - margin},
+                     {.x = width - margin,
+                      .y = top_left_corner.y + rounding_radius + line_width},
+                     Black);
+
+        // This clears top half of the bottom left circle
+        clear_region({.x = margin,
+                      .y = bottom_right_corner.y - rounding_radius -
+                           line_width - margin},
+                     {.x = margin + line_width + circle_diameter,
+                      .y = bottom_right_corner.y + margin},
+                     Black);
+
+        // This clears top half of the bottom right circle
+        clear_region(
+            {.x = width - margin - line_width - circle_diameter - 1,
+             .y =
+                 bottom_right_corner.y - rounding_radius - margin},
+            {.x = width - margin, .y = bottom_right_corner.y + margin},
+            Black);
+
+        // The four remaining lines
+        clear_region({.x = top_left_corner.x - margin, .y = margin},
+                     {.x = top_left_corner.x + rounding_radius + line_width,
+                      .y = margin + line_width + rounding_radius},
+                     Black);
+
+        clear_region({.x = top_left_corner.x - margin,
+                      .y = height - margin - line_width - 1 - rounding_radius},
+                     {.x = top_left_corner.x + rounding_radius + line_width + margin,
+                      .y = height - margin},
+                     Black);
+
+        clear_region(
+            {.x = bottom_right_corner.x - rounding_radius - line_width - 1,
+             .y = margin},
+            {.x = bottom_right_corner.x + margin,
+             .y = margin + line_width + rounding_radius},
+            Black);
+
+        clear_region(
+            {.x = bottom_right_corner.x - rounding_radius - line_width - 1,
+             .y = height - margin - line_width - 1 - rounding_radius},
+            {.x = bottom_right_corner.x - line_width - 1,
+             .y = height - margin},
+            Black);
+}
 
 void SfmlDisplay::draw_circle(Point center, int radius, Color color,
                               int border_width, bool filled)
@@ -28,7 +140,15 @@ void SfmlDisplay::draw_circle(Point center, int radius, Color color,
         sf::CircleShape circle(radius);
         circle.setPosition(
             {(float)(center.x - radius), (float)(center.y - radius)});
-        circle.setFillColor(map_color(color));
+
+        if (filled) {
+                circle.setFillColor(map_color(color));
+        } else {
+                circle.setFillColor(map_color(Black));
+        }
+
+        circle.setOutlineColor(map_color(color));
+        circle.setOutlineThickness(border_width);
         texture->draw(circle);
         texture->display();
         refresh();
@@ -40,7 +160,13 @@ void SfmlDisplay::draw_rectangle(Point start, int width, int height,
 
         sf::RectangleShape rectangle({(float)width, (float)height});
         rectangle.setPosition({(float)start.x, (float)start.y});
-        rectangle.setFillColor(map_color(color));
+        if (filled) {
+                rectangle.setFillColor(map_color(color));
+        } else {
+                rectangle.setFillColor(map_color(Black));
+        }
+        rectangle.setOutlineColor(map_color(color));
+        rectangle.setOutlineThickness(border_width);
         texture->draw(rectangle);
         texture->display();
         refresh();
@@ -59,28 +185,30 @@ void SfmlDisplay::draw_rounded_rectangle(Point start, int width, int height,
         // Draw the four rounded corners.
         for (int x : x_positions) {
                 for (int y : y_positions) {
-                        draw_circle({.x = x, .y = y}, radius, color, 1, true);
+                        draw_circle({.x = x, .y = y}, radius, color, 0, true);
                 }
         }
 
         // This needs to be cleaned up
         draw_rectangle({.x = top_left_corner.x, .y = start.y},
-                       width - 2 * radius, height, color, 1, true);
+                       width - 2 * radius, height, color, 0, true);
 
         // small rectangle on the left
         draw_rectangle({.x = start.x, .y = top_left_corner.y}, width + 1,
-                       height - 2 * radius, color, 1, true);
+                       height - 2 * radius, color, 0, true);
 
         // +1 is because the endY bound is not included
         // The big rectangle in the middle
         draw_rectangle({.x = top_left_corner.x, .y = start.y + height - radius},
-                       width - 2 * radius, radius + 1, color, 1, true);
+                       width - 2 * radius, radius + 1, color, 0, true);
 };
 void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
                               Color fg_color)
 {
-        // The font probably needs to live in the project resources for portability
+        // TODO
+        // The font probably needs to live in the project resources for
+        // portability
         const sf::Font font(
             "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
         sf::Text text(font, string_buffer, font_size);

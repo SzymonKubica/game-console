@@ -381,11 +381,11 @@ void render_circle_selector(Display *display, bool already_rendered, int x_axis,
         if (!already_rendered || prev_pos_idx != curr_pos_idx) {
                 // First clear the old circle
                 Point clear_pos = {.x = x_axis, .y = y_positions[prev_pos_idx]};
-                display->draw_circle(clear_pos, radius, bg_color, 1, true);
+                display->draw_circle(clear_pos, radius, bg_color, 0, true);
 
                 // Draw the new circle
                 Point new_pos = {.x = x_axis, .y = y_positions[curr_pos_idx]};
-                display->draw_circle(new_pos, radius, circle_color, 1, true);
+                display->draw_circle(new_pos, radius, circle_color, 0, true);
         }
 }
 
