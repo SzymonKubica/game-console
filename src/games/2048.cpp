@@ -827,8 +827,8 @@ void draw_game_won(Display *display, GameState *state)
 
         int height = display->get_height();
         int width = display->get_width();
-        int x_pos = (height - strlen(msg) * FONT_WIDTH) / 2;
-        int y_pos = (width - FONT_SIZE) / 2;
+        int x_pos = (width - strlen(msg) * FONT_WIDTH) / 2;
+        int y_pos = (height - FONT_SIZE) / 2;
         Point text_position = {.x = x_pos, .y = y_pos};
 
         display->draw_string(text_position, (char *)msg, Size16, Black, Green);

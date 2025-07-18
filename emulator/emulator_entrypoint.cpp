@@ -46,8 +46,11 @@ int main(int argc, char *argv[])
 
         while (window.isOpen()) {
                 std::cout << "Entering game loop..." << std::endl;
-                enter_game_loop(display, &controller, &controller, &delay);
+                // We need to loop forever here as the game loop exits when the
+                // game is over.
                 while (true) {
+                        enter_game_loop(display, &controller, &controller,
+                                        &delay);
                 }
         }
 }
