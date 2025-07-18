@@ -97,12 +97,10 @@ void SfmlDisplay::draw_rounded_border(Color color)
                      Black);
 
         // This clears top half of the bottom right circle
-        clear_region(
-            {.x = width - margin - line_width - circle_diameter - 1,
-             .y =
-                 bottom_right_corner.y - rounding_radius - margin},
-            {.x = width - margin, .y = bottom_right_corner.y + margin},
-            Black);
+        clear_region({.x = width - margin - line_width - circle_diameter - 1,
+                      .y = bottom_right_corner.y - rounding_radius - margin},
+                     {.x = width - margin, .y = bottom_right_corner.y + margin},
+                     Black);
 
         // The four remaining lines
         clear_region({.x = top_left_corner.x - margin, .y = margin},
@@ -110,11 +108,12 @@ void SfmlDisplay::draw_rounded_border(Color color)
                       .y = margin + line_width + rounding_radius},
                      Black);
 
-        clear_region({.x = top_left_corner.x - margin,
-                      .y = height - margin - line_width - 1 - rounding_radius},
-                     {.x = top_left_corner.x + rounding_radius + line_width + margin,
-                      .y = height - margin},
-                     Black);
+        clear_region(
+            {.x = top_left_corner.x - margin,
+             .y = height - margin - line_width - 1 - rounding_radius},
+            {.x = top_left_corner.x + rounding_radius + line_width + margin,
+             .y = height - margin},
+            Black);
 
         clear_region(
             {.x = bottom_right_corner.x - rounding_radius - line_width - 1,
@@ -126,8 +125,7 @@ void SfmlDisplay::draw_rounded_border(Color color)
         clear_region(
             {.x = bottom_right_corner.x - rounding_radius - line_width - 1,
              .y = height - margin - line_width - 1 - rounding_radius},
-            {.x = bottom_right_corner.x - line_width - 1,
-             .y = height - margin},
+            {.x = bottom_right_corner.x - line_width - 1, .y = height - margin},
             Black);
 }
 
