@@ -37,6 +37,7 @@ void setup(void)
 
 void loop(void)
 {
-        enter_game_loop(&display, joystick_controller, keypad_controller,
+        Controller *controllers[] = {joystick_controller, keypad_controller};
+        enter_game_loop(&display, &controllers, 2,
                         new ArduinoDelay((void (*)(int))&delay));
 }

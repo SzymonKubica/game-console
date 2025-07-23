@@ -38,22 +38,23 @@ int main(int argc, char *argv[])
         // until something is drawn on top of it.
         sf::RenderTexture texture({DISPLAY_WIDTH, DISPLAY_HEIGHT});
 
-        LOG_DEBUG(TAG,"Window rendered!");
+        LOG_DEBUG(TAG, "Window rendered!");
 
-        LOG_DEBUG(TAG,"Initializing the display...");
+        LOG_DEBUG(TAG, "Initializing the display...");
         display = new SfmlDisplay(&window, &texture);
         display->setup();
-        LOG_DEBUG(TAG,"Display initialized!" );
+        LOG_DEBUG(TAG, "Display initialized!");
 
         controller = SfmlInputController{};
 
+        Controller *controllers[] = {&controller};
+
         while (window.isOpen()) {
-                LOG_DEBUG(TAG,"Entering game loop..." );
+                LOG_DEBUG(TAG, "Entering game loop...");
                 // We need to loop forever here as the game loop exits when the
                 // game is over.
                 while (true) {
-                        enter_game_loop(display, &controller, &controller,
-                                        &delay);
+                        enter_game_loop(display, controllers, 1, &delay);
                 }
         }
 }

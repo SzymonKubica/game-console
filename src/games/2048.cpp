@@ -22,7 +22,8 @@
 //// We need to figure out how to deal with the font width
 // for the emulator as obviously it is not pixel-accurate the same as what we
 // have on the actual hardware
-//#define FONT_WIDTH 11 todo: move this to some constants definition file so that we can dynamically switch between font sizes between targets.
+// #define FONT_WIDTH 11 todo: move this to some constants definition file so
+// that we can dynamically switch between font sizes between targets.
 #define FONT_WIDTH 11
 #define GRID_BG_COLOR White
 
@@ -38,26 +39,25 @@ static void copy_grid(int **source, int **destination, int size);
 void initialize_randomness_seed(int seed) { srand(seed); }
 
 static void handle_game_over(Display *display, GameState *state,
-                      Controller *joystick_controller,
-                      Controller *keypad_controller);
+                             Controller **controllers, int controllers_num);
 static void handle_game_finished(Display *display, GameState *state,
-                          Controller *joystick_controller,
-                          Controller *keypad_controller);
-static void collect_game_configuration(Display *display, GameConfiguration *config,
-                                Controller *joystick_controller,
-                                Controller *keypad_controller,
-                                DelayProvider *delay_provider);
-void enter_game_loop(Display *display, Controller *joystick_controller,
-                     Controller *keypad_controller,
-                     DelayProvider *delay_provider)
+                                 Controller **controllers, int controllers_num);
+static void collect_game_configuration(Display *display,
+                                       GameConfiguration *config,
+                                       Controller **controllers,
+                                       int controllers_num,
+                                       DelayProvider *delay_provider);
+
+void enter_game_loop(Display *display, Controller **controllers,
+                     int controllers_num, DelayProvider *delay_provider)
 {
         GameConfiguration config;
         // TODO: this passing of the controllers and delay providers is a bit
         // unwieldy ideally every function of the game, unless it is pure logic
         // should have access to the display, controllers and the delay
         // provider. This should be encapsulated in some 'platform' object.
-        collect_game_configuration(display, &config, joystick_controller,
-                                   keypad_controller, delay_provider);
+        collect_game_configuration(display, &config, controllers,
+                                   controllers_num, delay_provider);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
@@ -68,11 +68,15 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller->poll_for_input(&dir);
-                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                for (int i = 0; i < controllers_num; i++) {
+                        Controller *controller = controllers[i];
+                        input_registered |= controller->poll_for_input(&dir);
+                }
 
                 if (input_registered) {
-                        LOG_DEBUG(GAME_2048, "Input registered: %s", direction_to_string(dir))
+                        LOG_DEBUG(GAME_2048, "Input registered: %s",
+                                  direction_to_string(dir))
                         take_turn(state, (int)dir);
                         update_game_grid(display, state);
                         delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
@@ -80,46 +84,43 @@ void enter_game_loop(Display *display, Controller *joystick_controller,
                 delay_provider->delay_ms(INPUT_POLLING_DELAY);
 
                 if (is_game_over(state)) {
-                        handle_game_over(display, state, joystick_controller,
-                                         keypad_controller);
+                        handle_game_over(display, state, controllers,
+                                         controllers_num);
                         break;
                 }
                 if (is_game_finished(state)) {
-                        handle_game_finished(display, state,
-                                             joystick_controller,
-                                             keypad_controller);
+                        handle_game_finished(display, state, controllers,
+                                             controllers_num);
                         break;
                 }
                 display->refresh();
         }
 }
 
-void wait_for_input(Controller *joystick_controller,
-                    Controller *keypad_controller);
+void wait_for_input(Controller **controllers, int controllers_num);
 void handle_game_over(Display *display, GameState *state,
-                      Controller *joystick_controller,
-                      Controller *keypad_controller)
+                      Controller **controllers, int controllers_num)
 {
         draw_game_over(display, state);
-        wait_for_input(joystick_controller, keypad_controller);
+        wait_for_input(controllers, controllers_num);
 }
 
 void handle_game_finished(Display *display, GameState *state,
-                          Controller *joystick_controller,
-                          Controller *keypad_controller)
+                          Controller **controllers, int controllers_num)
 {
         draw_game_won(display, state);
-        wait_for_input(joystick_controller, keypad_controller);
+        wait_for_input(controllers, controllers_num);
 }
 
-void wait_for_input(Controller *joystick_controller,
-                    Controller *keypad_controller)
+void wait_for_input(Controller **controllers, int controllers_num)
 {
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller->poll_for_input(&dir);
-                input_registered |= keypad_controller->poll_for_input(&dir);
+                for (int i = 0; i < controllers_num; i++) {
+                        Controller *controller = controllers[i];
+                        input_registered |= controller->poll_for_input(&dir);
+                }
 
                 if (input_registered) {
                         break;
@@ -128,8 +129,7 @@ void wait_for_input(Controller *joystick_controller,
 }
 
 void collect_game_configuration(Display *display, GameConfiguration *config,
-                                Controller *joystick_controller,
-                                Controller *keypad_controller,
+                                Controller **controllers, int controllers_num,
                                 DelayProvider *delay_provider)
 {
         const int AVAILABLE_OPTIONS = 3;
@@ -154,8 +154,11 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
         while (true) {
                 Direction dir;
                 bool input_registered = false;
-                input_registered |= joystick_controller->poll_for_input(&dir);
-                input_registered |= keypad_controller->poll_for_input(&dir);
+
+                for (int i = 0; i < controllers_num; i++) {
+                        Controller *controller = controllers[i];
+                        input_registered |= controller->poll_for_input(&dir);
+                }
 
                 bool ready = false;
                 if (input_registered) {
@@ -592,10 +595,10 @@ class GridDimensions
         int score_title_y;
 
         GridDimensions(int cell_height, int cell_width, int cell_x_spacing,
-                        int cell_y_spacing, int padding, int grid_start_x,
-                        int grid_start_y, int score_cell_height,
-                        int score_cell_width, int score_start_x,
-                        int score_start_y, int score_title_x, int score_title_y)
+                       int cell_y_spacing, int padding, int grid_start_x,
+                       int grid_start_y, int score_cell_height,
+                       int score_cell_width, int score_start_x,
+                       int score_start_y, int score_title_x, int score_title_y)
             : cell_height(cell_height), cell_width(cell_width),
               cell_x_spacing(cell_x_spacing), cell_y_spacing(cell_y_spacing),
               padding(padding), grid_start_x(grid_start_x),
@@ -654,11 +657,11 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
 
         int score_title_y = score_start.y + (score_cell_height - FONT_SIZE) / 2;
 
-        return new GridDimensions(
-            cell_height, cell_width, cell_x_spacing, cell_y_spacing,
-            remainder_width, grid_start_x, grid_start_y, score_cell_height,
-            score_cell_width, score_start.x, score_start.y, score_title_x,
-            score_title_y);
+        return new GridDimensions(cell_height, cell_width, cell_x_spacing,
+                                  cell_y_spacing, remainder_width, grid_start_x,
+                                  grid_start_y, score_cell_height,
+                                  score_cell_width, score_start.x,
+                                  score_start.y, score_title_x, score_title_y);
 }
 
 /**
@@ -751,7 +754,8 @@ void update_game_grid(Display *display, GameState *gs)
                                 int digit_len =
                                     number_string_length(gs->old_grid[i][j]);
 
-                                // TODO: figure out what this incompatibility tolerance is about.
+                                // TODO: figure out what this incompatibility
+                                // tolerance is about.
                                 int FONT_INCOMPATIBILITY_TOLERANCE = 1;
                                 Point clear_start = {
                                     .x = start.x + x_margin +
