@@ -3,6 +3,7 @@
 #include "../src/common/platform/sfml/sfml_display.hpp"
 #include "../src/common/platform/sfml/emulator_delay.cpp"
 #include "../src/common/platform/sfml/sfml_controller.hpp"
+#include "../src/common/platform/sfml/sfml_awsd_controller.hpp"
 
 #include "../src/common/logging.hpp"
 
@@ -18,6 +19,7 @@
 SfmlDisplay *display;
 EmulatorDelay delay;
 SfmlInputController controller;
+SfmlAwsdInputController awsd_controller;
 
 void print_version(char *argv[]);
 int main(int argc, char *argv[])
@@ -46,15 +48,18 @@ int main(int argc, char *argv[])
         LOG_DEBUG(TAG, "Display initialized!");
 
         controller = SfmlInputController{};
+        awsd_controller = SfmlAwsdInputController{};
 
-        Controller *controllers[] = {&controller};
+        Controller *controllers[] = {&controller, &awsd_controller};
+        int controllers_num = sizeof(controllers) / sizeof(Controller *);
 
         while (window.isOpen()) {
                 LOG_DEBUG(TAG, "Entering game loop...");
                 // We need to loop forever here as the game loop exits when the
                 // game is over.
                 while (true) {
-                        enter_game_loop(display, controllers, 1, &delay);
+                        enter_game_loop(display, controllers, controllers_num,
+                                        &delay);
                 }
         }
 }
