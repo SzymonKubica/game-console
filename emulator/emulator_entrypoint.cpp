@@ -4,12 +4,16 @@
 #include "../src/common/platform/sfml/emulator_delay.cpp"
 #include "../src/common/platform/sfml/sfml_controller.hpp"
 
+#include "../src/common/logging.hpp"
+
 #include "../src/games/2048.h"
 #include <iostream>
 
 // TODO: clean up the mainteinance of the size constants
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_WIDTH 280
+
+#define TAG "emulator_entrypoint"
 
 SfmlDisplay *display;
 EmulatorDelay delay;
@@ -20,32 +24,31 @@ int main(int argc, char *argv[])
 {
         print_version(argv);
 
-        std::cout << "Emulator started!" << std::endl;
-#ifdef EMULATOR
-        std::cout << "Emulator enabled!" << std::endl;
-#endif
+        LOG_DEBUG(TAG, "Emulator enabled!");
 
         sf::RenderWindow window(sf::VideoMode({DISPLAY_WIDTH, DISPLAY_HEIGHT}),
                                 "game-console-emulator");
 
         // The problem with simply rendering to the window is that we would need
-        // to redraw everythign every frame. This is not the behaviour we want
+        // to redraw everything every frame. This is not the behaviour we want
         // as the arduino display doesn't work this way. In Arduino lcd, once
         // we draw something, it stays there until something is drawn on top of
-        // it. We achieve this behaviour by using a RenderTexture
+        // it. We achieve this behaviour by using a RenderTexture. This texture
+        // is then written into by the game engine and stores the drawn shapes
+        // until something is drawn on top of it.
         sf::RenderTexture texture({DISPLAY_WIDTH, DISPLAY_HEIGHT});
 
-        std::cout << "Window rendered!" << std::endl;
+        LOG_DEBUG(TAG,"Window rendered!");
 
-        std::cout << "Initializing the display..." << std::endl;
+        LOG_DEBUG(TAG,"Initializing the display...");
         display = new SfmlDisplay(&window, &texture);
         display->setup();
-        std::cout << "Display initialized!" << std::endl;
+        LOG_DEBUG(TAG,"Display initialized!" );
 
         controller = SfmlInputController{};
 
         while (window.isOpen()) {
-                std::cout << "Entering game loop..." << std::endl;
+                LOG_DEBUG(TAG,"Entering game loop..." );
                 // We need to loop forever here as the game loop exits when the
                 // game is over.
                 while (true) {

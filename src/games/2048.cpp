@@ -22,6 +22,7 @@
 //// We need to figure out how to deal with the font width
 // for the emulator as obviously it is not pixel-accurate the same as what we
 // have on the actual hardware
+//#define FONT_WIDTH 11 todo: move this to some constants definition file so that we can dynamically switch between font sizes between targets.
 #define FONT_WIDTH 11
 #define GRID_BG_COLOR White
 
@@ -696,8 +697,6 @@ static void draw_game_grid(Display *display, int grid_size)
                             gd->cell_height / 2, GRID_BG_COLOR);
                 }
         }
-
-        // std::cout << "Game grid drawn successfully" << std::endl;
 }
 
 static void str_replace(char *str, const char *oldWord, const char *newWord);
@@ -752,6 +751,7 @@ void update_game_grid(Display *display, GameState *gs)
                                 int digit_len =
                                     number_string_length(gs->old_grid[i][j]);
 
+                                // TODO: figure out what this incompatibility tolerance is about.
                                 int FONT_INCOMPATIBILITY_TOLERANCE = 1;
                                 Point clear_start = {
                                     .x = start.x + x_margin +
