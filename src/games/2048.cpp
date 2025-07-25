@@ -7,6 +7,7 @@
 
 #include "../common/logging.hpp"
 #include "../common/platform/interface/display.hpp"
+#include "../common/platform/interface/platform.hpp"
 #include "../common/user_interface.h"
 
 #define GAME_2048 "2048"
@@ -53,7 +54,7 @@ static void collect_game_configuration(Display *display,
                                        DelayProvider *delay_provider);
 static bool input_registered(Controller **controllers, int controllers_num,
                              Direction *registered_dir);
-void enter_game_loop(Display *display, Controller **controllers,
+void enter_game_loop(Platform p, Display *display, Controller **controllers,
                      int controllers_num, DelayProvider *delay_provider)
 {
         GameConfiguration config;
