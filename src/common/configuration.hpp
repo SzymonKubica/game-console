@@ -17,11 +17,11 @@ template <typename T> struct ConfigurationValue {
          * `ConfigurationValue`.
          */
         int available_values_len;
-        /// Currently selected option for this configuration value.
+        // Currently selected option for this configuration value.
         int currently_selected;
-        /// Name of the configuration value
+        // Name of the configuration value
         char *name;
-        /// Max config option string length for UI rendering purposes
+        // Max configuration option string length for UI rendering alignment
         int max_config_option_len;
 };
 

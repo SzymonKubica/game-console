@@ -353,8 +353,8 @@ void render_text_bar_centered(Display *display, int y_start,
                 // Draw the actual text of the text bar. Note that it will be
                 // centered inside of the large bar.
                 Point grid_size_str_start = {.x = text_x, .y = y_start};
-                display->draw_string(grid_size_str_start, (char *)text, font_size,
-                                     bg_color, text_color);
+                display->draw_string(grid_size_str_start, (char *)text,
+                                     font_size, bg_color, text_color);
         }
 }
 
@@ -444,21 +444,107 @@ inline int get_centering_margin(int screen_width, int font_width,
         return (screen_width - text_length * font_width) / 2;
 }
 
-void render_generic_config_menu(Configuration *config, ConfigurationDiff *diff,
-                                bool update)
+void render_generic_config_menu(Display *display, Configuration *config,
+                                ConfigurationDiff *diff, bool update)
 {
 
+        bool already_rendered = update;
         int text_max_length = find_max_config_option_name_length(config) + 2;
-        int left_margin = (LCD_HEIGHT - text_max_length * FONT_WIDTH) / 2;
         int spacing = (LCD_WIDTH - config->config_values_len * FONT_SIZE -
                        HEADING_FONT_SIZE) /
                       3;
 
         // TODO: add rendering similar to the 2048-specific menu
-        //
-        // 1. Step one: abstract away an interface that is required for drawing
-        //    strings, rounded rects and clearing the screen
-        // 2. Make the lib implement it
-        // 3. use ncurses or some other rendering thing to implement it
-        // 4. figure out how to test it without the actual UI.
+        if (!already_rendered) {
+                display->initialize();
+                display->clear(Black);
+        }
+
+        /* Display strings */
+        const char *heading_text = config->name;
+        const char *grid_size_option_text = "Grid size:";
+        const char *target_option_text = "Game target:";
+        const char *start_text = "Start Game";
+
+        int max_game_target_text_len = 4;
+        int option_text_max_len = strlen(target_option_text);
+        int option_value_separator = 2;
+
+        // We exctract the display dimensions and font sizes into shorter
+        // variable names to make the code easier to read.
+        int h = display->get_height();
+        int w = display->get_width();
+        int fw = FONT_WIDTH;
+        int fh = FONT_SIZE;
+        int left_margin = get_centering_margin(w, fw, text_max_length);
+
+        int bar_height = 2 * fh;
+        int config_bar_num = 3;
+        int bar_gap_height = fh;
+        int y_spacing = calculate_section_spacing(h, config_bar_num, bar_height,
+                                                  bar_gap_height, Size24);
+
+        int *bar_positions = calculate_config_bar_positions(
+            y_spacing, Size24, bar_height, bar_gap_height, config_bar_num);
+        int grid_size_bar_y = bar_positions[0];
+        int target_config_bar_y = bar_positions[1];
+        int start_text_bar_y = bar_positions[2];
+        free(bar_positions);
+
+        // We need to create string buffers for the values of the current config
+        // options and pass them into the rendering functions so that they can
+        // be displayed. This is done outside of the rendering function as we
+        // want to have ability to render any config value (even strings) and
+        // so it does not make sense to pass ints into the function and do
+        // `sprintf` there.
+        char grid_size_text[5];
+        // TODO: replace with the generic loading of the value text
+        // sprintf(grid_size_text, "%4d", config->grid_size);
+        char target_text[5];
+        // TODO: replace with the generic loading of the value text
+        // sprintf(target_text, "%4d", config->target_max_tile);
+
+        // Here we render all config/text bars for the 2048 game.
+        render_text_bar_centered(display, y_spacing, option_text_max_len,
+                                 max_game_target_text_len, heading_text,
+                                 already_rendered, Black, White,
+                                 HEADING_FONT_WIDTH, Size24);
+
+        /*
+        TODO: set the update flag here based on the ConfigurationDiff object
+        that gets passed into this function. render_config_bar_centered(
+            display, grid_size_bar_y, option_text_max_len,
+            max_game_target_text_len, grid_size_option_text, grid_size_text,
+            already_rendered, config->grid_size != previous_config->grid_size);
+        render_config_bar_centered(
+            display, target_config_bar_y, option_text_max_len,
+            max_game_target_text_len, target_option_text, target_text,
+            already_rendered,
+            config->target_max_tile != previous_config->target_max_tile);
+            */
+        render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
+                                 max_game_target_text_len, start_text,
+                                 already_rendered);
+
+        // Before we render the indicator dot we need to calculate its
+        // positions. Note that the dot needs to appear exactly on the middle
+        // axis of the config bars, because of this we need to add the
+        // horizontal padding to the y positions of the config bars to center
+        // the dot. This is to be considered for refactoring but currently this
+        // pattern is not crystalized enough to abstract it.
+        int padding = 1; // 0.5 fw on either side
+        int bar_width = (text_max_length + padding) * fw;
+        int circle_x = left_margin + bar_width + FONT_WIDTH;
+        int h_padding = fh / 2;
+        int circle_ys[] = {grid_size_bar_y + h_padding,
+                           target_config_bar_y + h_padding,
+                           start_text_bar_y + h_padding};
+        int circle_ys_len = 3;
+        int r = 5;
+
+        /*
+        render_circle_selector(display, already_rendered, circle_x, circle_ys,
+                               circle_ys_len, previous_config->config_option,
+                               config->config_option, r);
+         */
 }

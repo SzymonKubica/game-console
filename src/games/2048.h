@@ -3,8 +3,6 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
-#include "../common/platform/interface/delay.hpp"
-#include "../common/platform/interface/controller.hpp"
 
 typedef enum ConfigOption {
         GRID_SIZE = 0,
