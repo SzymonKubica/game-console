@@ -446,9 +446,7 @@ static void transpose(GameState *gs)
         }
 }
 
-/*******************************************************************************
-  Game Loop Logic
-*******************************************************************************/
+/* Game Loop Logic */
 
 // Helper functions for the game loop
 static bool grid_changed_from(GameState *gs, int **oldGrid);
@@ -486,8 +484,6 @@ void take_turn(GameState *gs, int direction)
         if (grid_changed_from(gs, oldGrid)) {
                 spawn_tile(gs);
         }
-        // TODO: reenable or we'll be in trouble on arduino (not enough memory
-        // for this leak )
         free_game_grid(oldGrid, gs->grid_size);
 }
 
@@ -505,13 +501,14 @@ static bool grid_changed_from(GameState *gs, int **oldGrid)
 
 static bool no_move_possible(GameState *gs)
 {
-        // A move is always possible if not all tiles are occupied.
+        /* A move is always possible if not all tiles are occupied. Hence,
+           we short-circuit here. */
         if (gs->occupied_tiles < gs->grid_size * gs->grid_size) {
                 return false;
         }
 
-        // When the grid is full a move is possible as long as there exist some
-        // adjacent tiles that have the same number
+        /* When the grid is full a move is possible as long as there exist some
+           adjacent tiles that have the same number */
         for (int i = 0; i < gs->grid_size; i++) {
                 for (int j = 0; j < gs->grid_size - 1; j++) {
                         // row-wise adjacency
@@ -536,6 +533,14 @@ static void copy_grid(int **source, int **destination, int size)
         }
 }
 
+/* Grid Drawing */
+
+/**
+ * Draws the background slots for the grid tiles, this takes a long time and
+ * should only be called once at the start of the game to draw the grid. After
+ * that `update_game_grid` should be called to update the contents of the grid
+ * slots with the numbers.
+ */
 static void draw_game_grid(Display *display, int grid_size);
 void draw_game_canvas(Display *display, GameState *state)
 {
@@ -545,8 +550,10 @@ void draw_game_canvas(Display *display, GameState *state)
         draw_game_grid(display, state->grid_size);
 }
 
-/// Class modelling all dimensional information required to properly render
-/// and space out the grid slots that are used to display the game tiles.
+/**
+ * Class storing all dimensional information required to properly render
+ * and space out the grid slots that are used to display the game tiles.
+ */
 class GridDimensions
 {
       public:
@@ -554,8 +561,9 @@ class GridDimensions
         int cell_width;
         int cell_x_spacing;
         int cell_y_spacing;
-        int padding; // Padding added to the left of the grid if the available
-                     // space isn't evenly divided into grid_size
+        /* Padding added to the left of the grid if the available
+        space isn't evenly divided into grid_size */
+        int padding;
         int grid_start_x;
         int grid_start_y;
         int score_cell_height;
@@ -597,15 +605,15 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
         int cell_x_spacing =
             (usable_width - cell_width * grid_size) / (grid_size + 1);
 
-        // We need to calculate the remainder width and then add a half of it
-        // to the starting point to make the grid centered in case the usable
-        // height doesn't divide evenly into grid_size.
+        /* We need to calculate the remainder width and then add a half of it
+           to the starting point to make the grid centered in case the usable
+           height doesn't divide evenly into grid_size. */
         int remainder_width = (usable_width - (grid_size + 1) * cell_x_spacing -
                                grid_size * cell_width);
 
-        // We offset the grid downwards to allow it to overlap with the gap
-        // between the two bottom corners and save space for the score at the
-        // top of the grid.
+        /* We offset the grid downwards to allow it to overlap with the gap
+           between the two bottom corners and save space for the score at the
+           top of the grid. */
         int corner_offset = corner_radius / 4;
 
         int grid_start_x =
@@ -635,12 +643,6 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
                                   score_start.y, score_title_x, score_title_y);
 }
 
-/**
- * Draws the background slots for the grid tiles, this takes a long time and
- * should only be called once at the start of the game to draw the grid. After
- * that update_game_grid should be called to update the contents of the grid
- * slots with the numbers.
- */
 static void draw_game_grid(Display *display, int grid_size)
 {
 
@@ -658,17 +660,20 @@ static void draw_game_grid(Display *display, int grid_size)
         display->draw_string(score_title, (char *)buffer, Size16, GRID_BG_COLOR,
                              Black);
 
+        int cell_width_and_spacing = gd->cell_width + gd->cell_x_spacing;
+        int cell_height_and_spacing = gd->cell_height + gd->cell_y_spacing;
+        int cell_radius = gd->cell_height / 2;
+
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
                         Point start = {
-                            .x = gd->grid_start_x +
-                                 j * (gd->cell_width + gd->cell_x_spacing),
-                            .y = gd->grid_start_y +
-                                 i * (gd->cell_height + gd->cell_y_spacing)};
+                            .x = gd->grid_start_x + j * cell_width_and_spacing,
+                            .y =
+                                gd->grid_start_y + i * cell_height_and_spacing};
 
                         display->draw_rounded_rectangle(
-                            start, gd->cell_width, gd->cell_height,
-                            gd->cell_height / 2, GRID_BG_COLOR);
+                            start, gd->cell_width, gd->cell_height, cell_radius,
+                            GRID_BG_COLOR);
                 }
         }
 }
