@@ -51,23 +51,20 @@ int main(int argc, char *argv[])
         controller = SfmlInputController{};
         awsd_controller = SfmlAwsdInputController{};
 
-        std::vector<Controller*> controllers(2);
+        std::vector<Controller *> controllers(2);
         controllers[0] = &controller;
         controllers[1] = &awsd_controller;
 
-        Platform platform = {
-          .display = display,
-          .controllers = &controllers,
-          .delay_provider = &delay
-        };
+        Platform platform = {.display = display,
+                             .controllers = &controllers,
+                             .delay_provider = &delay};
 
         while (window.isOpen()) {
                 LOG_DEBUG(TAG, "Entering game loop...");
                 // We need to loop forever here as the game loop exits when the
                 // game is over.
                 while (true) {
-                        enter_game_loop(display, controllers, controllers_num,
-                                        &delay);
+                        enter_game_loop(&platform);
                 }
         }
 }

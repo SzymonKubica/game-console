@@ -43,79 +43,70 @@ static void copy_grid(int **source, int **destination, int size);
 
 void initialize_randomness_seed(int seed) { srand(seed); }
 
-static void handle_game_over(Display *display, GameState *state,
-                             Controller **controllers, int controllers_num);
-static void handle_game_finished(Display *display, GameState *state,
-                                 Controller **controllers, int controllers_num);
-static void collect_game_configuration(Display *display,
-                                       GameConfiguration *config,
-                                       Controller **controllers,
-                                       int controllers_num,
-                                       DelayProvider *delay_provider);
-static bool input_registered(Controller **controllers, int controllers_num,
+static void handle_game_over(Display *display,
+                             std::vector<Controller *> *controllers,
+                             GameState *state);
+static void handle_game_finished(Display *display,
+                                 std::vector<Controller *> *controllers,
+                                 GameState *state);
+static void collect_game_configuration(Platform *p, GameConfiguration *config);
+static bool input_registered(std::vector<Controller *> *controllers,
                              Direction *registered_dir);
-void enter_game_loop(Platform p, Display *display, Controller **controllers,
-                     int controllers_num, DelayProvider *delay_provider)
+void enter_game_loop(Platform *p)
 {
         GameConfiguration config;
-        // TODO: this passing of the controllers and delay providers is a bit
-        // unwieldy ideally every function of the game, unless it is pure logic
-        // should have access to the display, controllers and the delay
-        // provider. This should be encapsulated in some 'platform' object.
-        collect_game_configuration(display, &config, controllers,
-                                   controllers_num, delay_provider);
+        collect_game_configuration(p, &config);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
-        draw_game_canvas(display, state);
-        update_game_grid(display, state);
-        display->refresh();
+        draw_game_canvas(p->display, state);
+        update_game_grid(p->display, state);
+        p->display->refresh();
 
         while (true) {
                 Direction dir;
-                if (input_registered(controllers, controllers_num, &dir)) {
+                if (input_registered(p->controllers, &dir)) {
                         LOG_DEBUG(GAME_2048, "Input registered: %s",
                                   direction_to_string(dir))
                         take_turn(state, (int)dir);
-                        update_game_grid(display, state);
-                        delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                        update_game_grid(p->display, state);
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
-                delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
 
                 if (is_game_over(state)) {
-                        handle_game_over(display, state, controllers,
-                                         controllers_num);
+                        handle_game_over(p->display, p->controllers, state);
                         break;
                 }
                 if (is_game_finished(state)) {
-                        handle_game_finished(display, state, controllers,
-                                             controllers_num);
+                        handle_game_finished(p->display, p->controllers, state);
                         break;
                 }
-                display->refresh();
+                p->display->refresh();
         }
 }
 
-void wait_for_input(Controller **controllers, int controllers_num);
-void handle_game_over(Display *display, GameState *state,
-                      Controller **controllers, int controllers_num)
+void wait_for_input(std::vector<Controller *> *controllers);
+void handle_game_over(Display *display, std::vector<Controller *> *controllers,
+                      GameState *state)
 {
         draw_game_over(display, state);
-        wait_for_input(controllers, controllers_num);
+        wait_for_input(controllers);
 }
 
-void handle_game_finished(Display *display, GameState *state,
-                          Controller **controllers, int controllers_num)
+void handle_game_finished(Display *display,
+                          std::vector<Controller *> *controllers,
+                          GameState *state)
 {
         draw_game_won(display, state);
-        wait_for_input(controllers, controllers_num);
+        wait_for_input(controllers);
 }
 
-void wait_for_input(Controller **controllers, int controllers_num)
+void wait_for_input(std::vector<Controller *> *controllers)
 {
         while (true) {
                 Direction dir;
-                if (input_registered(controllers, controllers_num, &dir)) {
+                if (input_registered(controllers, &dir)) {
                         break;
                 }
         }
@@ -125,20 +116,17 @@ void wait_for_input(Controller **controllers, int controllers_num)
  * Checks if any of the controllers has recorded user input. If so, the input
  * direction will be written into the `registered_dir` output parameter.
  */
-bool input_registered(Controller **controllers, int controllers_num,
+bool input_registered(std::vector<Controller *> *controllers,
                       Direction *registered_dir)
 {
         bool input_registered = false;
-        for (int i = 0; i < controllers_num; i++) {
-                Controller *controller = controllers[i];
+        for (Controller *controller : *controllers) {
                 input_registered |= controller->poll_for_input(registered_dir);
         }
         return input_registered;
 }
 
-void collect_game_configuration(Display *display, GameConfiguration *config,
-                                Controller **controllers, int controllers_num,
-                                DelayProvider *delay_provider)
+void collect_game_configuration(Platform *p, GameConfiguration *config)
 {
         const int AVAILABLE_OPTIONS = 3;
         const int GRID_SIZES_LEN = 3;
@@ -157,12 +145,12 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
         config->target_max_tile = available_target_max_tiles[game_target_idx];
         config->config_option = available_config_options[curr_opt_idx];
 
-        render_config_menu(display, config, config, false);
+        render_config_menu(p->display, config, config, false);
 
         while (true) {
                 Direction dir;
                 bool ready = false;
-                if (input_registered(controllers, controllers_num, &dir)) {
+                if (input_registered(p->controllers, &dir)) {
                         GameConfiguration old_config;
                         old_config.grid_size = config->grid_size;
                         old_config.target_max_tile = config->target_max_tile;
@@ -215,13 +203,14 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
                             available_target_max_tiles[game_target_idx];
                         config->config_option =
                             available_config_options[curr_opt_idx];
-                        render_config_menu(display, config, &old_config, true);
-                        delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                        render_config_menu(p->display, config, &old_config,
+                                           true);
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;
                         }
                 }
-                delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
         }
 }
 
