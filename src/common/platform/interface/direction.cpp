@@ -1,6 +1,6 @@
 #include "direction.hpp"
 
-const char *direction_to_string(Direction direction)
+const char *direction_to_str(Direction direction)
 {
         switch (direction) {
         case UP:

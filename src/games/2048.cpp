@@ -10,7 +10,7 @@
 #include "../common/platform/interface/platform.hpp"
 #include "../common/user_interface.h"
 
-#define GAME_2048 "2048"
+#define TAG "2048"
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -52,6 +52,9 @@ static void handle_game_finished(Display *display,
 static void collect_game_configuration(Platform *p, GameConfiguration *config);
 static bool input_registered(std::vector<Controller *> *controllers,
                              Direction *registered_dir);
+static void pause_until_input(std::vector<Controller *> *controllers,
+                              DelayProvider *delay_provider);
+
 void enter_game_loop(Platform *p)
 {
         GameConfiguration config;
@@ -59,57 +62,41 @@ void enter_game_loop(Platform *p)
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
+
         draw_game_canvas(p->display, state);
         update_game_grid(p->display, state);
         p->display->refresh();
 
-        while (true) {
+        while (!is_game_over(state) || !is_game_finished(state)) {
                 Direction dir;
                 if (input_registered(p->controllers, &dir)) {
-                        LOG_DEBUG(GAME_2048, "Input registered: %s",
-                                  direction_to_string(dir))
+                        LOG_DEBUG(TAG, "Input received: %s",
+                                  direction_to_str(dir))
                         take_turn(state, (int)dir);
                         update_game_grid(p->display, state);
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
-
-                if (is_game_over(state)) {
-                        handle_game_over(p->display, p->controllers, state);
-                        break;
-                }
-                if (is_game_finished(state)) {
-                        handle_game_finished(p->display, p->controllers, state);
-                        break;
-                }
                 p->display->refresh();
         }
-}
 
-void wait_for_input(std::vector<Controller *> *controllers);
-void handle_game_over(Display *display, std::vector<Controller *> *controllers,
-                      GameState *state)
-{
-        draw_game_over(display, state);
-        wait_for_input(controllers);
-}
-
-void handle_game_finished(Display *display,
-                          std::vector<Controller *> *controllers,
-                          GameState *state)
-{
-        draw_game_won(display, state);
-        wait_for_input(controllers);
-}
-
-void wait_for_input(std::vector<Controller *> *controllers)
-{
-        while (true) {
-                Direction dir;
-                if (input_registered(controllers, &dir)) {
-                        break;
-                }
+        if (is_game_over(state)) {
+                draw_game_over(p->display, state);
         }
+        if (is_game_finished(state)) {
+                draw_game_won(p->display, state);
+        }
+
+        pause_until_input(p->controllers, p->delay_provider);
+}
+
+void pause_until_input(std::vector<Controller *> *controllers,
+                       DelayProvider *delay_provider)
+{
+        Direction dir;
+        while (!input_registered(controllers, &dir)) {
+                delay_provider->delay_ms(INPUT_POLLING_DELAY);
+        };
 }
 
 /**
@@ -272,9 +259,8 @@ void collect_generic_config(Configuration *config)
 }
 */
 
-/*******************************************************************************
-  Initialization Code
-*******************************************************************************/
+/* Initialization Code */
+
 static void spawn_tile(GameState *gs);
 
 int **create_game_grid(int size);
@@ -298,7 +284,6 @@ void free_game_state(GameState *gs)
 // Allocates a new game grid as a two-dimensional array
 int **create_game_grid(int size)
 {
-        // TODO: figure out why we need to square the size here, I have no idea
         int **g = (int **)malloc(size * sizeof(int *));
         for (int i = 0; i < size; i++) {
                 g[i] = (int *)malloc(size * sizeof(int));
@@ -317,9 +302,7 @@ void free_game_grid(int **grid, int size)
         free(grid);
 }
 
-/*******************************************************************************
-  Tile Spawning
-*******************************************************************************/
+/* Tile Spawning */
 
 static int generate_new_tile_value()
 {
@@ -345,9 +328,7 @@ static void spawn_tile(GameState *gs)
         gs->occupied_tiles++;
 }
 
-/*******************************************************************************
-  Tile Merging Logic
-*******************************************************************************/
+/* Tile Merging Logic */
 
 /* Helper functions for tile merging */
 
@@ -664,7 +645,7 @@ static void draw_game_grid(Display *display, int grid_size)
 {
 
         GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
-        LOG_DEBUG(GAME_2048, "Calculated grid dimensions.");
+        LOG_DEBUG(TAG, "Calculated grid dimensions.");
 
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
         display->draw_rounded_rectangle(
