@@ -51,7 +51,8 @@ static void collect_game_configuration(Display *display,
                                        Controller **controllers,
                                        int controllers_num,
                                        DelayProvider *delay_provider);
-
+static bool input_registered(Controller **controllers, int controllers_num,
+                             Direction *registered_dir);
 void enter_game_loop(Display *display, Controller **controllers,
                      int controllers_num, DelayProvider *delay_provider)
 {
@@ -71,14 +72,7 @@ void enter_game_loop(Display *display, Controller **controllers,
 
         while (true) {
                 Direction dir;
-                bool input_registered = false;
-
-                for (int i = 0; i < controllers_num; i++) {
-                        Controller *controller = controllers[i];
-                        input_registered |= controller->poll_for_input(&dir);
-                }
-
-                if (input_registered) {
+                if (input_registered(controllers, controllers_num, &dir)) {
                         LOG_DEBUG(GAME_2048, "Input registered: %s",
                                   direction_to_string(dir))
                         take_turn(state, (int)dir);
@@ -120,16 +114,25 @@ void wait_for_input(Controller **controllers, int controllers_num)
 {
         while (true) {
                 Direction dir;
-                bool input_registered = false;
-                for (int i = 0; i < controllers_num; i++) {
-                        Controller *controller = controllers[i];
-                        input_registered |= controller->poll_for_input(&dir);
-                }
-
-                if (input_registered) {
+                if (input_registered(controllers, controllers_num, &dir)) {
                         break;
                 }
         }
+}
+
+/**
+ * Checks if any of the controllers has recorded user input. If so, the input
+ * direction will be written into the `registered_dir` output parameter.
+ */
+bool input_registered(Controller **controllers, int controllers_num,
+                      Direction *registered_dir)
+{
+        bool input_registered = false;
+        for (int i = 0; i < controllers_num; i++) {
+                Controller *controller = controllers[i];
+                input_registered |= controller->poll_for_input(registered_dir);
+        }
+        return input_registered;
 }
 
 void collect_game_configuration(Display *display, GameConfiguration *config,
@@ -157,15 +160,8 @@ void collect_game_configuration(Display *display, GameConfiguration *config,
 
         while (true) {
                 Direction dir;
-                bool input_registered = false;
-
-                for (int i = 0; i < controllers_num; i++) {
-                        Controller *controller = controllers[i];
-                        input_registered |= controller->poll_for_input(&dir);
-                }
-
                 bool ready = false;
-                if (input_registered) {
+                if (input_registered(controllers, controllers_num, &dir)) {
                         GameConfiguration old_config;
                         old_config.grid_size = config->grid_size;
                         old_config.target_max_tile = config->target_max_tile;
