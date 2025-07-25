@@ -736,6 +736,10 @@ void update_game_grid(Display *display, GameState *gs)
         display->draw_string(score_start, score_buffer, Size16, GRID_BG_COLOR,
                              Black);
 
+        // The maximum tile number in this version of 2048 is 4096, because of
+        // this the maximum width of the cell text area is given below.
+        int max_cell_text_width = 4 * FONT_WIDTH;
+
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
                         Point start = {
@@ -745,26 +749,37 @@ void update_game_grid(Display *display, GameState *gs)
                                  i * (gd->cell_height + gd->cell_y_spacing)};
 
                         if (gs->grid[i][j] != gs->old_grid[i][j]) {
+
                                 char buffer[5];
                                 sprintf(buffer, "%4d", gs->grid[i][j]);
-
                                 str_replace(buffer, "   0", "    ");
+
                                 // We need to center the four characters of text
-                                // inside of the cell.
+                                // inside the cell.
                                 int x_margin =
-                                    (gd->cell_width - 4 * FONT_WIDTH) / 2;
+                                    (gd->cell_width - max_cell_text_width) / 2;
                                 int y_margin =
                                     (gd->cell_height - FONT_SIZE) / 2;
-                                int digit_len =
+                                int old_digit_len =
                                     number_string_length(gs->old_grid[i][j]);
+                                int old_digit_text_width =
+                                    old_digit_len * FONT_WIDTH;
 
+                                // We clear the region where the old number was
+                                // drawn, note that we need to be efficient, so
+                                // instead of clearing all 4 possible
+                                // characters, we only clear the characters of
+                                // the actual number. So if the number is
+                                // composed of two digits, we clear a region
+                                // that spans two digits.
                                 Point clear_start = {.x = start.x + x_margin +
-                                                          (4 - digit_len) *
-                                                              FONT_WIDTH,
+                                                          max_cell_text_width -
+                                                          old_digit_text_width,
                                                      .y = start.y + y_margin};
-                                Point clear_end = {
-                                    .x = start.x + x_margin + 4 * FONT_WIDTH,
-                                    .y = start.y + y_margin + FONT_SIZE};
+                                Point clear_end = {.x = start.x + x_margin +
+                                                        max_cell_text_width,
+                                                   .y = start.y + y_margin +
+                                                        FONT_SIZE};
                                 display->clear_region(clear_start, clear_end,
                                                       GRID_BG_COLOR);
 
