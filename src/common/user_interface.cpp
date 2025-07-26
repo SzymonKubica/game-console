@@ -530,9 +530,11 @@ void render_generic_config_menu(Display *display, Configuration *config,
         }
         free(bar_positions);
 
+        /*
         render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
                                  max_option_value_text_len, start_text,
                                  already_rendered);
+                                 */
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -544,9 +546,11 @@ void render_generic_config_menu(Display *display, Configuration *config,
         int bar_width = (text_max_length + padding) * fw;
         int circle_x = left_margin + bar_width + FONT_WIDTH;
         int h_padding = fh / 2;
+        /*
         int circle_ys[] = {grid_size_bar_y + h_padding,
                            target_config_bar_y + h_padding,
                            start_text_bar_y + h_padding};
+                           */
         int circle_ys_len = 3;
         int r = 5;
 
