@@ -2,32 +2,14 @@
 #include "configuration.hpp"
 #include "platform/interface/color.hpp"
 #include "platform/interface/display.hpp"
+#include "constants.hpp"
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-// #include <iostream>
-
-/* Constants for configuring the UI. */
-#define FONT_SIZE 16
-#define FONT_WIDTH 11
-#define HEADING_FONT_SIZE 24
-#define HEADING_FONT_WIDTH 17
-#define TOP_LEFT_CORNER_X 23
-#define TOP_LEFT_CORNER_Y 38
-
-// TODO: migrate those somewhere else to remove dep on LCD driver which is
-// platformj-specific.
-#define LCD_WIDTH 240  // LCD width
-#define LCD_HEIGHT 280 // LCD height
-
-#define DISPLAY_CORNER_RADIUS 40
-#define SCREEN_BORDER_WIDTH 3
 
 #define GRID_BG_COLOR White
 
-/*******************************************************************************
-  User Interface
-*******************************************************************************/
+/* User Interface */
 
 /* Helper functions used by draw_configuration_menu */
 
@@ -58,7 +40,8 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
                                     int bar_height, int bar_gap_height,
                                     int config_bar_num);
 
-/** Draws the config menu given the old and new config values
+/**
+ *  Draws the config menu given the old and new config values
  *  The old config given in `previous_config` is needed to determine which
  *  parts of the UI need to be updated.
  *
@@ -444,15 +427,31 @@ inline int get_centering_margin(int screen_width, int font_width,
         return (screen_width - text_length * font_width) / 2;
 }
 
+Configuration *assemble_2048_game_menu_configuration()
+{
+        Configuration *config =
+            static_cast<Configuration *>(malloc(sizeof(Configuration)));
+
+        config->name = "2048";
+        ConfigurationOptionType *configuration_option_types =
+            static_cast<ConfigurationOptionType *>(
+                malloc(2 * sizeof(ConfigurationOptionType)));
+
+        configuration_option_types[0] = ConfigurationOptionType::INT;
+        configuration_option_types[1] = ConfigurationOptionType::INT;
+        return config;
+}
+
 void render_generic_config_menu(Display *display, Configuration *config,
                                 ConfigurationDiff *diff, bool update)
 {
 
         bool already_rendered = update;
         int text_max_length = find_max_config_option_name_length(config) + 2;
-        int spacing = (LCD_WIDTH - config->config_values_len * FONT_SIZE -
-                       HEADING_FONT_SIZE) /
-                      3;
+        int spacing =
+            (display->get_height() - config->config_values_len * FONT_SIZE -
+             HEADING_FONT_SIZE) /
+            3;
 
         // TODO: add rendering similar to the 2048-specific menu
         if (!already_rendered) {
@@ -466,7 +465,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
         const char *target_option_text = "Game target:";
         const char *start_text = "Start Game";
 
-        int max_game_target_text_len = 4;
+        int max_option_value_text_len = 4;
         int option_text_max_len = strlen(target_option_text);
         int option_value_separator = 2;
 
@@ -479,51 +478,60 @@ void render_generic_config_menu(Display *display, Configuration *config,
         int left_margin = get_centering_margin(w, fw, text_max_length);
 
         int bar_height = 2 * fh;
-        int config_bar_num = 3;
         int bar_gap_height = fh;
-        int y_spacing = calculate_section_spacing(h, config_bar_num, bar_height,
-                                                  bar_gap_height, Size24);
+        int y_spacing = calculate_section_spacing(
+            h, config->config_values_len, bar_height, bar_gap_height, Size24);
 
         int *bar_positions = calculate_config_bar_positions(
-            y_spacing, Size24, bar_height, bar_gap_height, config_bar_num);
-        int grid_size_bar_y = bar_positions[0];
-        int target_config_bar_y = bar_positions[1];
-        int start_text_bar_y = bar_positions[2];
-        free(bar_positions);
+            y_spacing, Size24, bar_height, bar_gap_height,
+            config->config_values_len);
 
-        // We need to create string buffers for the values of the current config
-        // options and pass them into the rendering functions so that they can
-        // be displayed. This is done outside of the rendering function as we
-        // want to have ability to render any config value (even strings) and
-        // so it does not make sense to pass ints into the function and do
-        // `sprintf` there.
-        char grid_size_text[5];
-        // TODO: replace with the generic loading of the value text
-        // sprintf(grid_size_text, "%4d", config->grid_size);
-        char target_text[5];
-        // TODO: replace with the generic loading of the value text
-        // sprintf(target_text, "%4d", config->target_max_tile);
-
-        // Here we render all config/text bars for the 2048 game.
+        // Render the config menu heading.
         render_text_bar_centered(display, y_spacing, option_text_max_len,
-                                 max_game_target_text_len, heading_text,
+                                 max_option_value_text_len, heading_text,
                                  already_rendered, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
 
-        /*
-        TODO: set the update flag here based on the ConfigurationDiff object
-        that gets passed into this function. render_config_bar_centered(
-            display, grid_size_bar_y, option_text_max_len,
-            max_game_target_text_len, grid_size_option_text, grid_size_text,
-            already_rendered, config->grid_size != previous_config->grid_size);
-        render_config_bar_centered(
-            display, target_config_bar_y, option_text_max_len,
-            max_game_target_text_len, target_option_text, target_text,
-            already_rendered,
-            config->target_max_tile != previous_config->target_max_tile);
-            */
+        for (int i = 0; i < config->config_values_len; i++) {
+                int bar_y = bar_positions[i];
+                if (config->type_map[i] == ConfigurationOptionType::INT) {
+                        ConfigurationValue<int> *value =
+                            static_cast<ConfigurationValue<int> *>(
+                                config->configuration_values[i]);
+                        // TODO: ensure that this number formatting logic works
+                        // correctly.
+                        char *option_text = value->name;
+                        int selected_value =
+                            value->available_values[value->currently_selected];
+                        char option_value[value->max_config_option_len];
+                        char format_string[4];
+                        sprintf(format_string, "\%%dd",
+                                value->max_config_option_len);
+                        sprintf(option_value, format_string, selected_value);
+                        render_config_bar_centered(
+                            display, bar_y, option_text_max_len,
+                            max_option_value_text_len, option_value,
+                            option_text, already_rendered,
+                            diff->modified_option_index == i);
+                } else {
+                        ConfigurationValue<char *> *value =
+                            static_cast<ConfigurationValue<char *> *>(
+                                config->configuration_values[i]);
+
+                        char *option_text = value->name;
+                        char *option_value =
+                            value->available_values[value->currently_selected];
+                        render_config_bar_centered(
+                            display, bar_y, option_text_max_len,
+                            max_option_value_text_len, option_value,
+                            option_text, already_rendered,
+                            diff->modified_option_index == i);
+                }
+        }
+        free(bar_positions);
+
         render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
-                                 max_game_target_text_len, start_text,
+                                 max_option_value_text_len, start_text,
                                  already_rendered);
 
         // Before we render the indicator dot we need to calculate its

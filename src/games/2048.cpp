@@ -6,6 +6,7 @@
 #include "2048.h"
 
 #include "../common/logging.hpp"
+#include "../common/constants.hpp"
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
 #include "../common/user_interface.h"
@@ -16,28 +17,7 @@
 #define DOWN 2
 #define LEFT 3
 
-// TODO: move those to the display interface or some shared library.
-// the code shouldn't be littered with those random static defines.
-#define FONT_SIZE 16
-//// We need to figure out how to deal with the font width
-// for the emulator as obviously it is not pixel-accurate the same as what we
-// have on the actual hardware
-// #define FONT_WIDTH 11 todo: move this to some constants definition file so
-// that we can dynamically switch between font sizes between targets.
-#ifdef EMULATOR
-#define FONT_WIDTH 10
-#endif
-#ifndef EMULATOR
-#define FONT_WIDTH 11
-#endif
 #define GRID_BG_COLOR White
-
-// this should be configurable
-#define SCREEN_BORDER_WIDTH 3
-
-// This should be sourced from a module that controlls those constants
-#define INPUT_POLLING_DELAY 50
-#define MOVE_REGISTERED_DELAY 150
 
 static void copy_grid(int **source, int **destination, int size);
 
@@ -332,22 +312,20 @@ static void spawn_tile(GameState *gs)
 
 /* Helper functions for tile merging */
 
-/// Merges the i-th row of tiles in the given direction (left/right).
+// Merges the i-th row of tiles in the given direction (left/right).
 static void merge_row(GameState *gs, int i, int direction);
-
-/// Reverses a given row of `row_size` elements in place.
+// Reverses a given row of `row_size` elements in place.
 static void reverse(int *row, int row_size);
-
-/// Transposes the game trid in place to allow for merging vertically.
+// Transposes the game trid in place to allow for merging vertically.
 static void transpose(GameState *gs);
-
-/// Returns the index of the next non-empty tile after the `current_index` in
-/// the i-th row in of the grid.
+// Returns the index of the next non-empty tile after the `current_index` in
+// the i-th row in of the grid.
 static int get_successor_index(GameState *gs, int i, int current_index);
-
-// We only implement merging tiles left or right (row-wise), in order to merge
-// the tiles in a vertical direction we first transpose the grid, merge and then
-// transpose back.
+/**
+ * We only implement merging tiles left or right (row-wise), in order to merge
+ * the tiles in a vertical direction we first transpose the grid, merge and then
+ * transpose back.
+ */
 static void merge(GameState *gs, int direction)
 {
         if (direction == UP || direction == DOWN) {
@@ -448,7 +426,7 @@ static void transpose(GameState *gs)
 
 /* Game Loop Logic */
 
-// Helper functions for the game loop
+/* Helper functions for the game loop */
 static bool grid_changed_from(GameState *gs, int **oldGrid);
 static bool is_board_full(GameState *gs);
 static bool no_move_possible(GameState *gs);
