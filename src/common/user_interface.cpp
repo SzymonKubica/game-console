@@ -466,6 +466,12 @@ Configuration *assemble_2048_game_menu_configuration()
         game_target_config->available_values_len = 6;
         game_target_config->currently_selected = 3;
         game_target_config->max_config_option_len = 4;
+
+        config->config_values_len = 2;
+        config->current_config_value = 1;
+        config->configuration_values =
+            static_cast<ConfigurationOptionType *>(
+                malloc(2 * sizeof(ConfigurationOptionType)));
         return config;
 }
 
