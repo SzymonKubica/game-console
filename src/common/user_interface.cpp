@@ -433,12 +433,39 @@ Configuration *assemble_2048_game_menu_configuration()
             static_cast<Configuration *>(malloc(sizeof(Configuration)));
 
         config->name = "2048";
+
+        // Initialize the types of the config options.
         ConfigurationOptionType *configuration_option_types =
             static_cast<ConfigurationOptionType *>(
                 malloc(2 * sizeof(ConfigurationOptionType)));
-
         configuration_option_types[0] = ConfigurationOptionType::INT;
         configuration_option_types[1] = ConfigurationOptionType::INT;
+
+        // Initialize the first config option: game gridsize
+        ConfigurationValue<int> *grid_size_config = static_cast<ConfigurationValue<int> *>(
+            malloc(2 * sizeof(ConfigurationValue<int>)));
+        grid_size_config->name = "Grid size:";
+        grid_size_config->available_values = static_cast<int *>(malloc(3 * sizeof(int)));
+        grid_size_config->available_values[0] = 3;
+        grid_size_config->available_values[1] = 4;
+        grid_size_config->available_values[2] = 5;
+        grid_size_config->available_values_len = 3;
+        grid_size_config->currently_selected = 1;
+        grid_size_config->max_config_option_len = 1;
+
+        ConfigurationValue<int> *game_target_config = static_cast<ConfigurationValue<int> *>(
+            malloc(2 * sizeof(ConfigurationValue<int>)));
+        game_target_config->name = "Game target:";
+        game_target_config->available_values = static_cast<int *>(malloc(6 * sizeof(int)));
+        game_target_config->available_values[0] = 128;
+        game_target_config->available_values[1] = 256;
+        game_target_config->available_values[2] = 512;
+        game_target_config->available_values[3] = 1024;
+        game_target_config->available_values[4] = 2048;
+        game_target_config->available_values[5] = 4096;
+        game_target_config->available_values_len = 6;
+        game_target_config->currently_selected = 3;
+        game_target_config->max_config_option_len = 4;
         return config;
 }
 

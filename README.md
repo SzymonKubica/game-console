@@ -44,6 +44,8 @@ The game console can also be executed on a regular linux machine as an sfml-base
 graphical application. This is configured as a CMake project which is configured
 in CMakeLists.txt
 
-To build the emulator for the first time navigate to emulator-build and run `cmake ..`
+To build the emulator for the first time, create directory `emulator-build` and run `cmake ..`
 which will configure your local CMake.
 To rebuild the emulator, navigate to `emulator-build` and run `cmake --build .`
+This should produce an executable `game-console-emulator` that you can run from the
+command line.

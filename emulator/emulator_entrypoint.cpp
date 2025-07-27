@@ -64,7 +64,13 @@ int main(int argc, char *argv[])
                 // We need to loop forever here as the game loop exits when the
                 // game is over.
                 while (true) {
-                        enter_game_loop(&platform);
+                        try {
+                                enter_game_loop(&platform);
+                        } catch (std::runtime_error &e) {
+                                LOG_DEBUG(TAG, "Game loop exited: %s",
+                                          e.what());
+                                break;
+                        }
                 }
         }
 }

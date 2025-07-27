@@ -231,6 +231,19 @@ int SfmlDisplay::get_display_corner_radius() { return 40; };
 
 void SfmlDisplay::refresh()
 {
+        /* We need this polling when refreshign the display. Without it, linux
+        desktop environments (e.g. gnome) think that the game window is not
+        responsive and try to get us to force-close it. */
+        while (const std::optional event = window->pollEvent()) {
+                if (event->is<sf::Event::Closed>()) {
+                        window->close();
+                        // This is the only way we can terminate the game loop
+                        // in the current setup, we need to send an exception and
+                        // catch it in the emulator entrypoint.
+                        throw std::runtime_error("Window closed");
+                }
+        }
+
         // Now we start rendering to the window, clear it first
         // texture->display();
         window->clear();
