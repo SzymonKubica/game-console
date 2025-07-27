@@ -442,10 +442,12 @@ Configuration *assemble_2048_game_menu_configuration()
         configuration_option_types[1] = ConfigurationOptionType::INT;
 
         // Initialize the first config option: game gridsize
-        ConfigurationValue<int> *grid_size_config = static_cast<ConfigurationValue<int> *>(
-            malloc(2 * sizeof(ConfigurationValue<int>)));
+        ConfigurationValue<int> *grid_size_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(2 * sizeof(ConfigurationValue<int>)));
         grid_size_config->name = "Grid size:";
-        grid_size_config->available_values = static_cast<int *>(malloc(3 * sizeof(int)));
+        grid_size_config->available_values =
+            static_cast<int *>(malloc(3 * sizeof(int)));
         grid_size_config->available_values[0] = 3;
         grid_size_config->available_values[1] = 4;
         grid_size_config->available_values[2] = 5;
@@ -453,10 +455,12 @@ Configuration *assemble_2048_game_menu_configuration()
         grid_size_config->currently_selected = 1;
         grid_size_config->max_config_option_len = 1;
 
-        ConfigurationValue<int> *game_target_config = static_cast<ConfigurationValue<int> *>(
-            malloc(2 * sizeof(ConfigurationValue<int>)));
+        ConfigurationValue<int> *game_target_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(2 * sizeof(ConfigurationValue<int>)));
         game_target_config->name = "Game target:";
-        game_target_config->available_values = static_cast<int *>(malloc(6 * sizeof(int)));
+        game_target_config->available_values =
+            static_cast<int *>(malloc(6 * sizeof(int)));
         game_target_config->available_values[0] = 128;
         game_target_config->available_values[1] = 256;
         game_target_config->available_values[2] = 512;
@@ -470,37 +474,41 @@ Configuration *assemble_2048_game_menu_configuration()
         config->config_values_len = 2;
         config->current_config_value = 1;
         config->configuration_values =
-            static_cast<ConfigurationOptionType *>(
-                malloc(2 * sizeof(ConfigurationOptionType)));
+            static_cast<void **>(malloc(2 * sizeof(void *)));
+        config->configuration_values[0] = grid_size_config;
+        config->configuration_values[1] = game_target_config;
         return config;
 }
 
+/**
+ *
+ * @param `update` controlls if the config menu has already been rendered once
+ * and only the text sections require updating. This is required on the physical
+ * lcd display because redrawing the entire menu every time is too slow
+ * so we need to be efficient about it.
+ */
 void render_generic_config_menu(Display *display, Configuration *config,
                                 ConfigurationDiff *diff, bool update)
 {
 
         bool already_rendered = update;
-        int text_max_length = find_max_config_option_name_length(config) + 2;
+        int max_option_name_length =
+            find_max_config_option_name_text_length(config);
+        int max_option_value_length =
+            find_max_config_option_value_text_length(config);
+        int text_max_length =
+            max_option_name_length + max_option_value_length + 2;
         int spacing =
             (display->get_height() - config->config_values_len * FONT_SIZE -
              HEADING_FONT_SIZE) /
             3;
 
-        // TODO: add rendering similar to the 2048-specific menu
-        if (!already_rendered) {
+        if (!update) {
                 display->initialize();
                 display->clear(Black);
         }
 
-        /* Display strings */
         const char *heading_text = config->name;
-        const char *grid_size_option_text = "Grid size:";
-        const char *target_option_text = "Game target:";
-        const char *start_text = "Start Game";
-
-        int max_option_value_text_len = 4;
-        int option_text_max_len = strlen(target_option_text);
-        int option_value_separator = 2;
 
         // We exctract the display dimensions and font sizes into shorter
         // variable names to make the code easier to read.
@@ -520,9 +528,8 @@ void render_generic_config_menu(Display *display, Configuration *config,
             config->config_values_len);
 
         // Render the config menu heading.
-        render_text_bar_centered(display, y_spacing, option_text_max_len,
-                                 max_option_value_text_len, heading_text,
-                                 already_rendered, Black, White,
+        render_text_bar_centered(display, y_spacing, text_max_length, 0,
+                                 heading_text, update, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
 
         for (int i = 0; i < config->config_values_len; i++) {
@@ -542,10 +549,9 @@ void render_generic_config_menu(Display *display, Configuration *config,
                                 value->max_config_option_len);
                         sprintf(option_value, format_string, selected_value);
                         render_config_bar_centered(
-                            display, bar_y, option_text_max_len,
-                            max_option_value_text_len, option_value,
-                            option_text, already_rendered,
-                            diff->modified_option_index == i);
+                            display, bar_y, max_option_name_length,
+                            max_option_value_length, option_value, option_text,
+                            update, diff->modified_option_index == i);
                 } else {
                         ConfigurationValue<char *> *value =
                             static_cast<ConfigurationValue<char *> *>(
@@ -555,13 +561,11 @@ void render_generic_config_menu(Display *display, Configuration *config,
                         char *option_value =
                             value->available_values[value->currently_selected];
                         render_config_bar_centered(
-                            display, bar_y, option_text_max_len,
-                            max_option_value_text_len, option_value,
-                            option_text, already_rendered,
-                            diff->modified_option_index == i);
+                            display, bar_y, max_option_name_length,
+                            max_option_value_length, option_value, option_text,
+                            update, diff->modified_option_index == i);
                 }
         }
-        free(bar_positions);
 
         /*
         render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
@@ -579,17 +583,15 @@ void render_generic_config_menu(Display *display, Configuration *config,
         int bar_width = (text_max_length + padding) * fw;
         int circle_x = left_margin + bar_width + FONT_WIDTH;
         int h_padding = fh / 2;
-        /*
-        int circle_ys[] = {grid_size_bar_y + h_padding,
-                           target_config_bar_y + h_padding,
-                           start_text_bar_y + h_padding};
-                           */
         int circle_ys_len = 3;
         int r = 5;
+        int circle_ys[config->config_values_len];
+        for (int i = 0; i < config->config_values_len; i++) {
+                circle_ys[i] = bar_positions[i] + h_padding;
+        }
 
-        /*
         render_circle_selector(display, already_rendered, circle_x, circle_ys,
-                               circle_ys_len, previous_config->config_option,
-                               config->config_option, r);
-         */
+                               circle_ys_len, diff->previously_edited_option,
+                               diff->currently_edited_option, r);
+        free(bar_positions);
 }
