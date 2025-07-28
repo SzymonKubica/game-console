@@ -130,7 +130,7 @@ Configuration *assemble_2048_configuration()
         ConfigurationValue<int> *grid_size =
             static_cast<ConfigurationValue<int> *>(
                 malloc(2 * sizeof(ConfigurationValue<int>)));
-        grid_size->name = "Grid size:";
+        grid_size->name = "Grid size";
         grid_size->available_values =
             static_cast<int *>(malloc(3 * sizeof(int)));
         grid_size->available_values[0] = 3;
@@ -143,7 +143,7 @@ Configuration *assemble_2048_configuration()
         ConfigurationValue<int> *game_target =
             static_cast<ConfigurationValue<int> *>(
                 malloc(2 * sizeof(ConfigurationValue<int>)));
-        game_target->name = "Game target:";
+        game_target->name = "Game target";
         game_target->available_values =
             static_cast<int *>(malloc(6 * sizeof(int)));
         game_target->available_values[0] = 128;
@@ -159,15 +159,16 @@ Configuration *assemble_2048_configuration()
         ConfigurationValue<Color> *accent_color =
             static_cast<ConfigurationValue<Color> *>(
                 malloc(2 * sizeof(ConfigurationValue<Color>)));
-        accent_color->name = "Accent color:";
-        accent_color->available_values =
-            static_cast<Color *>(malloc(3 * sizeof(Color)));
+        accent_color->name = "Accent color";
+        accent_color->available_values_len = 4;
+        accent_color->available_values = static_cast<Color *>(
+            malloc(accent_color->available_values_len * sizeof(Color)));
         accent_color->available_values[0] = Color::Red;
         accent_color->available_values[1] = Color::Green;
         accent_color->available_values[2] = Color::Blue;
-        accent_color->available_values_len = 3;
-        accent_color->currently_selected = 0;
-        accent_color->max_config_option_len = 5;
+        accent_color->available_values[3] = Color::DarkBlue;
+        accent_color->currently_selected = 3;
+        accent_color->max_config_option_len = strlen(map_color(Color::DarkBlue));
 
         config->config_values_len = 3;
         config->current_config_value = 0;

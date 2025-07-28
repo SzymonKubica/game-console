@@ -464,7 +464,7 @@ void render_config_menu(Display *display, Configuration *config,
         int max_option_value_length =
             find_max_config_option_value_text_length(config);
         int text_max_length =
-            max_option_name_length + max_option_value_length + 2;
+            max_option_name_length + max_option_value_length + 1;
 
         LOG_DEBUG(TAG, "Found max text length across all config bars: %d",
                   text_max_length);
