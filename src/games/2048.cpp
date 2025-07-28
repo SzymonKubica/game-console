@@ -93,7 +93,7 @@ bool input_registered(std::vector<Controller *> *controllers,
         return input_registered;
 }
 
-void collect_game_configuration(Platform *p, GameConfiguration *config)
+void collect_game_configuration(Platform *p, GameConfiguration *game_config)
 {
         const int AVAILABLE_OPTIONS = 3;
         const int GRID_SIZES_LEN = 3;
@@ -108,38 +108,34 @@ void collect_game_configuration(Platform *p, GameConfiguration *config)
         int grid_size_idx = 1;
         int game_target_idx = 4;
 
-        config->grid_size = available_grid_sizes[grid_size_idx];
-        config->target_max_tile = available_target_max_tiles[game_target_idx];
-        config->config_option = available_config_options[curr_opt_idx];
+        game_config->grid_size = available_grid_sizes[grid_size_idx];
+        game_config->target_max_tile =
+            available_target_max_tiles[game_target_idx];
+        game_config->config_option = available_config_options[curr_opt_idx];
 
-        render_config_menu(p->display, config, config, false);
-        Configuration *generic_config = assemble_2048_game_menu_configuration();
+        //render_config_menu(p->display, game_config, game_config, false);
+        Configuration *config = assemble_2048_game_menu_configuration();
         LOG_DEBUG(TAG, "Generic config assembled.");
-        ConfigurationDiff *generic_diff = get_initial_no_diff();
+        ConfigurationDiff *diff = get_initial_no_diff();
         LOG_DEBUG(TAG, "Empty config diff assembled.");
-        render_generic_config_menu(p->display, generic_config, generic_diff, false);
+        render_generic_config_menu(p->display, config, diff, false);
         LOG_DEBUG(TAG, "Generic menu rendered.");
-        while (true){}
 
         while (true) {
                 Direction dir;
                 bool ready = false;
                 if (input_registered(p->controllers, &dir)) {
                         GameConfiguration old_config;
-                        old_config.grid_size = config->grid_size;
-                        old_config.target_max_tile = config->target_max_tile;
-                        old_config.config_option = config->config_option;
+                        old_config.grid_size = game_config->grid_size;
+                        old_config.target_max_tile =
+                            game_config->target_max_tile;
+                        old_config.config_option = game_config->config_option;
                         switch (dir) {
                         case DOWN:
-                                curr_opt_idx =
-                                    (curr_opt_idx + 1) % AVAILABLE_OPTIONS;
+                                switch_edited_config_option_down(config, diff);
                                 break;
                         case UP:
-                                if (curr_opt_idx == 0) {
-                                        curr_opt_idx = AVAILABLE_OPTIONS - 1;
-                                } else {
-                                        curr_opt_idx--;
-                                }
+                                switch_edited_config_option_up(config, diff);
                                 break;
                         case LEFT:
                                 if (curr_opt_idx == GRID_SIZE) {
@@ -172,13 +168,15 @@ void collect_game_configuration(Platform *p, GameConfiguration *config)
                                 break;
                         }
 
-                        config->grid_size = available_grid_sizes[grid_size_idx];
-                        config->target_max_tile =
+                        game_config->grid_size =
+                            available_grid_sizes[grid_size_idx];
+                        game_config->target_max_tile =
                             available_target_max_tiles[game_target_idx];
-                        config->config_option =
+                        game_config->config_option =
                             available_config_options[curr_opt_idx];
-                        render_config_menu(p->display, config, &old_config,
-                                           true);
+                        //render_config_menu(p->display, game_config, &old_config,
+                          //                 true);
+                        render_generic_config_menu(p->display, config, diff, true);
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                         if (ready) {
                                 break;

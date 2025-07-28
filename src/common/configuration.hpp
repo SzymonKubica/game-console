@@ -20,7 +20,7 @@ template <typename T> struct ConfigurationValue {
         // Currently selected option for this configuration value.
         int currently_selected;
         // Name of the configuration value
-        char *name;
+        const char *name;
         // Max configuration option string length for UI rendering alignment
         int max_config_option_len;
 };
@@ -58,13 +58,13 @@ struct Configuration {
          */
         ConfigurationOptionType *type_map;
         /// Name of the configuration group.
-        char *name;
+        const char *name;
         /**
          * At the bottom of each config list we render a button that allows the
          * user to confirm their selection of all configs. This field allows us
          * to customize the text that is displayed on the confirmation button.
          */
-        char *confirmation_cell_text;
+        const char *confirmation_cell_text;
 };
 
 /**
@@ -105,7 +105,7 @@ void switch_edited_config_option_down(Configuration *config,
 void switch_edited_config_option_up(Configuration *config,
                                     ConfigurationDiff *diff);
 
-void switch_current_config_option_up(Configuration *config,
+void increment_current_config_option_value(Configuration *config,
                                      ConfigurationDiff *diff);
 void switch_current_config_option_down(Configuration *config,
                                        ConfigurationDiff *diff);

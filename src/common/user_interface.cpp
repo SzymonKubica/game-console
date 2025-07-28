@@ -441,6 +441,79 @@ ConfigurationDiff *get_initial_no_diff()
         return diff;
 }
 
+Configuration *test_config_more_options()
+{
+        Configuration *config =
+            static_cast<Configuration *>(malloc(sizeof(Configuration)));
+
+        config->name = "2048";
+
+        // Initialize the types of the config options.
+        ConfigurationOptionType *configuration_option_types =
+            static_cast<ConfigurationOptionType *>(
+                malloc(3 * sizeof(ConfigurationOptionType)));
+        configuration_option_types[0] = ConfigurationOptionType::INT;
+        configuration_option_types[1] = ConfigurationOptionType::INT;
+        configuration_option_types[2] = ConfigurationOptionType::INT;
+        config->type_map = configuration_option_types;
+
+        // Initialize the first config option: game gridsize
+        ConfigurationValue<int> *grid_size_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(sizeof(ConfigurationValue<int>)));
+        grid_size_config->name = "Grid size:";
+        grid_size_config->available_values =
+            static_cast<int *>(malloc(3 * sizeof(int)));
+        grid_size_config->available_values[0] = 3;
+        grid_size_config->available_values[1] = 4;
+        grid_size_config->available_values[2] = 5;
+        grid_size_config->available_values_len = 3;
+        grid_size_config->currently_selected = 1;
+        grid_size_config->max_config_option_len = 1;
+
+        ConfigurationValue<int> *game_target_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(sizeof(ConfigurationValue<int>)));
+        game_target_config->name = "Game target:";
+        game_target_config->available_values =
+            static_cast<int *>(malloc(6 * sizeof(int)));
+        game_target_config->available_values[0] = 128;
+        game_target_config->available_values[1] = 256;
+        game_target_config->available_values[2] = 512;
+        game_target_config->available_values[3] = 1024;
+        game_target_config->available_values[4] = 2048;
+        game_target_config->available_values[5] = 4096;
+        game_target_config->available_values_len = 6;
+        game_target_config->currently_selected = 3;
+        game_target_config->max_config_option_len = 4;
+
+        ConfigurationValue<int> *cool_factor =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(sizeof(ConfigurationValue<int>)));
+        cool_factor->name = "Cool factor:";
+        cool_factor->available_values =
+            static_cast<int *>(malloc(6 * sizeof(int)));
+        cool_factor->available_values[0] = 128;
+        cool_factor->available_values[1] = 256;
+        cool_factor->available_values[2] = 512;
+        cool_factor->available_values[3] = 1024;
+        cool_factor->available_values[4] = 2048;
+        cool_factor->available_values[5] = 4096;
+        cool_factor->available_values_len = 6;
+        cool_factor->currently_selected = 3;
+        cool_factor->max_config_option_len = 4;
+
+        config->config_values_len = 3;
+        config->current_config_value = 1;
+        config->configuration_values =
+            static_cast<void **>(malloc(3 * sizeof(void *)));
+        config->configuration_values[0] = grid_size_config;
+        config->configuration_values[1] = game_target_config;
+        config->configuration_values[2] = cool_factor;
+        config->confirmation_cell_text = "Start Game";
+        return config;
+}
+
 Configuration *assemble_2048_game_menu_configuration()
 {
         Configuration *config =
@@ -562,9 +635,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                         ConfigurationValue<int> *value =
                             static_cast<ConfigurationValue<int> *>(
                                 config->configuration_values[i]);
-                        // TODO: ensure that this number formatting logic works
-                        // correctly.
-                        char *option_text = value->name;
+                        const char *option_text = value->name;
                         int selected_value =
                             value->available_values[value->currently_selected];
                         char option_value[value->max_config_option_len];
@@ -581,7 +652,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                             static_cast<ConfigurationValue<char *> *>(
                                 config->configuration_values[i]);
 
-                        char *option_text = value->name;
+                        const char *option_text = value->name;
                         char *option_value =
                             value->available_values[value->currently_selected];
                         render_config_bar_centered(
