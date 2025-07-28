@@ -8,7 +8,7 @@ void LcdDisplay::setup()
 {
         Config_Init();
         LCD_Init();
-        LCD_SetBacklight(100);
+        LCD_SetBacklight(70);
         Paint_Clear(BLACK);
 };
 
