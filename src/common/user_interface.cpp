@@ -435,6 +435,9 @@ ConfigurationDiff *get_initial_no_diff()
             static_cast<ConfigurationDiff *>(malloc(sizeof(ConfigurationDiff)));
 
         diff->option_switched = false;
+        diff->currently_edited_option = 0;
+        diff->previously_edited_option = 0;
+        diff->currently_edited_option = 0;
         return diff;
 }
 
@@ -495,16 +498,16 @@ Configuration *assemble_2048_game_menu_configuration()
 
 /**
  *
- * @param `update` controlls if the config menu has already been rendered once
- * and only the text sections require updating. This is required on the physical
- * lcd display because redrawing the entire menu every time is too slow
- * so we need to be efficient about it.
+ * @param `text_update_only` controlls if the config menu has already been
+ * rendered for the first time and only the text sections require updating. This
+ * is required on the physical lcd display because redrawing the entire menu
+ * every time is too slow so we need to be efficient about it.
  */
 void render_generic_config_menu(Display *display, Configuration *config,
-                                ConfigurationDiff *diff, bool update)
+                                ConfigurationDiff *diff, bool text_update_only)
 {
 
-        bool already_rendered = update;
+        bool already_rendered = text_update_only;
         int max_option_name_length =
             find_max_config_option_name_text_length(config);
         int max_option_value_length =
@@ -519,7 +522,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
              HEADING_FONT_SIZE) /
             3;
 
-        if (!update) {
+        if (!text_update_only) {
                 display->initialize();
                 display->clear(Black);
         }
@@ -536,8 +539,9 @@ void render_generic_config_menu(Display *display, Configuration *config,
 
         int bar_height = 2 * fh;
         int bar_gap_height = fh;
-        int y_spacing = calculate_section_spacing(
-            h, config->config_values_len, bar_height, bar_gap_height, Size24);
+        int y_spacing =
+            calculate_section_spacing(h, config->config_values_len + 1,
+                                      bar_height, bar_gap_height, Size24);
 
         /* We need to add one to the number of config bars below because of the
         confirmation button that is rendered at the bottom. */
@@ -547,7 +551,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
 
         // Render the config menu heading.
         render_text_bar_centered(display, y_spacing, text_max_length, 0,
-                                 heading_text, update, Black, White,
+                                 heading_text, text_update_only, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
 
         LOG_DEBUG(TAG, "Rendering %d config bars", config->config_values_len);
@@ -571,7 +575,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                         render_config_bar_centered(
                             display, bar_y, max_option_name_length,
                             max_option_value_length, option_text, option_value,
-                            update, diff->modified_option_index == i);
+                            text_update_only, diff->modified_option_index == i);
                 } else {
                         ConfigurationValue<char *> *value =
                             static_cast<ConfigurationValue<char *> *>(
@@ -583,7 +587,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                         render_config_bar_centered(
                             display, bar_y, max_option_name_length,
                             max_option_value_length, option_text, option_value,
-                            update, diff->modified_option_index == i);
+                            text_update_only, diff->modified_option_index == i);
                 }
         }
 
@@ -591,7 +595,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
         render_text_bar_centered(
             display, confirmation_cell_y, max_option_name_length,
             max_option_value_length, config->confirmation_cell_text,
-            already_rendered);
+            text_update_only);
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -610,7 +614,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                 circle_ys[i] = bar_positions[i] + h_padding;
         }
 
-        render_circle_selector(display, already_rendered, circle_x, circle_ys,
+        render_circle_selector(display, text_update_only, circle_x, circle_ys,
                                circle_ys_len, diff->previously_edited_option,
                                diff->currently_edited_option, r);
         free(bar_positions);
