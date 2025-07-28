@@ -70,7 +70,7 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
  *  - `value_cell` refers to the cell on each of the config bars that holds
  *  the actual value that is being modified by the configuration bar.
  */
-void render_config_menu(Display *display, GameConfiguration *config,
+void render_config_menu_legacy(Display *display, GameConfiguration *config,
                         GameConfiguration *previous_config,
                         bool already_rendered)
 {
@@ -156,9 +156,13 @@ void render_config_menu(Display *display, GameConfiguration *config,
         int circle_ys_len = 3;
         int r = 5;
 
+        // TODO: once fully migrated to the generic config menu rendering,
+        // we need to get rid of this function
+        /*
         render_circle_selector(display, already_rendered, circle_x, circle_ys,
                                circle_ys_len, previous_config->config_option,
                                config->config_option, r);
+                               */
 }
 
 /**
@@ -429,7 +433,7 @@ inline int get_centering_margin(int screen_width, int font_width,
         return (screen_width - text_length * font_width) / 2;
 }
 
-ConfigurationDiff *get_initial_no_diff()
+ConfigurationDiff *empty_diff()
 {
         ConfigurationDiff *diff =
             static_cast<ConfigurationDiff *>(malloc(sizeof(ConfigurationDiff)));
@@ -441,134 +445,6 @@ ConfigurationDiff *get_initial_no_diff()
         return diff;
 }
 
-Configuration *test_config_more_options()
-{
-        Configuration *config =
-            static_cast<Configuration *>(malloc(sizeof(Configuration)));
-
-        config->name = "2048";
-
-        // Initialize the types of the config options.
-        ConfigurationOptionType *configuration_option_types =
-            static_cast<ConfigurationOptionType *>(
-                malloc(3 * sizeof(ConfigurationOptionType)));
-        configuration_option_types[0] = ConfigurationOptionType::INT;
-        configuration_option_types[1] = ConfigurationOptionType::INT;
-        configuration_option_types[2] = ConfigurationOptionType::INT;
-        config->type_map = configuration_option_types;
-
-        // Initialize the first config option: game gridsize
-        ConfigurationValue<int> *grid_size_config =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(sizeof(ConfigurationValue<int>)));
-        grid_size_config->name = "Grid size:";
-        grid_size_config->available_values =
-            static_cast<int *>(malloc(3 * sizeof(int)));
-        grid_size_config->available_values[0] = 3;
-        grid_size_config->available_values[1] = 4;
-        grid_size_config->available_values[2] = 5;
-        grid_size_config->available_values_len = 3;
-        grid_size_config->currently_selected = 1;
-        grid_size_config->max_config_option_len = 1;
-
-        ConfigurationValue<int> *game_target_config =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(sizeof(ConfigurationValue<int>)));
-        game_target_config->name = "Game target:";
-        game_target_config->available_values =
-            static_cast<int *>(malloc(6 * sizeof(int)));
-        game_target_config->available_values[0] = 128;
-        game_target_config->available_values[1] = 256;
-        game_target_config->available_values[2] = 512;
-        game_target_config->available_values[3] = 1024;
-        game_target_config->available_values[4] = 2048;
-        game_target_config->available_values[5] = 4096;
-        game_target_config->available_values_len = 6;
-        game_target_config->currently_selected = 3;
-        game_target_config->max_config_option_len = 4;
-
-        ConfigurationValue<int> *cool_factor =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(sizeof(ConfigurationValue<int>)));
-        cool_factor->name = "Cool factor:";
-        cool_factor->available_values =
-            static_cast<int *>(malloc(6 * sizeof(int)));
-        cool_factor->available_values[0] = 128;
-        cool_factor->available_values[1] = 256;
-        cool_factor->available_values[2] = 512;
-        cool_factor->available_values[3] = 1024;
-        cool_factor->available_values[4] = 2048;
-        cool_factor->available_values[5] = 4096;
-        cool_factor->available_values_len = 6;
-        cool_factor->currently_selected = 3;
-        cool_factor->max_config_option_len = 4;
-
-        config->config_values_len = 3;
-        config->current_config_value = 1;
-        config->configuration_values =
-            static_cast<void **>(malloc(3 * sizeof(void *)));
-        config->configuration_values[0] = grid_size_config;
-        config->configuration_values[1] = game_target_config;
-        config->configuration_values[2] = cool_factor;
-        config->confirmation_cell_text = "Start Game";
-        return config;
-}
-
-Configuration *assemble_2048_game_menu_configuration()
-{
-        Configuration *config =
-            static_cast<Configuration *>(malloc(sizeof(Configuration)));
-
-        config->name = "2048";
-
-        // Initialize the types of the config options.
-        ConfigurationOptionType *configuration_option_types =
-            static_cast<ConfigurationOptionType *>(
-                malloc(2 * sizeof(ConfigurationOptionType)));
-        configuration_option_types[0] = ConfigurationOptionType::INT;
-        configuration_option_types[1] = ConfigurationOptionType::INT;
-        config->type_map = configuration_option_types;
-
-        // Initialize the first config option: game gridsize
-        ConfigurationValue<int> *grid_size_config =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(2 * sizeof(ConfigurationValue<int>)));
-        grid_size_config->name = "Grid size:";
-        grid_size_config->available_values =
-            static_cast<int *>(malloc(3 * sizeof(int)));
-        grid_size_config->available_values[0] = 3;
-        grid_size_config->available_values[1] = 4;
-        grid_size_config->available_values[2] = 5;
-        grid_size_config->available_values_len = 3;
-        grid_size_config->currently_selected = 1;
-        grid_size_config->max_config_option_len = 1;
-
-        ConfigurationValue<int> *game_target_config =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(2 * sizeof(ConfigurationValue<int>)));
-        game_target_config->name = "Game target:";
-        game_target_config->available_values =
-            static_cast<int *>(malloc(6 * sizeof(int)));
-        game_target_config->available_values[0] = 128;
-        game_target_config->available_values[1] = 256;
-        game_target_config->available_values[2] = 512;
-        game_target_config->available_values[3] = 1024;
-        game_target_config->available_values[4] = 2048;
-        game_target_config->available_values[5] = 4096;
-        game_target_config->available_values_len = 6;
-        game_target_config->currently_selected = 3;
-        game_target_config->max_config_option_len = 4;
-
-        config->config_values_len = 2;
-        config->current_config_value = 1;
-        config->configuration_values =
-            static_cast<void **>(malloc(2 * sizeof(void *)));
-        config->configuration_values[0] = grid_size_config;
-        config->configuration_values[1] = game_target_config;
-        config->confirmation_cell_text = "Start Game";
-        return config;
-}
-
 /**
  *
  * @param `text_update_only` controlls if the config menu has already been
@@ -576,7 +452,7 @@ Configuration *assemble_2048_game_menu_configuration()
  * is required on the physical lcd display because redrawing the entire menu
  * every time is too slow so we need to be efficient about it.
  */
-void render_generic_config_menu(Display *display, Configuration *config,
+void render_config_menu(Display *display, Configuration *config,
                                 ConfigurationDiff *diff, bool text_update_only)
 {
 

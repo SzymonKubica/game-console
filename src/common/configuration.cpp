@@ -71,7 +71,7 @@ void shift_current_config_option_value(Configuration *config,
  * Modifies the currently selected configuration bar by incrementing the
  * index of the value of the configuration controlled by this setting.
  */
-void increment_current_config_option_value(Configuration *config,
+void increment_current_option_value(Configuration *config,
                                            ConfigurationDiff *diff)
 {
         shift_current_config_option_value(config, diff, 1);
@@ -81,8 +81,8 @@ void increment_current_config_option_value(Configuration *config,
  * Modifies the currently selected configuration bar by decrementing the
  * index of the value of the configuration controlled by this setting.
  */
-void switch_current_config_option_down(Configuration *config,
-                                       ConfigurationDiff *diff)
+void decrement_current_option_value(Configuration *config,
+                                           ConfigurationDiff *diff)
 {
         shift_current_config_option_value(config, diff, -1);
 }
@@ -99,15 +99,16 @@ void shift_current_config_option_value(Configuration *config,
                 ConfigurationValue<int> *current =
                     (ConfigurationValue<int> *)currently_edited;
                 current->currently_selected =
-                    (current->currently_selected + steps) %
-                    current->available_values_len;
+                    mathematical_modulo(current->currently_selected + steps,
+                                        current->available_values_len);
         } else {
                 ConfigurationValue<char *> *current =
                     (ConfigurationValue<char *> *)currently_edited;
                 current->currently_selected =
-                    (current->currently_selected + steps) %
-                    current->available_values_len;
+                    mathematical_modulo(current->currently_selected + steps,
+                                        current->available_values_len);
         }
+        diff->modified_option_index = config->current_config_value;
 }
 
 /** For some reason when compiling the `max` function is not available.

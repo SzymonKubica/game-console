@@ -8,13 +8,10 @@
 
 void setup_display();
 
-void render_config_menu(Display *display, GameConfiguration *config,
+void render_config_menu_legacy(Display *display, GameConfiguration *config,
                              GameConfiguration *previous_config, bool update);
-void render_generic_config_menu(Display *display, Configuration *config,
+void render_config_menu(Display *display, Configuration *config,
                                 ConfigurationDiff *diff, bool updateDetected);
 
-Configuration *assemble_2048_game_menu_configuration();
-Configuration *test_config_more_options();
-
-ConfigurationDiff *get_initial_no_diff();
+ConfigurationDiff *empty_diff();
 #endif

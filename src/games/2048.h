@@ -4,16 +4,9 @@
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
 
-typedef enum ConfigOption {
-        GRID_SIZE = 0,
-        TARGET_MAX_TILE = 1,
-        READY_TO_GO = 2,
-} ConfigOption;
-
 typedef struct GameConfiguration {
         int grid_size;
         int target_max_tile;
-        ConfigOption config_option;
 } GameConfiguration;
 
 class GameState

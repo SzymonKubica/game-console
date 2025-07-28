@@ -105,9 +105,9 @@ void switch_edited_config_option_down(Configuration *config,
 void switch_edited_config_option_up(Configuration *config,
                                     ConfigurationDiff *diff);
 
-void increment_current_config_option_value(Configuration *config,
+void increment_current_option_value(Configuration *config,
                                      ConfigurationDiff *diff);
-void switch_current_config_option_down(Configuration *config,
+void decrement_current_option_value(Configuration *config,
                                        ConfigurationDiff *diff);
 int find_max_config_option_name_text_length(Configuration *config);
 int find_max_config_option_value_text_length(Configuration *config);

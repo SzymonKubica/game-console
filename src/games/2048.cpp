@@ -47,7 +47,7 @@ void enter_game_loop(Platform *p)
         update_game_grid(p->display, state);
         p->display->refresh();
 
-        while (!is_game_over(state) || !is_game_finished(state)) {
+        while (!(is_game_over(state) || is_game_finished(state))) {
                 Direction dir;
                 if (input_registered(p->controllers, &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
@@ -93,43 +93,107 @@ bool input_registered(std::vector<Controller *> *controllers,
         return input_registered;
 }
 
+/**
+ * Assembles the generic configuration struct that is needed to collect user
+ * defined game configuration for 2048. Note that this is a declarative way of
+ * defining what can be configured and the UI code then dynamically renders
+ * selectors and handles switching between option values.
+ *
+ * WARNING: This is tightly coupled with the
+ * `populate_game_config_from_generic_config` function. If you change the
+ * structure of this config, make sure to make a corresponding update to that
+ * function below to ensure that the specific game config can be successfully
+ * extracted from the generic config struct.
+ */
+Configuration *assemble_2048_configuration()
+{
+        Configuration *config =
+            static_cast<Configuration *>(malloc(sizeof(Configuration)));
+
+        config->name = "2048";
+
+        // Initialize the types of the config options.
+        ConfigurationOptionType *configuration_option_types =
+            static_cast<ConfigurationOptionType *>(
+                malloc(2 * sizeof(ConfigurationOptionType)));
+        configuration_option_types[0] = ConfigurationOptionType::INT;
+        configuration_option_types[1] = ConfigurationOptionType::INT;
+        config->type_map = configuration_option_types;
+
+        // Initialize the first config option: game gridsize
+        ConfigurationValue<int> *grid_size_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(2 * sizeof(ConfigurationValue<int>)));
+        grid_size_config->name = "Grid size:";
+        grid_size_config->available_values =
+            static_cast<int *>(malloc(3 * sizeof(int)));
+        grid_size_config->available_values[0] = 3;
+        grid_size_config->available_values[1] = 4;
+        grid_size_config->available_values[2] = 5;
+        grid_size_config->available_values_len = 3;
+        grid_size_config->currently_selected = 1;
+        grid_size_config->max_config_option_len = 1;
+
+        ConfigurationValue<int> *game_target_config =
+            static_cast<ConfigurationValue<int> *>(
+                malloc(2 * sizeof(ConfigurationValue<int>)));
+        game_target_config->name = "Game target:";
+        game_target_config->available_values =
+            static_cast<int *>(malloc(6 * sizeof(int)));
+        game_target_config->available_values[0] = 128;
+        game_target_config->available_values[1] = 256;
+        game_target_config->available_values[2] = 512;
+        game_target_config->available_values[3] = 1024;
+        game_target_config->available_values[4] = 2048;
+        game_target_config->available_values[5] = 4096;
+        game_target_config->available_values_len = 6;
+        game_target_config->currently_selected = 3;
+        game_target_config->max_config_option_len = 4;
+
+        config->config_values_len = 2;
+        config->current_config_value = 1;
+        config->configuration_values =
+            static_cast<void **>(malloc(2 * sizeof(void *)));
+        config->configuration_values[0] = grid_size_config;
+        config->configuration_values[1] = game_target_config;
+        config->confirmation_cell_text = "Start Game";
+        return config;
+}
+void populate_game_config_from_generic_config(GameConfiguration *game_config,
+                                              Configuration *config)
+{
+        // Grid size is the first config option in the game struct above.
+        ConfigurationValue<int> grid_size =
+            *static_cast<ConfigurationValue<int> *>(
+                config->configuration_values[0]);
+
+        int curr_grid_size_idx = grid_size.currently_selected;
+        game_config->grid_size = grid_size.available_values[curr_grid_size_idx];
+
+        // Game target is the second config option above.
+        ConfigurationValue<int> game_target =
+            *static_cast<ConfigurationValue<int> *>(
+                config->configuration_values[1]);
+
+        int curr_target_idx = game_target.currently_selected;
+        game_config->target_max_tile =
+            game_target.available_values[curr_target_idx];
+}
+
 void collect_game_configuration(Platform *p, GameConfiguration *game_config)
 {
-        const int AVAILABLE_OPTIONS = 3;
-        const int GRID_SIZES_LEN = 3;
-        const int TARGET_MAX_TILES_LEN = 6;
-
-        int available_grid_sizes[] = {3, 4, 5};
-        int available_target_max_tiles[] = {128, 256, 512, 1024, 2048, 4096};
-        ConfigOption available_config_options[] = {GRID_SIZE, TARGET_MAX_TILE,
-                                                   READY_TO_GO};
-
-        int curr_opt_idx = 0;
-        int grid_size_idx = 1;
-        int game_target_idx = 4;
-
-        game_config->grid_size = available_grid_sizes[grid_size_idx];
-        game_config->target_max_tile =
-            available_target_max_tiles[game_target_idx];
-        game_config->config_option = available_config_options[curr_opt_idx];
-
-        //render_config_menu(p->display, game_config, game_config, false);
-        Configuration *config = assemble_2048_game_menu_configuration();
-        LOG_DEBUG(TAG, "Generic config assembled.");
-        ConfigurationDiff *diff = get_initial_no_diff();
-        LOG_DEBUG(TAG, "Empty config diff assembled.");
-        render_generic_config_menu(p->display, config, diff, false);
-        LOG_DEBUG(TAG, "Generic menu rendered.");
+        Configuration *config = assemble_2048_configuration();
+        ConfigurationDiff *diff = empty_diff();
+        render_config_menu(p->display, config, diff, false);
+        free(diff);
 
         while (true) {
                 Direction dir;
                 bool ready = false;
+                // We get a fresh, empty diff during each iteration to avoid
+                // option value text rerendering when they are not modified.
+                ConfigurationDiff *diff = empty_diff();
                 if (input_registered(p->controllers, &dir)) {
-                        GameConfiguration old_config;
-                        old_config.grid_size = game_config->grid_size;
-                        old_config.target_max_tile =
-                            game_config->target_max_tile;
-                        old_config.config_option = game_config->config_option;
                         switch (dir) {
                         case DOWN:
                                 switch_edited_config_option_down(config, diff);
@@ -138,111 +202,36 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config)
                                 switch_edited_config_option_up(config, diff);
                                 break;
                         case LEFT:
-                                if (curr_opt_idx == GRID_SIZE) {
-                                        if (grid_size_idx == 0) {
-                                                grid_size_idx =
-                                                    GRID_SIZES_LEN - 1;
-                                        } else {
-                                                grid_size_idx--;
-                                        }
-                                } else {
-                                        if (game_target_idx == 0) {
-                                                game_target_idx =
-                                                    TARGET_MAX_TILES_LEN - 1;
-                                        } else {
-                                                game_target_idx--;
-                                        }
-                                }
+                                decrement_current_option_value(config, diff);
                                 break;
                         case RIGHT:
-                                if (curr_opt_idx == GRID_SIZE) {
-                                        grid_size_idx = (grid_size_idx + 1) %
-                                                        GRID_SIZES_LEN;
-                                } else if (curr_opt_idx == TARGET_MAX_TILE) {
-                                        game_target_idx =
-                                            (game_target_idx + 1) %
-                                            TARGET_MAX_TILES_LEN;
-                                } else {
+                                /* When the user selects the last config bar,
+                                   i.e. the 'confirmation cell' pressing right
+                                   on it will confirm the selected config and
+                                   break out of the config collection loop. */
+                                if (config->current_config_value ==
+                                    config->config_values_len) {
                                         ready = true;
+                                } else {
+                                        increment_current_option_value(config,
+                                                                       diff);
                                 }
                                 break;
                         }
 
-                        game_config->grid_size =
-                            available_grid_sizes[grid_size_idx];
-                        game_config->target_max_tile =
-                            available_target_max_tiles[game_target_idx];
-                        game_config->config_option =
-                            available_config_options[curr_opt_idx];
-                        //render_config_menu(p->display, game_config, &old_config,
-                          //                 true);
-                        render_generic_config_menu(p->display, config, diff, true);
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                        render_config_menu(p->display, config, diff, true);
+                        free(diff);
+
                         if (ready) {
+                                populate_game_config_from_generic_config(
+                                    game_config, config);
                                 break;
                         }
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
         }
 }
-
-// This is supposed to be the generic function used for collecting the generic
-// input. In the final state the `collect_game_configuration` is to be replaced
-// by this. This is to be migrated to some c++ source file so that it can be
-// reused for different games. The idea here is that each game would define the
-// config struct that it needs to collect and the config menu would get rendered
-// automatically. This is work in progress and is currently not used anywhere
-/*
-void collect_generic_config(Configuration *config)
-{
-        LcdDisplay display = LcdDisplay{};
-        // We start with an empty diff object
-        ConfigurationDiff diff;
-        render_generic_config_menu(&display, config, &diff, false);
-
-        while (true) {
-                Direction dir;
-                bool input_registered = false;
-
-                input_registered |= joystick_controller->poll_for_input(&dir);
-                input_registered |= keypad_controller->poll_for_input(&dir);
-
-                bool ready = false;
-                if (input_registered) {
-                        Configuration old_config;
-                        switch (dir) {
-                        case DOWN:
-                                switch_edited_config_option_up(config, &diff);
-                                break;
-                        case UP:
-                                switch_edited_config_option_down(config, &diff);
-                                break;
-                        case LEFT:
-                                switch_current_config_option_down(config,
-                                                                  &diff);
-                                break;
-                        case RIGHT:
-                                if (config->current_config_value ==
-                                    config->config_values_len - 1) {
-                                        ready = true;
-                                } else {
-                                        switch_current_config_option_up(config,
-                                                                        &diff);
-                                }
-                                break;
-                        }
-
-                        render_generic_config_menu(&display, config, &diff,
-                                                   true);
-                        delay(MOVE_REGISTERED_DELAY);
-                        if (ready) {
-                                break;
-                        }
-                }
-                delay(INPUT_POLLING_DELAY);
-        }
-}
-*/
 
 /* Initialization Code */
 
