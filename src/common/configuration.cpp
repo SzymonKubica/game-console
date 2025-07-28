@@ -90,23 +90,12 @@ void shift_current_config_option_value(Configuration *config,
                                        ConfigurationDiff *diff, int steps)
 {
         assert(config->current_config_value != config->config_values_len);
-        void *currently_edited =
+        ConfigurationValue *current =
             config->configuration_values[config->current_config_value];
 
-        if (config->type_map[config->current_config_value] ==
-            ConfigurationOptionType::INT) {
-                ConfigurationValue<int> *current =
-                    (ConfigurationValue<int> *)currently_edited;
-                current->currently_selected =
-                    mathematical_modulo(current->currently_selected + steps,
-                                        current->available_values_len);
-        } else {
-                ConfigurationValue<char *> *current =
-                    (ConfigurationValue<char *> *)currently_edited;
-                current->currently_selected =
-                    mathematical_modulo(current->currently_selected + steps,
-                                        current->available_values_len);
-        }
+        current->currently_selected = mathematical_modulo(
+            current->currently_selected + steps, current->available_values_len);
+
         diff->modified_option_index = config->current_config_value;
 }
 
@@ -119,20 +108,8 @@ int find_max_config_option_value_text_length(Configuration *config)
         int max_length = 0;
         for (int i = 0; i < config->config_values_len; i++) {
                 int current_option_value_length;
-                if (config->type_map[i] == ConfigurationOptionType::INT) {
-                        ConfigurationValue<int> *current =
-                            (ConfigurationValue<int> *)
-                                config->configuration_values[i];
-                        current_option_value_length =
-                            current->max_config_option_len;
-                } else {
-                        ConfigurationValue<char *> *current =
-                            (ConfigurationValue<char *> *)
-                                config->configuration_values[i];
-                        current_option_value_length =
-                            current->max_config_option_len;
-                }
-                max_length = max(max_length, current_option_value_length);
+                ConfigurationValue *current = config->configuration_values[i];
+                max_length = max(max_length, current->max_config_option_len);
         }
         return max_length;
 }
@@ -141,31 +118,8 @@ int find_max_config_option_name_text_length(Configuration *config)
 {
         int max_length = 0;
         for (int i = 0; i < config->config_values_len; i++) {
-                const char *name;
-                switch (config->type_map[i]) {
-                case INT: {
-                        ConfigurationValue<int> *int_value =
-                            (ConfigurationValue<int> *)
-                                config->configuration_values[i];
-                        name = int_value->name;
-                        break;
-                }
-                case STRING: {
-                        ConfigurationValue<char *> *current =
-                            (ConfigurationValue<char *> *)
-                                config->configuration_values[i];
-                        name = current->name;
-                        break;
-                }
-                case COLOR: {
-                        ConfigurationValue<Color> *current =
-                            (ConfigurationValue<Color> *)
-                                config->configuration_values[i];
-                        name = current->name;
-                        break;
-                }
-                }
-                max_length = max(max_length, strlen(name));
+                ConfigurationValue *current = config->configuration_values[i];
+                max_length = max(max_length, strlen(current->name));
         }
         return max_length;
 }

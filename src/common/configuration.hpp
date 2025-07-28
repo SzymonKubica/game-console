@@ -7,14 +7,19 @@ typedef enum ConfigurationOptionType {
         COLOR,
 } ConfigurationOptionType;
 
-template <typename T> struct ConfigurationValue {
+typedef struct ConfigurationValue {
+        /**
+         * The type of the configurable values. Based on this type we know
+         * how to cast the `available_values`.
+         */
+        ConfigurationOptionType type;
         /**
          * Pointer to the head of the array that stores the finite list of
          * available configuration value options.
          */
-        T *available_values;
+        void *available_values;
         /**
-         * Numer of available configuration options for this
+         * Number of available configuration options for this
          * `ConfigurationValue`.
          */
         int available_values_len;
@@ -24,7 +29,7 @@ template <typename T> struct ConfigurationValue {
         const char *name;
         // Max configuration option string length for UI rendering alignment
         int max_config_option_len;
-};
+} ConfigurationValue;
 
 /**
  * A generic container for game configuration values. It allows for storing
@@ -51,13 +56,7 @@ struct Configuration {
          * simply represent them as strings and then parse them once the
          * configuration is collected
          */
-        void **configuration_values;
-        /**
-         * Maintains information about the types of the configurable values
-         * the idea is that a single configuration should allow for setting
-         * both integer and string valuea out of finite lists of options.
-         */
-        ConfigurationOptionType *type_map;
+        ConfigurationValue **configuration_values;
         /// Name of the configuration group.
         const char *name;
         /**

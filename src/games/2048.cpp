@@ -117,63 +117,61 @@ Configuration *assemble_2048_configuration()
 
         config->name = "2048";
 
-        // Initialize the types of the config options.
-        ConfigurationOptionType *option_types =
-            static_cast<ConfigurationOptionType *>(
-                malloc(2 * sizeof(ConfigurationOptionType)));
-        option_types[0] = ConfigurationOptionType::INT;
-        option_types[1] = ConfigurationOptionType::INT;
-        option_types[2] = ConfigurationOptionType::COLOR;
-        config->type_map = option_types;
-
         // Initialize the first config option: game gridsize
-        ConfigurationValue<int> *grid_size =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(2 * sizeof(ConfigurationValue<int>)));
+        ConfigurationValue *grid_size = static_cast<ConfigurationValue *>(
+            malloc(2 * sizeof(ConfigurationValue)));
+        grid_size->type = ConfigurationOptionType::INT,
         grid_size->name = "Grid size";
-        grid_size->available_values =
-            static_cast<int *>(malloc(3 * sizeof(int)));
-        grid_size->available_values[0] = 3;
-        grid_size->available_values[1] = 4;
-        grid_size->available_values[2] = 5;
         grid_size->available_values_len = 3;
+        // We neeed to cast here because the pointer to the struct is opaque.
+        int *available_grid_sizes = static_cast<int *>(
+            malloc(grid_size->available_values_len * sizeof(int)));
+        available_grid_sizes[0] = 3;
+        available_grid_sizes[1] = 4;
+        available_grid_sizes[2] = 5;
+        grid_size->available_values = available_grid_sizes;
+
         grid_size->currently_selected = 1;
         grid_size->max_config_option_len = 1;
 
-        ConfigurationValue<int> *game_target =
-            static_cast<ConfigurationValue<int> *>(
-                malloc(2 * sizeof(ConfigurationValue<int>)));
+        ConfigurationValue *game_target = static_cast<ConfigurationValue *>(
+            malloc(sizeof(ConfigurationValue)));
         game_target->name = "Game target";
-        game_target->available_values =
-            static_cast<int *>(malloc(6 * sizeof(int)));
-        game_target->available_values[0] = 128;
-        game_target->available_values[1] = 256;
-        game_target->available_values[2] = 512;
-        game_target->available_values[3] = 1024;
-        game_target->available_values[4] = 2048;
-        game_target->available_values[5] = 4096;
         game_target->available_values_len = 6;
+        game_target->type = ConfigurationOptionType::INT;
+        int *available_game_targets = static_cast<int *>(
+            malloc(game_target->available_values_len * sizeof(int)));
+
+        available_game_targets[0] = 128;
+        available_game_targets[1] = 256;
+        available_game_targets[2] = 512;
+        available_game_targets[3] = 1024;
+        available_game_targets[4] = 2048;
+        available_game_targets[5] = 4096;
+        game_target->available_values = available_game_targets;
         game_target->currently_selected = 3;
         game_target->max_config_option_len = 4;
 
-        ConfigurationValue<Color> *accent_color =
-            static_cast<ConfigurationValue<Color> *>(
-                malloc(2 * sizeof(ConfigurationValue<Color>)));
+        ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
+            malloc(sizeof(ConfigurationValue)));
         accent_color->name = "Accent color";
+        accent_color->type = ConfigurationOptionType::COLOR;
         accent_color->available_values_len = 4;
-        accent_color->available_values = static_cast<Color *>(
+        Color *available_accent_colors = static_cast<Color *>(
             malloc(accent_color->available_values_len * sizeof(Color)));
-        accent_color->available_values[0] = Color::Red;
-        accent_color->available_values[1] = Color::Green;
-        accent_color->available_values[2] = Color::Blue;
-        accent_color->available_values[3] = Color::DarkBlue;
+        available_accent_colors[0] = Color::Red;
+        available_accent_colors[1] = Color::Green;
+        available_accent_colors[2] = Color::Blue;
+        available_accent_colors[3] = Color::DarkBlue;
+        accent_color->available_values = available_accent_colors;
         accent_color->currently_selected = 3;
-        accent_color->max_config_option_len = strlen(map_color(Color::DarkBlue));
+        accent_color->max_config_option_len =
+            strlen(map_color(Color::DarkBlue));
 
         config->config_values_len = 3;
         config->current_config_value = 0;
-        config->configuration_values =
-            static_cast<void **>(malloc(3 * sizeof(void *)));
+        config->configuration_values = static_cast<ConfigurationValue **>(
+            malloc(3 * sizeof(ConfigurationValue *)));
         config->configuration_values[0] = grid_size;
         config->configuration_values[1] = game_target;
         config->configuration_values[2] = accent_color;
@@ -185,29 +183,25 @@ void extract_game_config(GameConfiguration *game_config,
                          Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
-        ConfigurationValue<int> grid_size =
-            *static_cast<ConfigurationValue<int> *>(
-                config->configuration_values[0]);
+        ConfigurationValue grid_size = *config->configuration_values[0];
 
         int curr_grid_size_idx = grid_size.currently_selected;
-        game_config->grid_size = grid_size.available_values[curr_grid_size_idx];
+        game_config->grid_size =
+            static_cast<int *>(grid_size.available_values)[curr_grid_size_idx];
 
         // Game target is the second config option above.
-        ConfigurationValue<int> game_target =
-            *static_cast<ConfigurationValue<int> *>(
-                config->configuration_values[1]);
+        ConfigurationValue game_target = *config->configuration_values[1];
 
         int curr_target_idx = game_target.currently_selected;
         game_config->target_max_tile =
-            game_target.available_values[curr_target_idx];
+            static_cast<int *>(game_target.available_values)[curr_target_idx];
 
         // Game target is the second config option above.
-        ConfigurationValue<Color> accent_color =
-            *static_cast<ConfigurationValue<Color> *>(
-                config->configuration_values[2]);
+        ConfigurationValue accent_color = *config->configuration_values[2];
 
         int curr_accent_color_idx = accent_color.currently_selected;
-        Color color = accent_color.available_values[curr_accent_color_idx];
+        Color color = static_cast<Color *>(
+            accent_color.available_values)[curr_accent_color_idx];
         customization->border_color = color;
 }
 

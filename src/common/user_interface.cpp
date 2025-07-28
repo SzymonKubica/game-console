@@ -510,15 +510,14 @@ void render_config_menu(Display *display, Configuration *config,
         for (int i = 0; i < config->config_values_len; i++) {
                 int bar_y = bar_positions[i];
                 char option_value[max_option_value_length];
-                const char *option_text;
-                switch (config->type_map[i]) {
+
+                ConfigurationValue value = *config->configuration_values[i];
+                const char *option_text = value.name;
+
+                switch (value.type) {
                 case INT: {
-                        ConfigurationValue<int> *value =
-                            static_cast<ConfigurationValue<int> *>(
-                                config->configuration_values[i]);
-                        option_text = value->name;
-                        int selected_value =
-                            value->available_values[value->currently_selected];
+                        int selected_value = static_cast<int *>(
+                            value.available_values)[value.currently_selected];
                         char format_string[4];
                         sprintf(format_string, "%%%dd",
                                 max_option_value_length);
@@ -526,13 +525,8 @@ void render_config_menu(Display *display, Configuration *config,
                         break;
                 }
                 case STRING: {
-                        ConfigurationValue<char *> *value =
-                            static_cast<ConfigurationValue<char *> *>(
-                                config->configuration_values[i]);
-
-                        option_text = value->name;
-                        char *selected_value =
-                            value->available_values[value->currently_selected];
+                        char *selected_value = static_cast<char **>(
+                            value.available_values)[value.currently_selected];
                         char format_string[10];
                         sprintf(format_string, "%%%ds",
                                 max_option_value_length);
@@ -540,13 +534,8 @@ void render_config_menu(Display *display, Configuration *config,
                         break;
                 }
                 case COLOR: {
-                        ConfigurationValue<Color> *value =
-                            static_cast<ConfigurationValue<Color> *>(
-                                config->configuration_values[i]);
-
-                        option_text = value->name;
-                        Color selected_value =
-                            value->available_values[value->currently_selected];
+                        Color selected_value = static_cast<Color *>(
+                            value.available_values)[value.currently_selected];
                         char format_string[10];
                         sprintf(format_string, "%%%ds",
                                 max_option_value_length);
