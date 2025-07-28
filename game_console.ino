@@ -3,6 +3,7 @@
 #include "src/common/platform/arduino/lcd_display.hpp"
 #include "src/common/platform/arduino/arduino_delay.cpp"
 
+#include "src/games/game_menu.hpp"
 #include "src/games/2048.hpp"
 
 LcdDisplay display;
@@ -32,6 +33,8 @@ void setup(void)
 
         // Initializes the source of randomness from the
         // noise present on the first digital pin
+        // Todo: move this to some randomness provider as it is not specific
+        // to the 2048 game.
         initialize_randomness_seed(analogRead(0));
 }
 
@@ -46,5 +49,5 @@ void loop(void)
         Platform platform = {.display = &display,
                              .controllers = &controllers,
                              .delay_provider = delay_provider};
-        enter_game_loop(&platform);
+        select_game(&platform);
 }
