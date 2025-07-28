@@ -3,13 +3,15 @@
 #include <string.h>
 #include <cstring>
 #include <string>
-#include "2048.h"
+#include "2048.hpp"
 
 #include "../common/logging.hpp"
 #include "../common/constants.hpp"
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
-#include "../common/user_interface.h"
+#include "../common/configuration.hpp"
+
+#include "game_menu.hpp"
 
 #define TAG "2048"
 #define UP 0
@@ -32,23 +34,20 @@ static void handle_game_finished(Display *display,
 static void collect_game_configuration(Platform *p,
                                        GameConfiguration *game_config,
                                        GameCustomization *customization);
-static bool input_registered(std::vector<Controller *> *controllers,
-                             Direction *registered_dir);
 static void pause_until_input(std::vector<Controller *> *controllers,
                               DelayProvider *delay_provider);
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
 
-void enter_game_loop(Platform *p)
+void enter_game_loop(Platform *p, GameCustomization *customization)
 {
         GameConfiguration config;
-        GameCustomization customization;
-        collect_game_configuration(p, &config, &customization);
+        collect_game_configuration(p, &config, customization);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
 
-        draw_game_canvas(p->display, state, &customization);
+        draw_game_canvas(p->display, state, customization);
         update_game_grid(p->display, state);
         p->display->refresh();
 
@@ -85,20 +84,6 @@ void pause_until_input(std::vector<Controller *> *controllers,
 }
 
 /**
- * Checks if any of the controllers has recorded user input. If so, the input
- * direction will be written into the `registered_dir` output parameter.
- */
-bool input_registered(std::vector<Controller *> *controllers,
-                      Direction *registered_dir)
-{
-        bool input_registered = false;
-        for (Controller *controller : *controllers) {
-                input_registered |= controller->poll_for_input(registered_dir);
-        }
-        return input_registered;
-}
-
-/**
  * Assembles the generic configuration struct that is needed to collect user
  * defined game configuration for 2048. Note that this is a declarative way of
  * defining what can be configured and the UI code then dynamically renders
@@ -128,7 +113,6 @@ Configuration *assemble_2048_configuration()
         available_grid_sizes[1] = 4;
         available_grid_sizes[2] = 5;
         grid_size->available_values = available_grid_sizes;
-
         grid_size->currently_selected = 1;
         grid_size->max_config_option_len = 1;
 
@@ -146,38 +130,19 @@ Configuration *assemble_2048_configuration()
         available_game_targets[4] = 2048;
         available_game_targets[5] = 4096;
         game_target->available_values = available_game_targets;
-        game_target->currently_selected = 3;
+        game_target->currently_selected = 4;
         game_target->max_config_option_len = 4;
 
-        ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
-            malloc(sizeof(ConfigurationValue)));
-        accent_color->name = "Accent color";
-        accent_color->type = ConfigurationOptionType::COLOR;
-        accent_color->available_values_len = 4;
-        Color *available_accent_colors =
-            new Color[accent_color->available_values_len];
-        available_accent_colors[0] = Color::Red;
-        available_accent_colors[1] = Color::Green;
-        available_accent_colors[2] = Color::Blue;
-        available_accent_colors[3] = Color::DarkBlue;
-        accent_color->available_values = available_accent_colors;
-        accent_color->currently_selected = 3;
-        accent_color->max_config_option_len =
-            strlen(map_color(Color::DarkBlue));
-
-        config->config_values_len = 3;
+        config->config_values_len = 2;
         config->current_config_value = 0;
         config->configuration_values = static_cast<ConfigurationValue **>(
-            malloc(3 * sizeof(ConfigurationValue *)));
+            malloc(config->config_values_len * sizeof(ConfigurationValue *)));
         config->configuration_values[0] = grid_size;
         config->configuration_values[1] = game_target;
-        config->configuration_values[2] = accent_color;
         config->confirmation_cell_text = "Start Game";
         return config;
 }
-void extract_game_config(GameConfiguration *game_config,
-                         GameCustomization *customization,
-                         Configuration *config)
+void extract_game_config(GameConfiguration *game_config, Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
         ConfigurationValue grid_size = *config->configuration_values[0];
@@ -192,65 +157,15 @@ void extract_game_config(GameConfiguration *game_config,
         int curr_target_idx = game_target.currently_selected;
         game_config->target_max_tile =
             static_cast<int *>(game_target.available_values)[curr_target_idx];
-
-        // Game target is the second config option above.
-        ConfigurationValue accent_color = *config->configuration_values[2];
-
-        int curr_accent_color_idx = accent_color.currently_selected;
-        Color color = static_cast<Color *>(
-            accent_color.available_values)[curr_accent_color_idx];
-        customization->border_color = color;
 }
 
 void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                                 GameCustomization *customization)
 {
         Configuration *config = assemble_2048_configuration();
-        ConfigurationDiff *diff = empty_diff();
-        render_config_menu(p->display, config, diff, false);
-        free(diff);
-
-        while (true) {
-                Direction dir;
-                bool ready = false;
-                // We get a fresh, empty diff during each iteration to avoid
-                // option value text rerendering when they are not modified.
-                ConfigurationDiff *diff = empty_diff();
-                if (input_registered(p->controllers, &dir)) {
-                        /* When the user selects the last config bar,
-                           i.e. the 'confirmation cell' pressing right
-                           on it confirms the selected config and
-                           breaks out of the config collection loop. */
-                        if (config->current_config_value ==
-                                config->config_values_len &&
-                            dir == RIGHT) {
-                                extract_game_config(game_config, customization,
-                                                    config);
-                                break;
-                        }
-
-                        switch (dir) {
-                        case DOWN:
-                                switch_edited_config_option_down(config, diff);
-                                break;
-                        case UP:
-                                switch_edited_config_option_up(config, diff);
-                                break;
-                        case LEFT:
-                                decrement_current_option_value(config, diff);
-                                break;
-                        case RIGHT:
-                                increment_current_option_value(config, diff);
-                                break;
-                        }
-
-                        render_config_menu(p->display, config, diff, true);
-                        free(diff);
-
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                }
-                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
-        }
+        enter_configuration_collection_loop(p, config,
+                                            customization->accent_color);
+        extract_game_config(game_config, config);
 }
 
 /* Initialization Code */
@@ -539,7 +454,7 @@ void draw_game_canvas(Display *display, GameState *state,
 {
         display->initialize();
         display->clear(Black);
-        display->draw_rounded_border(customization->border_color);
+        display->draw_rounded_border(customization->accent_color);
         draw_game_grid(display, state->grid_size);
 }
 

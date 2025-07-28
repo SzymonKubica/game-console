@@ -1,8 +1,10 @@
-#include "configuration.hpp"
-#include "logging.hpp"
-#include "platform/interface/color.hpp"
 #include <cassert>
 #include <string.h>
+
+#include "configuration.hpp"
+#include "logging.hpp"
+#include "user_interface.h"
+#include "platform/interface/controller.hpp"
 
 #define TAG "configuration"
 
@@ -122,4 +124,54 @@ int find_max_config_option_name_text_length(Configuration *config)
                 max_length = max(max_length, strlen(current->name));
         }
         return max_length;
+}
+
+void enter_configuration_collection_loop(Platform *p, Configuration *config,
+                                         Color accent_color)
+{
+
+        ConfigurationDiff *diff = empty_diff();
+        render_config_menu(p->display, config, diff, false, accent_color);
+        free(diff);
+        while (true) {
+                Direction dir;
+                // We get a fresh, empty diff during each iteration to avoid
+                // option value text rerendering when they are not modified.
+                ConfigurationDiff *diff = empty_diff();
+                bool confirmation_bar_selected =
+                    config->current_config_value == config->config_values_len;
+                if (input_registered(p->controllers, &dir)) {
+                        /* When the user selects the last config bar,
+                           i.e. the 'confirmation cell' pressing right
+                           on it confirms the selected config and
+                           breaks out of the config collection loop. */
+                        if (confirmation_bar_selected && dir == RIGHT) {
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
+                                break;
+                        }
+
+                        switch (dir) {
+                        case DOWN:
+                                switch_edited_config_option_down(config, diff);
+                                break;
+                        case UP:
+                                switch_edited_config_option_up(config, diff);
+                                break;
+                        case LEFT:
+                                decrement_current_option_value(config, diff);
+                                break;
+                        case RIGHT:
+                                increment_current_option_value(config, diff);
+                                break;
+                        }
+
+                        render_config_menu(p->display, config, diff, true,
+                                           accent_color);
+                        free(diff);
+
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                }
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+        }
 }

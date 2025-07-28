@@ -1,5 +1,6 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#pragma once
+
+#include "platform/interface/platform.hpp"
 
 typedef enum ConfigurationOptionType {
         INT,
@@ -29,6 +30,7 @@ typedef struct ConfigurationValue {
         const char *name;
         // Max configuration option string length for UI rendering alignment
         int max_config_option_len;
+
 } ConfigurationValue;
 
 /**
@@ -100,10 +102,17 @@ void switch_edited_config_option_up(Configuration *config,
                                     ConfigurationDiff *diff);
 
 void increment_current_option_value(Configuration *config,
-                                     ConfigurationDiff *diff);
+                                    ConfigurationDiff *diff);
 void decrement_current_option_value(Configuration *config,
-                                       ConfigurationDiff *diff);
+                                    ConfigurationDiff *diff);
 int find_max_config_option_name_text_length(Configuration *config);
 int find_max_config_option_value_text_length(Configuration *config);
 
-#endif
+/**
+ * Given a platform providing the display and controllers implementation
+ * and a pointer to the configuration object, this function allows users
+ * to modify the configuration. The final settings are written into the
+ * `config` struct that is passed as a parameter.
+ */
+void enter_configuration_collection_loop(Platform *p, Configuration *config,
+                                         Color accent_color = DarkBlue);

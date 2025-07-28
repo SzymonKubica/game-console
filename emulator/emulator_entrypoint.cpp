@@ -8,7 +8,7 @@
 
 #include "../src/common/logging.hpp"
 
-#include "../src/games/2048.h"
+#include "../src/games/game_menu.hpp"
 #include <iostream>
 
 // TODO: clean up the mainteinance of the size constants
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
                 // game is over.
                 while (true) {
                         try {
-                                enter_game_loop(&platform);
+                                select_game(&platform);
                         } catch (std::runtime_error &e) {
                                 LOG_DEBUG(TAG, "Game loop exited: %s",
                                           e.what());

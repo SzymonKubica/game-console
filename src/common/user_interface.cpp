@@ -457,7 +457,8 @@ ConfigurationDiff *empty_diff()
  * every time is too slow so we need to be efficient about it.
  */
 void render_config_menu(Display *display, Configuration *config,
-                        ConfigurationDiff *diff, bool text_update_only)
+                        ConfigurationDiff *diff, bool text_update_only,
+                        Color accent_color)
 {
         int max_option_name_length =
             find_max_config_option_name_text_length(config);
@@ -547,7 +548,7 @@ void render_config_menu(Display *display, Configuration *config,
                 render_config_bar_centered(
                     display, bar_y, max_option_name_length,
                     max_option_value_length, option_text, option_value,
-                    text_update_only, diff->modified_option_index == i);
+                    text_update_only, diff->modified_option_index == i, accent_color);
                 LOG_DEBUG(TAG,
                           "Rendered config bar %d with option text '%s' and "
                           "value '%s'",
@@ -558,7 +559,7 @@ void render_config_menu(Display *display, Configuration *config,
         render_text_bar_centered(
             display, confirmation_cell_y, max_option_name_length,
             max_option_value_length, config->confirmation_cell_text,
-            text_update_only);
+            text_update_only, accent_color);
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -580,6 +581,7 @@ void render_config_menu(Display *display, Configuration *config,
 
         render_circle_selector(display, text_update_only, circle_x, circle_ys,
                                circle_ys_len, diff->previously_edited_option,
-                               diff->currently_edited_option, r);
+                               diff->currently_edited_option, r, Black,
+                               accent_color);
         free(bar_positions);
 }

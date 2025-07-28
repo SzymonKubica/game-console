@@ -1,6 +1,8 @@
 #pragma once
 
 #include "direction.hpp"
+#include <stdlib.h>
+#include <vector>
 
 class Controller
 {
@@ -28,3 +30,6 @@ class Controller
          */
         virtual void setup() = 0;
 };
+
+extern bool input_registered(std::vector<Controller *> *controllers,
+                      Direction *registered_dir);
