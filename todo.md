@@ -1,6 +1,5 @@
 # TODO
 
-- [_] finish the generic code for rendering the UI and replace the existing 2048 UI with it
 - [_] figure out how to generate sudoku
 - [_] design the input model for sudoku
 - [_] design the input model for minesweeper
@@ -10,11 +9,7 @@
 - [_] document the gdb workflow
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
-- [_] refactor 2028 game logic
-- [_] add platform context object to reduce the number of params for functions
-      that have need to interact with the controllers and the display.
-      (this was partially done on 2025-07-23 by allowing for an arbitrary length
-      list of game controllers).
+- [_] refactor 2048 game logic
 
 
 # Ideas
@@ -30,6 +25,11 @@
 
 
 # Done
+- [x] finish the generic code for rendering the UI and replace the existing 2048 UI with it
+- [x] add platform context object to reduce the number of params for functions
+      that have need to interact with the controllers and the display.
+      (this was partially done on 2025-07-23 by allowing for an arbitrary length
+      list of game controllers).
 - [x] find out why the game doesn't restart on the emulator
 - [x] move the the 2028 game rendering code to the 2048 files and make it use the
       display interface

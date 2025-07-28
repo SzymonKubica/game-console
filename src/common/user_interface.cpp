@@ -568,7 +568,8 @@ void render_config_menu(Display *display, Configuration *config,
         // pattern is not crystalized enough to abstract it.
         int padding = 1; // 0.5 fw on either side
         int bar_width = (text_max_length + padding) * fw;
-        int circle_x = left_margin + bar_width + FONT_WIDTH;
+        int right_margin = display->get_width() - (left_margin + bar_width);
+        int circle_x = left_margin + bar_width + right_margin / 2;
         int h_padding = fh / 2;
         int circle_ys_len = config->config_values_len + 1;
         int r = 5;
