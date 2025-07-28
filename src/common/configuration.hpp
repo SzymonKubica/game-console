@@ -81,12 +81,6 @@ struct Configuration {
  */
 struct ConfigurationDiff {
         /**
-         * If true, the diff indicates that the currently edited configuration
-         * option has changed and we need to update the indicator showing which
-         * selector option is currently selected.
-         */
-        bool option_switched;
-        /**
          * The two indexes below control tell us what was the previous position
          * of the indicator and the new one. This is used for redrawing the
          * indicator.

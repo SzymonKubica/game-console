@@ -48,7 +48,6 @@ void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
         LOG_DEBUG(TAG, "Config option index before switching: %d",
                   config->current_config_value);
         int config_len = config->config_values_len + 1;
-        diff->option_switched = true;
         diff->previously_edited_option = config->current_config_value;
         config->current_config_value = mathematical_modulo(
             config->current_config_value + steps, config_len);

@@ -100,7 +100,7 @@ bool input_registered(std::vector<Controller *> *controllers,
  * selectors and handles switching between option values.
  *
  * WARNING: This is tightly coupled with the
- * `populate_game_config_from_generic_config` function. If you change the
+ * `extract_game_config` function. If you change the
  * structure of this config, make sure to make a corresponding update to that
  * function below to ensure that the specific game config can be successfully
  * extracted from the generic config struct.
@@ -151,7 +151,7 @@ Configuration *assemble_2048_configuration()
         game_target_config->max_config_option_len = 4;
 
         config->config_values_len = 2;
-        config->current_config_value = 1;
+        config->current_config_value = 0;
         config->configuration_values =
             static_cast<void **>(malloc(2 * sizeof(void *)));
         config->configuration_values[0] = grid_size_config;
@@ -159,8 +159,7 @@ Configuration *assemble_2048_configuration()
         config->confirmation_cell_text = "Start Game";
         return config;
 }
-void populate_game_config_from_generic_config(GameConfiguration *game_config,
-                                              Configuration *config)
+void extract_game_config(GameConfiguration *game_config, Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
         ConfigurationValue<int> grid_size =
@@ -223,8 +222,7 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config)
                         free(diff);
 
                         if (ready) {
-                                populate_game_config_from_generic_config(
-                                    game_config, config);
+                                extract_game_config(game_config, config);
                                 break;
                         }
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);

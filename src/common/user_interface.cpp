@@ -71,8 +71,8 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
  *  the actual value that is being modified by the configuration bar.
  */
 void render_config_menu_legacy(Display *display, GameConfiguration *config,
-                        GameConfiguration *previous_config,
-                        bool already_rendered)
+                               GameConfiguration *previous_config,
+                               bool already_rendered)
 {
         if (!already_rendered) {
                 display->initialize();
@@ -438,10 +438,9 @@ ConfigurationDiff *empty_diff()
         ConfigurationDiff *diff =
             static_cast<ConfigurationDiff *>(malloc(sizeof(ConfigurationDiff)));
 
-        diff->option_switched = false;
         diff->currently_edited_option = 0;
         diff->previously_edited_option = 0;
-        diff->currently_edited_option = 0;
+        diff->modified_option_index = -1;
         return diff;
 }
 
@@ -453,10 +452,8 @@ ConfigurationDiff *empty_diff()
  * every time is too slow so we need to be efficient about it.
  */
 void render_config_menu(Display *display, Configuration *config,
-                                ConfigurationDiff *diff, bool text_update_only)
+                        ConfigurationDiff *diff, bool text_update_only)
 {
-
-        bool already_rendered = text_update_only;
         int max_option_name_length =
             find_max_config_option_name_text_length(config);
         int max_option_value_length =
