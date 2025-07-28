@@ -440,6 +440,11 @@ ConfigurationDiff *empty_diff()
 
         diff->currently_edited_option = 0;
         diff->previously_edited_option = 0;
+
+        /* This -1 is really important. Re-rendering of config cell value text
+           is controlled by this and if it were initialized to 0, the first cell
+           text would always get re-rendered even if no diff were recorded for
+           it.*/
         diff->modified_option_index = -1;
         return diff;
 }
@@ -504,35 +509,60 @@ void render_config_menu(Display *display, Configuration *config,
 
         for (int i = 0; i < config->config_values_len; i++) {
                 int bar_y = bar_positions[i];
-                if (config->type_map[i] == ConfigurationOptionType::INT) {
+                char option_value[max_option_value_length];
+                const char *option_text;
+                switch (config->type_map[i]) {
+                case INT: {
                         ConfigurationValue<int> *value =
                             static_cast<ConfigurationValue<int> *>(
                                 config->configuration_values[i]);
-                        const char *option_text = value->name;
+                        option_text = value->name;
                         int selected_value =
                             value->available_values[value->currently_selected];
-                        char option_value[value->max_config_option_len];
                         char format_string[4];
                         sprintf(format_string, "%%%dd",
                                 max_option_value_length);
                         sprintf(option_value, format_string, selected_value);
-                        render_config_bar_centered(
-                            display, bar_y, max_option_name_length,
-                            max_option_value_length, option_text, option_value,
-                            text_update_only, diff->modified_option_index == i);
-                } else {
+                        break;
+                }
+                case STRING: {
                         ConfigurationValue<char *> *value =
                             static_cast<ConfigurationValue<char *> *>(
                                 config->configuration_values[i]);
 
-                        const char *option_text = value->name;
-                        char *option_value =
+                        option_text = value->name;
+                        char *selected_value =
                             value->available_values[value->currently_selected];
-                        render_config_bar_centered(
-                            display, bar_y, max_option_name_length,
-                            max_option_value_length, option_text, option_value,
-                            text_update_only, diff->modified_option_index == i);
+                        char format_string[10];
+                        sprintf(format_string, "%%%ds",
+                                max_option_value_length);
+                        sprintf(option_value, format_string, selected_value);
+                        break;
                 }
+                case COLOR: {
+                        ConfigurationValue<Color> *value =
+                            static_cast<ConfigurationValue<Color> *>(
+                                config->configuration_values[i]);
+
+                        option_text = value->name;
+                        Color selected_value =
+                            value->available_values[value->currently_selected];
+                        char format_string[10];
+                        sprintf(format_string, "%%%ds",
+                                max_option_value_length);
+                        sprintf(option_value, format_string,
+                                map_color(selected_value));
+                        break;
+                }
+                }
+                render_config_bar_centered(
+                    display, bar_y, max_option_name_length,
+                    max_option_value_length, option_text, option_value,
+                    text_update_only, diff->modified_option_index == i);
+                LOG_DEBUG(TAG,
+                          "Rendered config bar %d with option text '%s' and "
+                          "value '%s'",
+                          i, option_text, option_value);
         }
 
         int confirmation_cell_y = bar_positions[config->config_values_len];

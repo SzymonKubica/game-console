@@ -1,5 +1,6 @@
 #include "configuration.hpp"
 #include "logging.hpp"
+#include "platform/interface/color.hpp"
 #include <cassert>
 #include <string.h>
 
@@ -44,7 +45,6 @@ void switch_edited_config_option_down(Configuration *config,
 void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                                 int steps)
 {
-
         LOG_DEBUG(TAG, "Config option index before switching: %d",
                   config->current_config_value);
         int config_len = config->config_values_len + 1;
@@ -71,7 +71,7 @@ void shift_current_config_option_value(Configuration *config,
  * index of the value of the configuration controlled by this setting.
  */
 void increment_current_option_value(Configuration *config,
-                                           ConfigurationDiff *diff)
+                                    ConfigurationDiff *diff)
 {
         shift_current_config_option_value(config, diff, 1);
 }
@@ -81,7 +81,7 @@ void increment_current_option_value(Configuration *config,
  * index of the value of the configuration controlled by this setting.
  */
 void decrement_current_option_value(Configuration *config,
-                                           ConfigurationDiff *diff)
+                                    ConfigurationDiff *diff)
 {
         shift_current_config_option_value(config, diff, -1);
 }
@@ -142,16 +142,28 @@ int find_max_config_option_name_text_length(Configuration *config)
         int max_length = 0;
         for (int i = 0; i < config->config_values_len; i++) {
                 const char *name;
-                if (config->type_map[i] == ConfigurationOptionType::INT) {
-                        ConfigurationValue<int> *current =
+                switch (config->type_map[i]) {
+                case INT: {
+                        ConfigurationValue<int> *int_value =
                             (ConfigurationValue<int> *)
                                 config->configuration_values[i];
-                        name = current->name;
-                } else {
+                        name = int_value->name;
+                        break;
+                }
+                case STRING: {
                         ConfigurationValue<char *> *current =
                             (ConfigurationValue<char *> *)
                                 config->configuration_values[i];
                         name = current->name;
+                        break;
+                }
+                case COLOR: {
+                        ConfigurationValue<Color> *current =
+                            (ConfigurationValue<Color> *)
+                                config->configuration_values[i];
+                        name = current->name;
+                        break;
+                }
                 }
                 max_length = max(max_length, strlen(name));
         }

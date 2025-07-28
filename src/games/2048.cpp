@@ -29,21 +29,26 @@ static void handle_game_over(Display *display,
 static void handle_game_finished(Display *display,
                                  std::vector<Controller *> *controllers,
                                  GameState *state);
-static void collect_game_configuration(Platform *p, GameConfiguration *config);
+static void collect_game_configuration(Platform *p,
+                                       GameConfiguration *game_config,
+                                       GameCustomization *customization);
 static bool input_registered(std::vector<Controller *> *controllers,
                              Direction *registered_dir);
 static void pause_until_input(std::vector<Controller *> *controllers,
                               DelayProvider *delay_provider);
+static void draw_game_canvas(Display *display, GameState *state,
+                             GameCustomization *customization);
 
 void enter_game_loop(Platform *p)
 {
         GameConfiguration config;
-        collect_game_configuration(p, &config);
+        GameCustomization customization;
+        collect_game_configuration(p, &config, &customization);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
 
-        draw_game_canvas(p->display, state);
+        draw_game_canvas(p->display, state, &customization);
         update_game_grid(p->display, state);
         p->display->refresh();
 
@@ -113,53 +118,70 @@ Configuration *assemble_2048_configuration()
         config->name = "2048";
 
         // Initialize the types of the config options.
-        ConfigurationOptionType *configuration_option_types =
+        ConfigurationOptionType *option_types =
             static_cast<ConfigurationOptionType *>(
                 malloc(2 * sizeof(ConfigurationOptionType)));
-        configuration_option_types[0] = ConfigurationOptionType::INT;
-        configuration_option_types[1] = ConfigurationOptionType::INT;
-        config->type_map = configuration_option_types;
+        option_types[0] = ConfigurationOptionType::INT;
+        option_types[1] = ConfigurationOptionType::INT;
+        option_types[2] = ConfigurationOptionType::COLOR;
+        config->type_map = option_types;
 
         // Initialize the first config option: game gridsize
-        ConfigurationValue<int> *grid_size_config =
+        ConfigurationValue<int> *grid_size =
             static_cast<ConfigurationValue<int> *>(
                 malloc(2 * sizeof(ConfigurationValue<int>)));
-        grid_size_config->name = "Grid size:";
-        grid_size_config->available_values =
+        grid_size->name = "Grid size:";
+        grid_size->available_values =
             static_cast<int *>(malloc(3 * sizeof(int)));
-        grid_size_config->available_values[0] = 3;
-        grid_size_config->available_values[1] = 4;
-        grid_size_config->available_values[2] = 5;
-        grid_size_config->available_values_len = 3;
-        grid_size_config->currently_selected = 1;
-        grid_size_config->max_config_option_len = 1;
+        grid_size->available_values[0] = 3;
+        grid_size->available_values[1] = 4;
+        grid_size->available_values[2] = 5;
+        grid_size->available_values_len = 3;
+        grid_size->currently_selected = 1;
+        grid_size->max_config_option_len = 1;
 
-        ConfigurationValue<int> *game_target_config =
+        ConfigurationValue<int> *game_target =
             static_cast<ConfigurationValue<int> *>(
                 malloc(2 * sizeof(ConfigurationValue<int>)));
-        game_target_config->name = "Game target:";
-        game_target_config->available_values =
+        game_target->name = "Game target:";
+        game_target->available_values =
             static_cast<int *>(malloc(6 * sizeof(int)));
-        game_target_config->available_values[0] = 128;
-        game_target_config->available_values[1] = 256;
-        game_target_config->available_values[2] = 512;
-        game_target_config->available_values[3] = 1024;
-        game_target_config->available_values[4] = 2048;
-        game_target_config->available_values[5] = 4096;
-        game_target_config->available_values_len = 6;
-        game_target_config->currently_selected = 3;
-        game_target_config->max_config_option_len = 4;
+        game_target->available_values[0] = 128;
+        game_target->available_values[1] = 256;
+        game_target->available_values[2] = 512;
+        game_target->available_values[3] = 1024;
+        game_target->available_values[4] = 2048;
+        game_target->available_values[5] = 4096;
+        game_target->available_values_len = 6;
+        game_target->currently_selected = 3;
+        game_target->max_config_option_len = 4;
 
-        config->config_values_len = 2;
+        ConfigurationValue<Color> *accent_color =
+            static_cast<ConfigurationValue<Color> *>(
+                malloc(2 * sizeof(ConfigurationValue<Color>)));
+        accent_color->name = "Accent color:";
+        accent_color->available_values =
+            static_cast<Color *>(malloc(3 * sizeof(Color)));
+        accent_color->available_values[0] = Color::Red;
+        accent_color->available_values[1] = Color::Green;
+        accent_color->available_values[2] = Color::Blue;
+        accent_color->available_values_len = 3;
+        accent_color->currently_selected = 0;
+        accent_color->max_config_option_len = 5;
+
+        config->config_values_len = 3;
         config->current_config_value = 0;
         config->configuration_values =
-            static_cast<void **>(malloc(2 * sizeof(void *)));
-        config->configuration_values[0] = grid_size_config;
-        config->configuration_values[1] = game_target_config;
+            static_cast<void **>(malloc(3 * sizeof(void *)));
+        config->configuration_values[0] = grid_size;
+        config->configuration_values[1] = game_target;
+        config->configuration_values[2] = accent_color;
         config->confirmation_cell_text = "Start Game";
         return config;
 }
-void extract_game_config(GameConfiguration *game_config, Configuration *config)
+void extract_game_config(GameConfiguration *game_config,
+                         GameCustomization *customization,
+                         Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
         ConfigurationValue<int> grid_size =
@@ -177,9 +199,19 @@ void extract_game_config(GameConfiguration *game_config, Configuration *config)
         int curr_target_idx = game_target.currently_selected;
         game_config->target_max_tile =
             game_target.available_values[curr_target_idx];
+
+        // Game target is the second config option above.
+        ConfigurationValue<Color> accent_color =
+            *static_cast<ConfigurationValue<Color> *>(
+                config->configuration_values[2]);
+
+        int curr_accent_color_idx = accent_color.currently_selected;
+        Color color = accent_color.available_values[curr_accent_color_idx];
+        customization->border_color = color;
 }
 
-void collect_game_configuration(Platform *p, GameConfiguration *game_config)
+void collect_game_configuration(Platform *p, GameConfiguration *game_config,
+                                GameCustomization *customization)
 {
         Configuration *config = assemble_2048_configuration();
         ConfigurationDiff *diff = empty_diff();
@@ -222,7 +254,8 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config)
                         free(diff);
 
                         if (ready) {
-                                extract_game_config(game_config, config);
+                                extract_game_config(game_config, customization,
+                                                    config);
                                 break;
                         }
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
@@ -512,11 +545,12 @@ static void copy_grid(int **source, int **destination, int size)
  * slots with the numbers.
  */
 static void draw_game_grid(Display *display, int grid_size);
-void draw_game_canvas(Display *display, GameState *state)
+void draw_game_canvas(Display *display, GameState *state,
+                      GameCustomization *customization)
 {
         display->initialize();
         display->clear(Black);
-        display->draw_rounded_border(DarkBlue);
+        display->draw_rounded_border(customization->border_color);
         draw_game_grid(display, state->grid_size);
 }
 

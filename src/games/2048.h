@@ -9,6 +9,10 @@ typedef struct GameConfiguration {
         int target_max_tile;
 } GameConfiguration;
 
+typedef struct GameCustomization {
+    Color border_color;
+} GameCustomization;
+
 class GameState
 {
       public:
@@ -30,7 +34,6 @@ class GameState
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
-void draw_game_canvas(Display *display, GameState *state);
 void draw(Display *display, GameState *state);
 void draw_game_over(Display *display, GameState *state);
 void draw_game_won(Display *display, GameState *state);

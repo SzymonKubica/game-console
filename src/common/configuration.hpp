@@ -4,6 +4,7 @@
 typedef enum ConfigurationOptionType {
         INT,
         STRING,
+        COLOR,
 } ConfigurationOptionType;
 
 template <typename T> struct ConfigurationValue {

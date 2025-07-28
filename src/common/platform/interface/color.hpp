@@ -1,9 +1,10 @@
 #pragma once
 
 /**
- * A copy of the color enum from the library to avoid having an explicit dependency
- * on it in the generic user interface code.
+ * A copy of the color enum from the library to avoid having an explicit
+ * dependency on it in the generic user interface code.
  */
+#include <cstring>
 typedef enum Color {
         White = 0xFFFF,
         Black = 0x0000,
@@ -27,3 +28,5 @@ typedef enum Color {
         LGrayBlue = 0XA651,
         LBBlue = 0X2B12,
 } Color;
+
+const char *map_color(Color color);
