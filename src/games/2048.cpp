@@ -123,9 +123,7 @@ Configuration *assemble_2048_configuration()
         grid_size->type = ConfigurationOptionType::INT,
         grid_size->name = "Grid size";
         grid_size->available_values_len = 3;
-        // We neeed to cast here because the pointer to the struct is opaque.
-        int *available_grid_sizes = static_cast<int *>(
-            malloc(grid_size->available_values_len * sizeof(int)));
+        int *available_grid_sizes = new int[grid_size->available_values_len];
         available_grid_sizes[0] = 3;
         available_grid_sizes[1] = 4;
         available_grid_sizes[2] = 5;
@@ -139,9 +137,8 @@ Configuration *assemble_2048_configuration()
         game_target->name = "Game target";
         game_target->available_values_len = 6;
         game_target->type = ConfigurationOptionType::INT;
-        int *available_game_targets = static_cast<int *>(
-            malloc(game_target->available_values_len * sizeof(int)));
-
+        int *available_game_targets =
+            new int[game_target->available_values_len];
         available_game_targets[0] = 128;
         available_game_targets[1] = 256;
         available_game_targets[2] = 512;
@@ -157,8 +154,8 @@ Configuration *assemble_2048_configuration()
         accent_color->name = "Accent color";
         accent_color->type = ConfigurationOptionType::COLOR;
         accent_color->available_values_len = 4;
-        Color *available_accent_colors = static_cast<Color *>(
-            malloc(accent_color->available_values_len * sizeof(Color)));
+        Color *available_accent_colors =
+            new Color[accent_color->available_values_len];
         available_accent_colors[0] = Color::Red;
         available_accent_colors[1] = Color::Green;
         available_accent_colors[2] = Color::Blue;
