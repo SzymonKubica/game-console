@@ -220,6 +220,18 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                 // option value text rerendering when they are not modified.
                 ConfigurationDiff *diff = empty_diff();
                 if (input_registered(p->controllers, &dir)) {
+                        /* When the user selects the last config bar,
+                           i.e. the 'confirmation cell' pressing right
+                           on it confirms the selected config and
+                           breaks out of the config collection loop. */
+                        if (config->current_config_value ==
+                                config->config_values_len &&
+                            dir == RIGHT) {
+                                extract_game_config(game_config, customization,
+                                                    config);
+                                break;
+                        }
+
                         switch (dir) {
                         case DOWN:
                                 switch_edited_config_option_down(config, diff);
@@ -231,28 +243,13 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                                 decrement_current_option_value(config, diff);
                                 break;
                         case RIGHT:
-                                /* When the user selects the last config bar,
-                                   i.e. the 'confirmation cell' pressing right
-                                   on it will confirm the selected config and
-                                   break out of the config collection loop. */
-                                if (config->current_config_value ==
-                                    config->config_values_len) {
-                                        ready = true;
-                                } else {
-                                        increment_current_option_value(config,
-                                                                       diff);
-                                }
+                                increment_current_option_value(config, diff);
                                 break;
                         }
 
                         render_config_menu(p->display, config, diff, true);
                         free(diff);
 
-                        if (ready) {
-                                extract_game_config(game_config, customization,
-                                                    config);
-                                break;
-                        }
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
