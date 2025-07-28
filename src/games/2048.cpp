@@ -113,6 +113,13 @@ void collect_game_configuration(Platform *p, GameConfiguration *config)
         config->config_option = available_config_options[curr_opt_idx];
 
         render_config_menu(p->display, config, config, false);
+        Configuration *generic_config = assemble_2048_game_menu_configuration();
+        LOG_DEBUG(TAG, "Generic config assembled.");
+        ConfigurationDiff *generic_diff = get_initial_no_diff();
+        LOG_DEBUG(TAG, "Empty config diff assembled.");
+        render_generic_config_menu(p->display, generic_config, generic_diff, false);
+        LOG_DEBUG(TAG, "Generic menu rendered.");
+        while (true){}
 
         while (true) {
                 Direction dir;

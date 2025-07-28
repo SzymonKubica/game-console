@@ -1,4 +1,5 @@
 #include "configuration.hpp"
+#include "logging.hpp"
 #include <cassert>
 #include <string.h>
 
@@ -114,6 +115,8 @@ int find_max_config_option_name_text_length(Configuration *config)
         int max_length = 0;
         for (int i = 0; i < config->config_values_len; i++) {
                 char *name;
+                LOG_DEBUG("configuration", "Before cast");
+                LOG_DEBUG("configuration", "Current config type map: %d", config->type_map[i]);
                 if (config->type_map[i] == ConfigurationOptionType::INT) {
                         ConfigurationValue<int> *current =
                             (ConfigurationValue<int> *)
@@ -125,6 +128,7 @@ int find_max_config_option_name_text_length(Configuration *config)
                                 config->configuration_values[i];
                         name = current->name;
                 }
+                LOG_DEBUG("configuration", "Trying to strlen on config option name");
                 max_length = max(max_length, strlen(name));
         }
         return max_length;

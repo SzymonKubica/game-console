@@ -13,4 +13,7 @@ void render_config_menu(Display *display, GameConfiguration *config,
 void render_generic_config_menu(Display *display, Configuration *config,
                                 ConfigurationDiff *diff, bool updateDetected);
 
+Configuration *assemble_2048_game_menu_configuration();
+
+ConfigurationDiff *get_initial_no_diff();
 #endif

@@ -2,12 +2,14 @@
 #include "configuration.hpp"
 #include "platform/interface/color.hpp"
 #include "platform/interface/display.hpp"
+#include "../common/logging.hpp"
 #include "constants.hpp"
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 
 #define GRID_BG_COLOR White
+#define TAG "user_interface"
 
 /* User Interface */
 
@@ -427,6 +429,15 @@ inline int get_centering_margin(int screen_width, int font_width,
         return (screen_width - text_length * font_width) / 2;
 }
 
+ConfigurationDiff *get_initial_no_diff()
+{
+        ConfigurationDiff *diff =
+            static_cast<ConfigurationDiff *>(malloc(sizeof(ConfigurationDiff)));
+
+        diff->option_switched = false;
+        return diff;
+}
+
 Configuration *assemble_2048_game_menu_configuration()
 {
         Configuration *config =
@@ -440,6 +451,7 @@ Configuration *assemble_2048_game_menu_configuration()
                 malloc(2 * sizeof(ConfigurationOptionType)));
         configuration_option_types[0] = ConfigurationOptionType::INT;
         configuration_option_types[1] = ConfigurationOptionType::INT;
+        config->type_map = configuration_option_types;
 
         // Initialize the first config option: game gridsize
         ConfigurationValue<int> *grid_size_config =
@@ -477,6 +489,7 @@ Configuration *assemble_2048_game_menu_configuration()
             static_cast<void **>(malloc(2 * sizeof(void *)));
         config->configuration_values[0] = grid_size_config;
         config->configuration_values[1] = game_target_config;
+        config->confirmation_cell_text = "Start Game";
         return config;
 }
 
@@ -498,6 +511,9 @@ void render_generic_config_menu(Display *display, Configuration *config,
             find_max_config_option_value_text_length(config);
         int text_max_length =
             max_option_name_length + max_option_value_length + 2;
+
+        LOG_DEBUG(TAG, "Found max text length across all config bars: %d",
+                  text_max_length);
         int spacing =
             (display->get_height() - config->config_values_len * FONT_SIZE -
              HEADING_FONT_SIZE) /
@@ -523,14 +539,18 @@ void render_generic_config_menu(Display *display, Configuration *config,
         int y_spacing = calculate_section_spacing(
             h, config->config_values_len, bar_height, bar_gap_height, Size24);
 
+        /* We need to add one to the number of config bars below because of the
+        confirmation button that is rendered at the bottom. */
         int *bar_positions = calculate_config_bar_positions(
             y_spacing, Size24, bar_height, bar_gap_height,
-            config->config_values_len);
+            config->config_values_len + 1);
 
         // Render the config menu heading.
         render_text_bar_centered(display, y_spacing, text_max_length, 0,
                                  heading_text, update, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
+
+        LOG_DEBUG(TAG, "Rendering %d config bars", config->config_values_len);
 
         for (int i = 0; i < config->config_values_len; i++) {
                 int bar_y = bar_positions[i];
@@ -567,11 +587,11 @@ void render_generic_config_menu(Display *display, Configuration *config,
                 }
         }
 
-        /*
-        render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
-                                 max_option_value_text_len, start_text,
-                                 already_rendered);
-                                 */
+        int confirmation_cell_y = bar_positions[config->config_values_len];
+        render_text_bar_centered(
+            display, confirmation_cell_y, max_option_name_length,
+            max_option_value_length, config->confirmation_cell_text,
+            already_rendered);
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -583,10 +603,10 @@ void render_generic_config_menu(Display *display, Configuration *config,
         int bar_width = (text_max_length + padding) * fw;
         int circle_x = left_margin + bar_width + FONT_WIDTH;
         int h_padding = fh / 2;
-        int circle_ys_len = 3;
+        int circle_ys_len = config->config_values_len + 1;
         int r = 5;
-        int circle_ys[config->config_values_len];
-        for (int i = 0; i < config->config_values_len; i++) {
+        int circle_ys[circle_ys_len];
+        for (int i = 0; i < circle_ys_len; i++) {
                 circle_ys[i] = bar_positions[i] + h_padding;
         }
 

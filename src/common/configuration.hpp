@@ -59,6 +59,12 @@ struct Configuration {
         ConfigurationOptionType *type_map;
         /// Name of the configuration group.
         char *name;
+        /**
+         * At the bottom of each config list we render a button that allows the
+         * user to confirm their selection of all configs. This field allows us
+         * to customize the text that is displayed on the confirmation button.
+         */
+        char *confirmation_cell_text;
 };
 
 /**
