@@ -31,5 +31,5 @@ class Controller
         virtual void setup() = 0;
 };
 
-bool input_registered(std::vector<Controller *> *controllers,
+extern bool input_registered(std::vector<Controller *> *controllers,
                       Direction *registered_dir);

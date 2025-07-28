@@ -9,7 +9,9 @@
 #include "../common/constants.hpp"
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
-#include "../common/user_interface.h"
+#include "../common/configuration.hpp"
+
+#include "game_menu.hpp"
 
 #define TAG "2048"
 #define UP 0
@@ -190,50 +192,7 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                                 GameCustomization *customization)
 {
         Configuration *config = assemble_2048_configuration();
-
-        ConfigurationDiff *diff = empty_diff();
-        render_config_menu(p->display, config, diff, false);
-        free(diff);
-        while (true) {
-                Direction dir;
-                // We get a fresh, empty diff during each iteration to avoid
-                // option value text rerendering when they are not modified.
-                ConfigurationDiff *diff = empty_diff();
-                if (input_registered(p->controllers, &dir)) {
-                        /* When the user selects the last config bar,
-                           i.e. the 'confirmation cell' pressing right
-                           on it confirms the selected config and
-                           breaks out of the config collection loop. */
-                        if (config->current_config_value ==
-                                config->config_values_len &&
-                            dir == RIGHT) {
-                                extract_game_config(game_config, customization,
-                                                    config);
-                                break;
-                        }
-
-                        switch (dir) {
-                        case DOWN:
-                                switch_edited_config_option_down(config, diff);
-                                break;
-                        case UP:
-                                switch_edited_config_option_up(config, diff);
-                                break;
-                        case LEFT:
-                                decrement_current_option_value(config, diff);
-                                break;
-                        case RIGHT:
-                                increment_current_option_value(config, diff);
-                                break;
-                        }
-
-                        render_config_menu(p->display, config, diff, true);
-                        free(diff);
-
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                }
-                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
-        }
+        enter_configuration_collection_loop(p, config);
         extract_game_config(game_config, customization, config);
 }
 

@@ -8,9 +8,6 @@ typedef struct GameConfiguration {
         int target_max_tile;
 } GameConfiguration;
 
-typedef struct GameCustomization {
-    Color border_color;
-} GameCustomization;
 
 class GameState
 {

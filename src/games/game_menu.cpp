@@ -1,7 +1,11 @@
 #include <stdlib.h>
-#include "../common/user_interface.h"
+#include "game_menu.hpp"
 #include "../common/configuration.hpp"
+#include "../common/logging.hpp"
 #include "../common/platform/interface/color.hpp"
+#include "2048.hpp"
+
+#define TAG "game_menu"
 
 Configuration *assemble_game_selection_configuration()
 {
@@ -40,7 +44,7 @@ Configuration *assemble_game_selection_configuration()
         accent_color->max_config_option_len =
             strlen(map_color(Color::DarkBlue));
 
-        config->config_values_len = 3;
+        config->config_values_len = 2;
         config->current_config_value = 0;
         config->configuration_values = static_cast<ConfigurationValue **>(
             malloc(config->config_values_len * sizeof(ConfigurationValue *)));
@@ -50,55 +54,52 @@ Configuration *assemble_game_selection_configuration()
         return config;
 }
 
-void placeholder (){
+void extract_game_config(Game *selected_game, GameCustomization *customization,
+                         Configuration *config)
+{
+        // Grid size is the first config option in the game struct above.
+        ConfigurationValue grid_size = *config->configuration_values[0];
+
+        int curr_grid_size_idx = grid_size.currently_selected;
+        *selected_game = map_game_from_str(static_cast<const char **>(
+            grid_size.available_values)[curr_grid_size_idx]);
+
+        // Game target is the second config option above.
+        ConfigurationValue accent_color = *config->configuration_values[1];
+
+        int curr_accent_color_idx = accent_color.currently_selected;
+        Color color = static_cast<Color *>(
+            accent_color.available_values)[curr_accent_color_idx];
+        customization->border_color = color;
+}
+
+void select_game(Platform *p)
+{
         Configuration *config = assemble_game_selection_configuration();
-        ConfigurationDiff *diff = empty_diff();
-        render_config_menu(p->display, config, diff, false);
-        free(diff);
+        enter_configuration_collection_loop(p, config);
 
-        while (true) {
-                Direction dir;
-                bool ready = false;
-                // We get a fresh, empty diff during each iteration to avoid
-                // option value text rerendering when they are not modified.
-                ConfigurationDiff *diff = empty_diff();
-                if (input_registered(p->controllers, &dir)) {
-                        switch (dir) {
-                        case DOWN:
-                                switch_edited_config_option_down(config, diff);
-                                break;
-                        case UP:
-                                switch_edited_config_option_up(config, diff);
-                                break;
-                        case LEFT:
-                                decrement_current_option_value(config, diff);
-                                break;
-                        case RIGHT:
-                                /* When the user selects the last config bar,
-                                   i.e. the 'confirmation cell' pressing right
-                                   on it will confirm the selected config and
-                                   break out of the config collection loop. */
-                                if (config->current_config_value ==
-                                    config->config_values_len) {
-                                        ready = true;
-                                } else {
-                                        increment_current_option_value(config,
-                                                                       diff);
-                                }
-                                break;
-                        }
+        Game selected_game;
+        GameCustomization customization;
+        extract_game_config(&selected_game, &customization, config);
 
-                        render_config_menu(p->display, config, diff, true);
-                        free(diff);
-
-                        if (ready) {
-                                extract_game_config(game_config, customization,
-                                                    config);
-                                break;
-                        }
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                }
-                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+        switch (selected_game) {
+        case Unknown:
+        case Clean2048:
+                enter_game_loop(p);
+                break;
+        case Snake:
+                LOG_DEBUG(TAG,
+                          "Selected game: Snake. Game not implemented yet.");
+                break;
         }
+}
 
+Game map_game_from_str(const char *name)
+{
+        if (strcmp(name, "2048") == 0) {
+                return Game::Clean2048;
+        } else if (strcmp(name, "Snake") == 0) {
+                return Game::Snake;
+        }
+        return Game::Unknown;
 }
