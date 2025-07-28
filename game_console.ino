@@ -3,7 +3,7 @@
 #include "src/common/platform/arduino/lcd_display.hpp"
 #include "src/common/platform/arduino/arduino_delay.cpp"
 
-#include "src/games/2048.h"
+#include "src/games/2048.hpp"
 
 LcdDisplay display;
 JoystickController *joystick_controller;

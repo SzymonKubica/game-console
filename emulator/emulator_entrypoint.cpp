@@ -8,7 +8,7 @@
 
 #include "../src/common/logging.hpp"
 
-#include "../src/games/2048.h"
+#include "../src/games/2048.hpp"
 #include <iostream>
 
 // TODO: clean up the mainteinance of the size constants

@@ -1,5 +1,4 @@
-#ifndef GAME2048_H
-#define GAME2048_H
+#pragma once
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
@@ -45,5 +44,3 @@ bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
 void enter_game_loop(Platform *platform);
-
-#endif

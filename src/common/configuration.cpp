@@ -1,8 +1,9 @@
-#include "configuration.hpp"
-#include "logging.hpp"
-#include "platform/interface/color.hpp"
 #include <cassert>
 #include <string.h>
+
+#include "configuration.hpp"
+#include "logging.hpp"
+#include "user_interface.h"
 
 #define TAG "configuration"
 
@@ -122,4 +123,53 @@ int find_max_config_option_name_text_length(Configuration *config)
                 max_length = max(max_length, strlen(current->name));
         }
         return max_length;
+}
+
+void enter_configuration_collection_loop(Platform *p, Configuration *config ) {
+
+        ConfigurationDiff *diff = empty_diff();
+        render_config_menu(p->display, config, diff, false);
+        free(diff);
+        while (true) {
+                Direction dir;
+                bool ready = false;
+                // We get a fresh, empty diff during each iteration to avoid
+                // option value text rerendering when they are not modified.
+                ConfigurationDiff *diff = empty_diff();
+                if (input_registered(p->controllers, &dir)) {
+                        switch (dir) {
+                        case DOWN:
+                                switch_edited_config_option_down(config, diff);
+                                break;
+                        case UP:
+                                switch_edited_config_option_up(config, diff);
+                                break;
+                        case LEFT:
+                                decrement_current_option_value(config, diff);
+                                break;
+                        case RIGHT:
+                                /* When the user selects the last config bar,
+                                   i.e. the 'confirmation cell' pressing right
+                                   on it will confirm the selected config and
+                                   break out of the config collection loop. */
+                                if (config->current_config_value ==
+                                    config->config_values_len) {
+                                        ready = true;
+                                } else {
+                                        increment_current_option_value(config,
+                                                                       diff);
+                                }
+                                break;
+                        }
+
+                        render_config_menu(p->display, config, diff, true);
+                        free(diff);
+
+                        if (ready) {
+                                break;
+                        }
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                }
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+        }
 }

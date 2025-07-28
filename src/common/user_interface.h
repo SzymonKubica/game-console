@@ -2,7 +2,7 @@
 #define USER_INTERFACE_H
 
 #include <stdlib.h>
-#include "../games/2048.h"
+#include "../games/2048.hpp"
 #include "configuration.hpp"
 #include "platform/interface/display.hpp"
 

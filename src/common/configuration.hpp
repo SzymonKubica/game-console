@@ -29,6 +29,7 @@ typedef struct ConfigurationValue {
         const char *name;
         // Max configuration option string length for UI rendering alignment
         int max_config_option_len;
+
 } ConfigurationValue;
 
 /**

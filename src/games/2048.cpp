@@ -3,7 +3,7 @@
 #include <string.h>
 #include <cstring>
 #include <string>
-#include "2048.h"
+#include "2048.hpp"
 
 #include "../common/logging.hpp"
 #include "../common/constants.hpp"
@@ -32,8 +32,6 @@ static void handle_game_finished(Display *display,
 static void collect_game_configuration(Platform *p,
                                        GameConfiguration *game_config,
                                        GameCustomization *customization);
-static bool input_registered(std::vector<Controller *> *controllers,
-                             Direction *registered_dir);
 static void pause_until_input(std::vector<Controller *> *controllers,
                               DelayProvider *delay_provider);
 static void draw_game_canvas(Display *display, GameState *state,
@@ -82,20 +80,6 @@ void pause_until_input(std::vector<Controller *> *controllers,
         while (!input_registered(controllers, &dir)) {
                 delay_provider->delay_ms(INPUT_POLLING_DELAY);
         };
-}
-
-/**
- * Checks if any of the controllers has recorded user input. If so, the input
- * direction will be written into the `registered_dir` output parameter.
- */
-bool input_registered(std::vector<Controller *> *controllers,
-                      Direction *registered_dir)
-{
-        bool input_registered = false;
-        for (Controller *controller : *controllers) {
-                input_registered |= controller->poll_for_input(registered_dir);
-        }
-        return input_registered;
 }
 
 /**
@@ -206,13 +190,12 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                                 GameCustomization *customization)
 {
         Configuration *config = assemble_2048_configuration();
+
         ConfigurationDiff *diff = empty_diff();
         render_config_menu(p->display, config, diff, false);
         free(diff);
-
         while (true) {
                 Direction dir;
-                bool ready = false;
                 // We get a fresh, empty diff during each iteration to avoid
                 // option value text rerendering when they are not modified.
                 ConfigurationDiff *diff = empty_diff();
@@ -251,6 +234,7 @@ void collect_game_configuration(Platform *p, GameConfiguration *game_config,
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
         }
+        extract_game_config(game_config, customization, config);
 }
 
 /* Initialization Code */
