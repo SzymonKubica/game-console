@@ -565,12 +565,12 @@ void render_generic_config_menu(Display *display, Configuration *config,
                             value->available_values[value->currently_selected];
                         char option_value[value->max_config_option_len];
                         char format_string[4];
-                        sprintf(format_string, "\%%dd",
-                                value->max_config_option_len);
+                        sprintf(format_string, "%%%dd",
+                                max_option_value_length);
                         sprintf(option_value, format_string, selected_value);
                         render_config_bar_centered(
                             display, bar_y, max_option_name_length,
-                            max_option_value_length, option_value, option_text,
+                            max_option_value_length, option_text, option_value,
                             update, diff->modified_option_index == i);
                 } else {
                         ConfigurationValue<char *> *value =
@@ -582,7 +582,7 @@ void render_generic_config_menu(Display *display, Configuration *config,
                             value->available_values[value->currently_selected];
                         render_config_bar_centered(
                             display, bar_y, max_option_name_length,
-                            max_option_value_length, option_value, option_text,
+                            max_option_value_length, option_text, option_value,
                             update, diff->modified_option_index == i);
                 }
         }
