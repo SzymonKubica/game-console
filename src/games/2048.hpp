@@ -3,6 +3,7 @@
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
 
+
 typedef struct GameConfiguration {
         int grid_size;
         int target_max_tile;
@@ -28,6 +29,10 @@ class GameState
         }
 };
 
+typedef struct GameCustomization {
+        Color accent_color;
+} GameCustomization;
+
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
 void draw(Display *display, GameState *state);
@@ -40,4 +45,4 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-void enter_game_loop(Platform *platform);
+void enter_game_loop(Platform *platform, GameCustomization *customization);

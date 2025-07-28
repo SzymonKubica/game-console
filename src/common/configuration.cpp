@@ -126,11 +126,12 @@ int find_max_config_option_name_text_length(Configuration *config)
         return max_length;
 }
 
-void enter_configuration_collection_loop(Platform *p, Configuration *config)
+void enter_configuration_collection_loop(Platform *p, Configuration *config,
+                                         Color accent_color)
 {
 
         ConfigurationDiff *diff = empty_diff();
-        render_config_menu(p->display, config, diff, false);
+        render_config_menu(p->display, config, diff, false, accent_color);
         free(diff);
         while (true) {
                 Direction dir;
@@ -145,6 +146,8 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config)
                            on it confirms the selected config and
                            breaks out of the config collection loop. */
                         if (confirmation_bar_selected && dir == RIGHT) {
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
                                 break;
                         }
 
@@ -163,7 +166,8 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config)
                                 break;
                         }
 
-                        render_config_menu(p->display, config, diff, true);
+                        render_config_menu(p->display, config, diff, true,
+                                           accent_color);
                         free(diff);
 
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);

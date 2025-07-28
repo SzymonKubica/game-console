@@ -25,7 +25,9 @@ Configuration *assemble_game_selection_configuration()
         available_games[0] = "2048";
         available_games[1] = "Snake";
         game->available_values = available_games;
-        game->currently_selected = 1;
+        game->currently_selected = 0;
+        // TODO: think if this data needs to be hard-coded, can we not calculate
+        // dynamically?
         game->max_config_option_len = 1;
 
         ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
@@ -70,7 +72,7 @@ void extract_game_config(Game *selected_game, GameCustomization *customization,
         int curr_accent_color_idx = accent_color.currently_selected;
         Color color = static_cast<Color *>(
             accent_color.available_values)[curr_accent_color_idx];
-        customization->border_color = color;
+        customization->accent_color = color;
 }
 
 void select_game(Platform *p)
@@ -85,7 +87,7 @@ void select_game(Platform *p)
         switch (selected_game) {
         case Unknown:
         case Clean2048:
-                enter_game_loop(p);
+                enter_game_loop(p, &customization);
                 break;
         case Snake:
                 LOG_DEBUG(TAG,

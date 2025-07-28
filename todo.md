@@ -10,6 +10,7 @@
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
 - [_] refactor 2048 game logic
+- [_] add proper customization passing (not just extra parameter for accent color)
 
 
 # Ideas

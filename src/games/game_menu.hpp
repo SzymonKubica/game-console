@@ -11,6 +11,3 @@ extern Game map_game_from_str(const char *name);
 
 void select_game(Platform *p);
 
-typedef struct GameCustomization {
-        Color border_color;
-} GameCustomization;

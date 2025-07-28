@@ -114,4 +114,5 @@ int find_max_config_option_value_text_length(Configuration *config);
  * to modify the configuration. The final settings are written into the
  * `config` struct that is passed as a parameter.
  */
-void enter_configuration_collection_loop(Platform *p, Configuration *config);
+void enter_configuration_collection_loop(Platform *p, Configuration *config,
+                                         Color accent_color = DarkBlue);
