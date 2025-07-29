@@ -3,6 +3,7 @@
 
 #include "../common/configuration.hpp"
 #include "../common/logging.hpp"
+#include "../common/constants.hpp"
 
 #define TAG "minesweeper"
 
@@ -13,6 +14,8 @@ typedef struct MinesweeperConfiguration {
 void collect_game_configuration(Platform *p,
                                 MinesweeperConfiguration *game_config,
                                 GameCustomization *customization);
+void draw_game_canvas(Platform *p, MinesweeperConfiguration *config,
+                      GameCustomization *customization);
 
 void enter_minesweeper_loop(Platform *platform,
                             GameCustomization *customization)
@@ -21,6 +24,7 @@ void enter_minesweeper_loop(Platform *platform,
         MinesweeperConfiguration config;
 
         collect_game_configuration(platform, &config, customization);
+        draw_game_canvas(platform, &config, customization);
 }
 
 Configuration *assemble_minesweeper_configuration();
@@ -41,9 +45,7 @@ void collect_game_configuration(Platform *p,
 
 Configuration *assemble_minesweeper_configuration()
 {
-        Configuration *config =
-            static_cast<Configuration *>(malloc(sizeof(Configuration)));
-
+        Configuration *config = new Configuration();
         config->name = "Minesweeper";
 
         // Initialize the first config option: game gridsize
@@ -80,4 +82,26 @@ void extract_game_config(MinesweeperConfiguration *game_config,
         int curr_mines_count_idx = mines_num.currently_selected;
         game_config->mines_num = static_cast<int *>(
             mines_num.available_values)[curr_mines_count_idx];
+}
+
+void draw_game_canvas(Platform *p, MinesweeperConfiguration *config,
+                      GameCustomization *customization)
+
+{
+        p->display->initialize();
+        p->display->clear(Black);
+        p->display->draw_rounded_border(customization->accent_color);
+        int max_cols = p->display->get_width() / FONT_WIDTH;
+        int max_rows = p->display->get_height() / FONT_SIZE;
+
+        char canvas[max_rows][max_cols];
+
+        for (int i = 0; i < max_rows; i++) {
+                for (int j = 0; j < max_cols; j++) {
+                        p->display->draw_rounded_rectangle(
+                            {.x = j * FONT_WIDTH, .y = i * FONT_SIZE},
+                            FONT_WIDTH, FONT_SIZE, 2, DarkBlue);
+                }
+        }
+        while (true) {}
 }
