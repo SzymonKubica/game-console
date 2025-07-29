@@ -50,18 +50,7 @@ void minesweeper_game_loop(Platform *p, GameCustomization *customization)
         draw_game_canvas(p, gd, customization);
 
         p->display->refresh();
-        while (!(is_game_over(state) || is_game_finished(state))) {
-                Direction dir;
-                if (directional_input_registered(p->directional_controllers, &dir)) {
-                        LOG_DEBUG(TAG, "Input received: %s",
-                                  direction_to_str(dir))
-                        take_turn(state, (int)dir);
-                        update_game_grid(p->display, state);
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                }
-                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
-                p->display->refresh();
-        }
+
         while (true) {
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
                 p->display->refresh();
