@@ -10,35 +10,29 @@
 
 Configuration *assemble_game_selection_configuration()
 {
-        Configuration *config =
-            static_cast<Configuration *>(malloc(sizeof(Configuration)));
-
+        Configuration *config = new Configuration();
         config->name = "Game Console";
 
-        ConfigurationValue *game = static_cast<ConfigurationValue *>(
-            malloc(2 * sizeof(ConfigurationValue)));
-        game->type = ConfigurationOptionType::STRING;
+        ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        std::vector<const char *> available_games = {"2048", "Snake",
-                                                     "Minesweeper"};
+        auto available_games = {"2048", "Snake", "Minesweeper"};
         populate_string_option_values(game, available_games);
         game->currently_selected = 0;
 
-        ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
-            malloc(sizeof(ConfigurationValue)));
+        ConfigurationOption *accent_color = new ConfigurationOption();
         accent_color->name = "Accent color";
-        std::vector<Color> available_accent_colors = {
-            Color::Red,      Color::Green,   Color::Blue,
-            Color::DarkBlue, Color::Magenta, Color::Cyan};
+        auto available_accent_colors = {Color::Red,     Color::Green,
+                                        Color::Blue,    Color::DarkBlue,
+                                        Color::Magenta, Color::Cyan};
         populate_color_option_values(accent_color, available_accent_colors);
         accent_color->currently_selected = 3;
 
-        config->config_values_len = 2;
-        config->current_config_value = 0;
-        config->configuration_values = static_cast<ConfigurationValue **>(
-            malloc(config->config_values_len * sizeof(ConfigurationValue *)));
-        config->configuration_values[0] = game;
-        config->configuration_values[1] = accent_color;
+        int options_num = 2;
+        config->options_len = options_num;
+        config->options = new ConfigurationOption *[options_num];
+        config->options[0] = game;
+        config->options[1] = accent_color;
+        config->curr_selected_option = 0;
         config->confirmation_cell_text = "Next";
         return config;
 }
@@ -47,14 +41,14 @@ void extract_game_config(Game *selected_game, GameCustomization *customization,
                          Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
-        ConfigurationValue grid_size = *config->configuration_values[0];
+        ConfigurationOption grid_size = *config->options[0];
 
         int curr_grid_size_idx = grid_size.currently_selected;
         *selected_game = map_game_from_str(static_cast<const char **>(
             grid_size.available_values)[curr_grid_size_idx]);
 
         // Game target is the second config option above.
-        ConfigurationValue accent_color = *config->configuration_values[1];
+        ConfigurationOption accent_color = *config->options[1];
 
         int curr_accent_color_idx = accent_color.currently_selected;
         Color color = static_cast<Color *>(

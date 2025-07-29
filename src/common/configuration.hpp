@@ -8,7 +8,7 @@ typedef enum ConfigurationOptionType {
         COLOR,
 } ConfigurationOptionType;
 
-typedef struct ConfigurationValue {
+typedef struct ConfigurationOption {
         /**
          * The type of the configurable values. Based on this type we know
          * how to cast the `available_values`.
@@ -29,9 +29,15 @@ typedef struct ConfigurationValue {
         // Name of the configuration value
         const char *name;
         // Max configuration option string length for UI rendering alignment
-        int max_config_option_len;
+        int max_config_value_len;
 
-} ConfigurationValue;
+        ConfigurationOption()
+            : type(INT), available_values(nullptr), available_values_len(0),
+              currently_selected(0), name(nullptr), max_config_value_len(0)
+        {
+        }
+
+} ConfigurationOption;
 
 /**
  * A generic container for game configuration values. It allows for storing
@@ -41,32 +47,33 @@ typedef struct ConfigurationValue {
  * that should be used for rendering in the UI.
  */
 struct Configuration {
+        /// Name of the configuration group.
+        const char *name;
+        /**
+         * An array of pointers to configuration options available on this
+         * configuration object. Each option has a set of values from which the
+         * user can select.
+         */
+        ConfigurationOption **options;
+        /// Stores the number of configurable options.
+        int options_len;
         /**
          * Represents the configuration value that is currently selected in the
          * UI and is being edited by the user.
          */
-        int current_config_value;
-        /// Stores the number of configurable values.
-        int config_values_len;
-        /**
-         * Configuration values are represented as a void pointer to an array
-         * of pointers to configuration values of unspecified types.
-         * This is to allow for collecting string / int type inputs.
-         *
-         * Idea: it might be simpler to always do strings as we'll need those
-         * for rendering anyway. In which case for int-type inputs we could
-         * simply represent them as strings and then parse them once the
-         * configuration is collected
-         */
-        ConfigurationValue **configuration_values;
-        /// Name of the configuration group.
-        const char *name;
+        int curr_selected_option;
         /**
          * At the bottom of each config list we render a button that allows the
          * user to confirm their selection of all configs. This field allows us
          * to customize the text that is displayed on the confirmation button.
          */
         const char *confirmation_cell_text;
+
+        Configuration()
+            : name(nullptr), options(nullptr), options_len(0),
+              curr_selected_option(0), confirmation_cell_text(nullptr)
+        {
+        }
 };
 
 /**
@@ -117,9 +124,9 @@ int find_max_config_option_value_text_length(Configuration *config);
 void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                          Color accent_color = DarkBlue);
 
-void populate_int_option_values(ConfigurationValue *value,
+void populate_int_option_values(ConfigurationOption *value,
                                 std::vector<int> available_values);
-void populate_string_option_values(ConfigurationValue *value,
-                                std::vector<const char*> available_values);
-void populate_color_option_values(ConfigurationValue *value,
-                                std::vector<Color> available_values);
+void populate_string_option_values(ConfigurationOption *value,
+                                   std::vector<const char *> available_values);
+void populate_color_option_values(ConfigurationOption *value,
+                                  std::vector<Color> available_values);

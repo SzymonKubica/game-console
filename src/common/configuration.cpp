@@ -50,14 +50,14 @@ void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                                 int steps)
 {
         LOG_DEBUG(TAG, "Config option index before switching: %d",
-                  config->current_config_value);
-        int config_len = config->config_values_len + 1;
-        diff->previously_edited_option = config->current_config_value;
-        config->current_config_value = mathematical_modulo(
-            config->current_config_value + steps, config_len);
-        diff->currently_edited_option = config->current_config_value;
+                  config->curr_selected_option);
+        int config_len = config->options_len + 1;
+        diff->previously_edited_option = config->curr_selected_option;
+        config->curr_selected_option = mathematical_modulo(
+            config->curr_selected_option + steps, config_len);
+        diff->currently_edited_option = config->curr_selected_option;
         LOG_DEBUG(TAG, "Config option index after switching: %d",
-                  config->current_config_value);
+                  config->curr_selected_option);
 }
 
 int mathematical_modulo(int a, int b)
@@ -93,14 +93,14 @@ void decrement_current_option_value(Configuration *config,
 void shift_current_config_option_value(Configuration *config,
                                        ConfigurationDiff *diff, int steps)
 {
-        assert(config->current_config_value != config->config_values_len);
-        ConfigurationValue *current =
-            config->configuration_values[config->current_config_value];
+        assert(config->curr_selected_option != config->options_len);
+        ConfigurationOption *current =
+            config->options[config->curr_selected_option];
 
         current->currently_selected = mathematical_modulo(
             current->currently_selected + steps, current->available_values_len);
 
-        diff->modified_option_index = config->current_config_value;
+        diff->modified_option_index = config->curr_selected_option;
 }
 
 /** For some reason when compiling the `max` function is not available.
@@ -110,10 +110,10 @@ int max(int a, int b) { return (a > b) ? a : b; }
 int find_max_config_option_value_text_length(Configuration *config)
 {
         int max_length = 0;
-        for (int i = 0; i < config->config_values_len; i++) {
+        for (int i = 0; i < config->options_len; i++) {
                 int current_option_value_length;
-                ConfigurationValue *current = config->configuration_values[i];
-                max_length = max(max_length, current->max_config_option_len);
+                ConfigurationOption *current = config->options[i];
+                max_length = max(max_length, current->max_config_value_len);
         }
         return max_length;
 }
@@ -121,15 +121,15 @@ int find_max_config_option_value_text_length(Configuration *config)
 int find_max_config_option_name_text_length(Configuration *config)
 {
         int max_length = 0;
-        for (int i = 0; i < config->config_values_len; i++) {
-                ConfigurationValue *current = config->configuration_values[i];
+        for (int i = 0; i < config->options_len; i++) {
+                ConfigurationOption *current = config->options[i];
                 max_length = max(max_length, strlen(current->name));
         }
         return max_length;
 }
 
 int find_max_number_length(std::vector<int> numbers);
-void populate_int_option_values(ConfigurationValue *value,
+void populate_int_option_values(ConfigurationOption *value,
                                 std::vector<int> available_values)
 {
         value->type = ConfigurationOptionType::INT,
@@ -139,11 +139,11 @@ void populate_int_option_values(ConfigurationValue *value,
                 values[i] = available_values[i];
         }
         value->available_values = values;
-        value->max_config_option_len = find_max_number_length(available_values);
+        value->max_config_value_len = find_max_number_length(available_values);
 }
 
 int find_max_string_length(std::vector<const char *> strings);
-void populate_string_option_values(ConfigurationValue *value,
+void populate_string_option_values(ConfigurationOption *value,
                                    std::vector<const char *> available_values)
 {
         value->type = ConfigurationOptionType::STRING,
@@ -153,11 +153,11 @@ void populate_string_option_values(ConfigurationValue *value,
                 values[i] = available_values[i];
         }
         value->available_values = values;
-        value->max_config_option_len = find_max_string_length(available_values);
+        value->max_config_value_len = find_max_string_length(available_values);
 }
 
 int find_max_color_str_length(std::vector<Color> available_values);
-void populate_color_option_values(ConfigurationValue *value,
+void populate_color_option_values(ConfigurationOption *value,
                                   std::vector<Color> available_values)
 {
         value->type = ConfigurationOptionType::COLOR,
@@ -167,7 +167,7 @@ void populate_color_option_values(ConfigurationValue *value,
                 values[i] = available_values[i];
         }
         value->available_values = values;
-        value->max_config_option_len =
+        value->max_config_value_len =
             find_max_color_str_length(available_values);
 }
 
@@ -211,7 +211,7 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                 // option value text rerendering when they are not modified.
                 ConfigurationDiff *diff = empty_diff();
                 bool confirmation_bar_selected =
-                    config->current_config_value == config->config_values_len;
+                    config->curr_selected_option == config->options_len;
                 if (input_registered(p->controllers, &dir)) {
                         /* When the user selects the last config bar,
                            i.e. the 'confirmation cell' pressing right

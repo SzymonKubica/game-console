@@ -45,18 +45,18 @@ Configuration *assemble_minesweeper_configuration()
         config->name = "Minesweeper";
 
         // Initialize the first config option: game gridsize
-        ConfigurationValue *mines_count = static_cast<ConfigurationValue *>(
-            malloc(2 * sizeof(ConfigurationValue)));
+        ConfigurationOption *mines_count = static_cast<ConfigurationOption *>(
+            malloc(2 * sizeof(ConfigurationOption)));
         mines_count->name = "Number of mines";
         std::vector<int> available_values = {10, 15, 25};
         populate_int_option_values(mines_count, available_values);
         mines_count->currently_selected = 1;
 
-        config->config_values_len = 1;
-        config->current_config_value = 0;
-        config->configuration_values = static_cast<ConfigurationValue **>(
-            malloc(config->config_values_len * sizeof(ConfigurationValue *)));
-        config->configuration_values[0] = mines_count;
+        config->options_len = 1;
+        config->curr_selected_option = 0;
+        config->options = static_cast<ConfigurationOption **>(
+            malloc(config->options_len * sizeof(ConfigurationOption *)));
+        config->options[0] = mines_count;
         config->confirmation_cell_text = "Start Game";
         return config;
 }
@@ -65,7 +65,7 @@ void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
-        ConfigurationValue mines_num = *config->configuration_values[0];
+        ConfigurationOption mines_num = *config->options[0];
 
         int curr_mines_count_idx = mines_num.currently_selected;
         game_config->mines_num = static_cast<int *>(

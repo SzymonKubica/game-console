@@ -97,49 +97,43 @@ void pause_until_input(std::vector<Controller *> *controllers,
  */
 Configuration *assemble_2048_configuration()
 {
-        Configuration *config =
-            static_cast<Configuration *>(malloc(sizeof(Configuration)));
-
+        Configuration *config = new Configuration();
         config->name = "2048";
 
         // Initialize the first config option: game gridsize
-        ConfigurationValue *grid_size = static_cast<ConfigurationValue *>(
-            malloc(2 * sizeof(ConfigurationValue)));
-        grid_size->type = ConfigurationOptionType::INT,
+        ConfigurationOption *grid_size = new ConfigurationOption();
         grid_size->name = "Grid size";
-        std::vector<int> available_grid_sizes = {3, 4, 5};
+        auto available_grid_sizes = {3, 4, 5};
         populate_int_option_values(grid_size, available_grid_sizes);
-
         grid_size->currently_selected = 1;
 
-        ConfigurationValue *game_target = static_cast<ConfigurationValue *>(
-            malloc(sizeof(ConfigurationValue)));
+        ConfigurationOption *game_target = new ConfigurationOption();
         game_target->name = "Game target";
-        std::vector<int> available_game_targets = {128,  256,  512,
-                                                   1024, 2048, 4096};
+        auto available_game_targets = {128, 256, 512, 1024, 2048, 4096};
         populate_int_option_values(game_target, available_game_targets);
         game_target->currently_selected = 4;
 
-        config->config_values_len = 2;
-        config->current_config_value = 0;
-        config->configuration_values = static_cast<ConfigurationValue **>(
-            malloc(config->config_values_len * sizeof(ConfigurationValue *)));
-        config->configuration_values[0] = grid_size;
-        config->configuration_values[1] = game_target;
+        int options_len = 2;
+        config->options_len = options_len;
+        config->options = new ConfigurationOption *[options_len];
+        config->options[0] = grid_size;
+        config->options[1] = game_target;
+        config->curr_selected_option = 0;
+
         config->confirmation_cell_text = "Start Game";
         return config;
 }
 void extract_game_config(GameConfiguration *game_config, Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
-        ConfigurationValue grid_size = *config->configuration_values[0];
+        ConfigurationOption grid_size = *config->options[0];
 
         int curr_grid_size_idx = grid_size.currently_selected;
         game_config->grid_size =
             static_cast<int *>(grid_size.available_values)[curr_grid_size_idx];
 
         // Game target is the second config option above.
-        ConfigurationValue game_target = *config->configuration_values[1];
+        ConfigurationOption game_target = *config->options[1];
 
         int curr_target_idx = game_target.currently_selected;
         game_config->target_max_tile =

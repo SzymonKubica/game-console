@@ -470,7 +470,7 @@ void render_config_menu(Display *display, Configuration *config,
         LOG_DEBUG(TAG, "Found max text length across all config bars: %d",
                   text_max_length);
         int spacing =
-            (display->get_height() - config->config_values_len * FONT_SIZE -
+            (display->get_height() - config->options_len * FONT_SIZE -
              HEADING_FONT_SIZE) /
             3;
 
@@ -492,27 +492,27 @@ void render_config_menu(Display *display, Configuration *config,
         int bar_height = 2 * fh;
         int bar_gap_height = fh;
         int y_spacing =
-            calculate_section_spacing(h, config->config_values_len + 1,
+            calculate_section_spacing(h, config->options_len + 1,
                                       bar_height, bar_gap_height, Size24);
 
         /* We need to add one to the number of config bars below because of the
         confirmation button that is rendered at the bottom. */
         int *bar_positions = calculate_config_bar_positions(
             y_spacing, Size24, bar_height, bar_gap_height,
-            config->config_values_len + 1);
+            config->options_len + 1);
 
         // Render the config menu heading.
         render_text_bar_centered(display, y_spacing, text_max_length, 0,
                                  heading_text, text_update_only, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
 
-        LOG_DEBUG(TAG, "Rendering %d config bars", config->config_values_len);
+        LOG_DEBUG(TAG, "Rendering %d config bars", config->options_len);
 
-        for (int i = 0; i < config->config_values_len; i++) {
+        for (int i = 0; i < config->options_len; i++) {
                 int bar_y = bar_positions[i];
                 char option_value[max_option_value_length];
 
-                ConfigurationValue value = *config->configuration_values[i];
+                ConfigurationOption value = *config->options[i];
                 const char *option_text = value.name;
 
                 switch (value.type) {
@@ -555,7 +555,7 @@ void render_config_menu(Display *display, Configuration *config,
                           i, option_text, option_value);
         }
 
-        int confirmation_cell_y = bar_positions[config->config_values_len];
+        int confirmation_cell_y = bar_positions[config->options_len];
         render_text_bar_centered(
             display, confirmation_cell_y, max_option_name_length,
             max_option_value_length, config->confirmation_cell_text,
@@ -572,7 +572,7 @@ void render_config_menu(Display *display, Configuration *config,
         int right_margin = display->get_width() - (left_margin + bar_width);
         int circle_x = left_margin + bar_width + right_margin / 2;
         int h_padding = fh / 2;
-        int circle_ys_len = config->config_values_len + 1;
+        int circle_ys_len = config->options_len + 1;
         int r = 5;
         int circle_ys[circle_ys_len];
         for (int i = 0; i < circle_ys_len; i++) {
