@@ -36,7 +36,7 @@ calculate_grid_dimensions(int display_width, int display_height,
 static void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
                              GameCustomization *customization);
 
-void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
+void minesweeper_game_loop(Platform *p, GameCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
@@ -48,6 +48,20 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
             p->display->get_display_corner_radius());
 
         draw_game_canvas(p, gd, customization);
+
+        p->display->refresh();
+        while (!(is_game_over(state) || is_game_finished(state))) {
+                Direction dir;
+                if (input_registered(p->controllers, &dir)) {
+                        LOG_DEBUG(TAG, "Input received: %s",
+                                  direction_to_str(dir))
+                        take_turn(state, (int)dir);
+                        update_game_grid(p->display, state);
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                }
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->display->refresh();
+        }
         while (true) {
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
                 p->display->refresh();

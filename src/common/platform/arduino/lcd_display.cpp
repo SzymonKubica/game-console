@@ -189,11 +189,9 @@ int LcdDisplay::get_height() { return LCD_WIDTH; };
 // We return the height for the width as the display is mounted horizontally.
 int LcdDisplay::get_width() { return LCD_HEIGHT; };
 
-int LcdDisplay::get_display_corner_radius()
-{
-        return DISPLAY_CORNER_RADIUS;
-}
+int LcdDisplay::get_display_corner_radius() { return DISPLAY_CORNER_RADIUS; }
 
-void LcdDisplay::refresh() {
-  // This is a no-op as the display does not require refreshing
+void LcdDisplay::refresh()
+{
+        // This is a no-op as the display does not require refreshing
 }
