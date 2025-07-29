@@ -4,6 +4,7 @@
 #include "../common/logging.hpp"
 #include "../common/platform/interface/color.hpp"
 #include "2048.hpp"
+#include "minesweeper.hpp"
 
 #define TAG "game_menu"
 
@@ -19,28 +20,29 @@ Configuration *assemble_game_selection_configuration()
             malloc(2 * sizeof(ConfigurationValue)));
         game->type = ConfigurationOptionType::STRING;
         game->name = "Game";
-        game->available_values_len = 2;
+        game->available_values_len = 3;
         const char **available_games =
             new const char *[game->available_values_len];
         available_games[0] = "2048";
         available_games[1] = "Snake";
+        available_games[2] = "Minesweeper";
         game->available_values = available_games;
         game->currently_selected = 0;
-        // TODO: think if this data needs to be hard-coded, can we not calculate
-        // dynamically?
-        game->max_config_option_len = 1;
+        game->max_config_option_len = strlen("Minesweeper");
 
         ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
             malloc(sizeof(ConfigurationValue)));
         accent_color->name = "Accent color";
         accent_color->type = ConfigurationOptionType::COLOR;
-        accent_color->available_values_len = 4;
+        accent_color->available_values_len = 6;
         Color *available_accent_colors =
             new Color[accent_color->available_values_len];
         available_accent_colors[0] = Color::Red;
         available_accent_colors[1] = Color::Green;
         available_accent_colors[2] = Color::Blue;
         available_accent_colors[3] = Color::DarkBlue;
+        available_accent_colors[4] = Color::Magenta;
+        available_accent_colors[5] = Color::Cyan;
         accent_color->available_values = available_accent_colors;
         accent_color->currently_selected = 3;
         accent_color->max_config_option_len =
@@ -87,11 +89,14 @@ void select_game(Platform *p)
         switch (selected_game) {
         case Unknown:
         case Clean2048:
-                enter_game_loop(p, &customization);
+                (new class Clean2048())->enter_game_loop(p, &customization);
                 break;
         case Snake:
                 LOG_DEBUG(TAG,
                           "Selected game: Snake. Game not implemented yet.");
+                break;
+        case Minesweeper:
+                (new class Minesweeper())->enter_game_loop(p, &customization);
                 break;
         }
 }
@@ -102,6 +107,9 @@ Game map_game_from_str(const char *name)
                 return Game::Clean2048;
         } else if (strcmp(name, "Snake") == 0) {
                 return Game::Snake;
+        } else if (strcmp(name, "Minesweeper") == 0) {
+                return Game::Minesweeper;
         }
+
         return Game::Unknown;
 }

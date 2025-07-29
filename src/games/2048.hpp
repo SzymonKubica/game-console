@@ -2,13 +2,12 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
-
+#include "game_executor.hpp"
 
 typedef struct GameConfiguration {
         int grid_size;
         int target_max_tile;
 } GameConfiguration;
-
 
 class GameState
 {
@@ -29,10 +28,6 @@ class GameState
         }
 };
 
-typedef struct GameCustomization {
-        Color accent_color;
-} GameCustomization;
-
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
 void draw(Display *display, GameState *state);
@@ -45,4 +40,16 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-void enter_game_loop(Platform *platform, GameCustomization *customization);
+void enter_2048_loop(Platform *platform, GameCustomization *customization);
+
+class Clean2048 : public GameExecutor
+{
+      public:
+        void enter_game_loop(Platform *p,
+                             GameCustomization *customization) override
+        {
+                enter_2048_loop(p, customization);
+        }
+
+        Clean2048() {}
+};

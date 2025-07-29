@@ -39,7 +39,7 @@ static void pause_until_input(std::vector<Controller *> *controllers,
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
 
-void enter_game_loop(Platform *p, GameCustomization *customization)
+void enter_2048_loop(Platform *p, GameCustomization *customization)
 {
         GameConfiguration config;
         collect_game_configuration(p, &config, customization);

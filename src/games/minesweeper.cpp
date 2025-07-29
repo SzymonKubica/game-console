@@ -1,0 +1,79 @@
+#include "../common/platform/interface/platform.hpp"
+#include "game_executor.hpp"
+
+#include "../common/configuration.hpp"
+#include "../common/logging.hpp"
+
+#define TAG "minesweeper"
+
+typedef struct MinesweeperConfiguration {
+        int mines_num;
+} MinesweeperConfiguration;
+
+void collect_game_configuration(Platform *p,
+                                MinesweeperConfiguration *game_config,
+                                GameCustomization *customization);
+
+void enter_minesweeper_loop(Platform *platform,
+                            GameCustomization *customization)
+{
+        LOG_DEBUG(TAG, "Entering Minesweeper game loop");
+        MinesweeperConfiguration config;
+
+        collect_game_configuration(platform, &config, customization);
+}
+
+Configuration *assemble_minesweeper_configuration();
+void extract_game_config(MinesweeperConfiguration *game_config,
+                         Configuration *config);
+
+void collect_game_configuration(Platform *p,
+                                MinesweeperConfiguration *game_config,
+                                GameCustomization *customization)
+{
+        Configuration *config = assemble_minesweeper_configuration();
+        enter_configuration_collection_loop(p, config,
+                                            customization->accent_color);
+        extract_game_config(game_config, config);
+}
+
+Configuration *assemble_minesweeper_configuration()
+{
+        Configuration *config =
+            static_cast<Configuration *>(malloc(sizeof(Configuration)));
+
+        config->name = "Minesweeper";
+
+        // Initialize the first config option: game gridsize
+        ConfigurationValue *mines_count = static_cast<ConfigurationValue *>(
+            malloc(2 * sizeof(ConfigurationValue)));
+        mines_count->type = ConfigurationOptionType::INT,
+        mines_count->name = "Number of mines";
+        mines_count->available_values_len = 3;
+        int *available_mine_counts = new int[mines_count->available_values_len];
+        available_mine_counts[0] = 10;
+        available_mine_counts[1] = 15;
+        available_mine_counts[2] = 25;
+        mines_count->available_values = available_mine_counts;
+        mines_count->currently_selected = 1;
+        mines_count->max_config_option_len = 2;
+
+        config->config_values_len = 1;
+        config->current_config_value = 0;
+        config->configuration_values = static_cast<ConfigurationValue **>(
+            malloc(config->config_values_len * sizeof(ConfigurationValue *)));
+        config->configuration_values[0] = mines_count;
+        config->confirmation_cell_text = "Start Game";
+        return config;
+}
+
+void extract_game_config(MinesweeperConfiguration *game_config,
+                         Configuration *config)
+{
+        // Grid size is the first config option in the game struct above.
+        ConfigurationValue mines_num = *config->configuration_values[0];
+
+        int curr_mines_count_idx = mines_num.currently_selected;
+        game_config->mines_num = static_cast<int *>(
+            mines_num.available_values)[curr_mines_count_idx];
+}
