@@ -24,6 +24,7 @@ void enter_minesweeper_loop(Platform *platform,
 }
 
 Configuration *assemble_minesweeper_configuration();
+void free_minesweeper_configuration(Configuration *config);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
@@ -35,6 +36,7 @@ void collect_game_configuration(Platform *p,
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
+        free_minesweeper_configuration(config);
 }
 
 Configuration *assemble_minesweeper_configuration()
@@ -45,20 +47,28 @@ Configuration *assemble_minesweeper_configuration()
         config->name = "Minesweeper";
 
         // Initialize the first config option: game gridsize
-        ConfigurationOption *mines_count = static_cast<ConfigurationOption *>(
-            malloc(2 * sizeof(ConfigurationOption)));
+        ConfigurationOption *mines_count = new ConfigurationOption();
         mines_count->name = "Number of mines";
         std::vector<int> available_values = {10, 15, 25};
         populate_int_option_values(mines_count, available_values);
         mines_count->currently_selected = 1;
 
         config->options_len = 1;
-        config->curr_selected_option = 0;
-        config->options = static_cast<ConfigurationOption **>(
-            malloc(config->options_len * sizeof(ConfigurationOption *)));
+        config->options = new ConfigurationOption *[config->options_len];
         config->options[0] = mines_count;
+        config->curr_selected_option = 0;
         config->confirmation_cell_text = "Start Game";
         return config;
+}
+
+void free_minesweeper_configuration(Configuration *config)
+{
+        for (int i = 0; i < config->options_len; i++) {
+                ConfigurationOption *option = config->options[i];
+                free(option->available_values);
+                delete config->options[i];
+        }
+        delete config;
 }
 
 void extract_game_config(MinesweeperConfiguration *game_config,
