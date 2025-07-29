@@ -11,20 +11,47 @@ typedef struct MinesweeperConfiguration {
         int mines_num;
 } MinesweeperConfiguration;
 
-void collect_game_configuration(Platform *p,
-                                MinesweeperConfiguration *game_config,
-                                GameCustomization *customization);
-void draw_game_canvas(Platform *p, MinesweeperConfiguration *config,
-                      GameCustomization *customization);
+typedef struct MinesweeperGridDimensions {
+        int rows;
+        int cols;
+        int top_vertical_margin;
+        int left_horizontal_margin;
+        int actual_width;
+        int actual_height;
 
-void enter_minesweeper_loop(Platform *platform,
-                            GameCustomization *customization)
+        MinesweeperGridDimensions(int r, int c, int tvm, int lhm, int aw,
+                                  int ah)
+            : rows(r), cols(c), top_vertical_margin(tvm),
+              left_horizontal_margin(lhm), actual_width(aw), actual_height(ah)
+        {
+        }
+} MinesweeperGridDimensions;
+
+static void collect_game_configuration(Platform *p,
+                                       MinesweeperConfiguration *game_config,
+                                       GameCustomization *customization);
+static MinesweeperGridDimensions *
+calculate_grid_dimensions(int display_width, int display_height,
+                          int display_rounded_corner_radius);
+static void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
+                             GameCustomization *customization);
+
+void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
 
-        collect_game_configuration(platform, &config, customization);
-        draw_game_canvas(platform, &config, customization);
+        collect_game_configuration(p, &config, customization);
+
+        MinesweeperGridDimensions *gd = calculate_grid_dimensions(
+            p->display->get_width(), p->display->get_height(),
+            p->display->get_display_corner_radius());
+
+        draw_game_canvas(p, gd, customization);
+        while (true) {
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->display->refresh();
+        }
 }
 
 Configuration *assemble_minesweeper_configuration();
@@ -84,24 +111,65 @@ void extract_game_config(MinesweeperConfiguration *game_config,
             mines_num.available_values)[curr_mines_count_idx];
 }
 
-void draw_game_canvas(Platform *p, MinesweeperConfiguration *config,
+MinesweeperGridDimensions *
+calculate_grid_dimensions(int display_width, int display_height,
+                          int display_rounded_corner_radius)
+{
+        // Bind input params to short names for improved readability.
+        int w = display_width;
+        int h = display_height;
+        int r = display_rounded_corner_radius;
+
+        int usable_width = w - r;
+        int usable_height = h - r;
+
+        int max_cols = usable_width / FONT_WIDTH;
+        int max_rows = usable_height / FONT_SIZE;
+
+        int actual_width = max_cols * FONT_WIDTH;
+        int actual_height = max_rows * FONT_SIZE;
+
+        // We calculate centering margins
+        int left_horizontal_margin = (w - actual_width) / 2;
+        int top_vertical_margin = (h - actual_height) / 2;
+
+        LOG_DEBUG(TAG,
+                  "Calculated grid dimensions: %d rows, %d cols, "
+                  "left margin: %d, top margin: %d, actual width: %d, "
+                  "actual height: %d",
+                  max_rows, max_cols, left_horizontal_margin,
+                  top_vertical_margin, actual_width, actual_height);
+
+        return new MinesweeperGridDimensions(
+            max_rows, max_cols, top_vertical_margin, left_horizontal_margin,
+            actual_width, actual_height);
+}
+
+void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
                       GameCustomization *customization)
 
 {
         p->display->initialize();
         p->display->clear(Black);
         p->display->draw_rounded_border(customization->accent_color);
-        int max_cols = p->display->get_width() / FONT_WIDTH;
-        int max_rows = p->display->get_height() / FONT_SIZE;
 
-        char canvas[max_rows][max_cols];
+        int x_margin = dimensions->left_horizontal_margin;
+        int y_margin = dimensions->top_vertical_margin;
 
-        for (int i = 0; i < max_rows; i++) {
-                for (int j = 0; j < max_cols; j++) {
-                        p->display->draw_rounded_rectangle(
-                            {.x = j * FONT_WIDTH, .y = i * FONT_SIZE},
-                            FONT_WIDTH, FONT_SIZE, 2, DarkBlue);
-                }
-        }
-        while (true) {}
+        int actual_width = dimensions->actual_width;
+        int actual_height = dimensions->actual_height;
+
+        int border_width = 3;
+
+        /* WARNING: the order of rendering the border first and the actual
+           rectangle matters here. If we were to draw the border later, it would
+           have overwritten the inside of the rectantle and made it black. */
+        p->display->draw_rectangle({.x = x_margin, .y = y_margin}, actual_width,
+                                   actual_height, Gray, border_width, false);
+
+        /* We don't draw the individual rectangles to make rendering faster
+           on the physical Arduino LCD display. */
+        p->display->draw_rectangle({.x = x_margin, .y = y_margin}, actual_width,
+                                   actual_height, customization->accent_color,
+                                   0, true);
 }

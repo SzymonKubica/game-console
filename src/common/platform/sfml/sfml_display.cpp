@@ -1,13 +1,13 @@
 #ifdef EMULATOR
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
+#include "../../constants.hpp"
 
 // TODO: move those defines to common constants so that changes to them affect
 // both the emulator and the production build.
 #define DISPLAY_HEIGHT 240
 #define DISPLAY_WIDTH 280
 
-#define DISPLAY_CORNER_RADIUS 40
 #define SCREEN_BORDER_WIDTH 3
 
 void SfmlDisplay::setup() {};

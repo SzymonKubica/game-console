@@ -16,6 +16,7 @@
 #endif
 
 #define SCREEN_BORDER_WIDTH 3
+#define DISPLAY_CORNER_RADIUS 40
 
 /* Constants below control time intervals between input polling */
 #define INPUT_POLLING_DELAY 50
