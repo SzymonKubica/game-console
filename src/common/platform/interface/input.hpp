@@ -10,4 +10,4 @@ typedef enum Direction { UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3 } Direction;
 typedef enum Action { YELLOW = 0, RED = 1, GREEN = 2, BLUE = 3 } Action;
 
 const char *direction_to_str(Direction direction);
-const char *action_to_str(Direction direction);
+const char *action_to_str(Action action);

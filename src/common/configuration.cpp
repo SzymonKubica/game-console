@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "configuration.hpp"
+#include "constants.hpp"
 #include "logging.hpp"
 #include "user_interface.h"
 #include "platform/interface/controller.hpp"

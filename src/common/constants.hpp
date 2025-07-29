@@ -20,6 +20,6 @@
 
 /* Constants below control time intervals between input polling */
 #define INPUT_POLLING_DELAY 50
-#define MOVE_REGISTERED_DELAY 150
+#define MOVE_REGISTERED_DELAY 100
 
 

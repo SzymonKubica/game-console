@@ -161,7 +161,7 @@ void SfmlDisplay::draw_rectangle(Point start, int width, int height,
         if (filled) {
                 rectangle.setFillColor(map_to_sf_color(color));
         } else {
-                rectangle.setFillColor(map_to_sf_color(Black));
+                rectangle.setFillColor(sf::Color::Transparent);
         }
         rectangle.setOutlineColor(map_to_sf_color(color));
         rectangle.setOutlineThickness(border_width);
