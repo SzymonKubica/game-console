@@ -31,8 +31,6 @@ class GameState
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
 void draw(Display *display, GameState *state);
-void draw_game_over(Display *display, GameState *state);
-void draw_game_won(Display *display, GameState *state);
 void update_game_grid(Display *display, GameState *gs);
 
 void initialize_randomness_seed(int seed);

@@ -12,6 +12,7 @@
 #include "../common/configuration.hpp"
 
 #include "game_menu.hpp"
+#include "common_transitions.hpp"
 
 #define TAG "2048"
 #define UP 0
@@ -34,8 +35,6 @@ static void handle_game_finished(Display *display,
 static void collect_game_configuration(Platform *p,
                                        GameConfiguration *game_config,
                                        GameCustomization *customization);
-static void pause_until_input(std::vector<DirectionalController *> *controllers,
-                              DelayProvider *delay_provider);
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
 
@@ -65,23 +64,15 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
         }
 
         if (is_game_over(state)) {
-                draw_game_over(p->display, state);
+                draw_game_over(p->display);
         }
         if (is_game_finished(state)) {
-                draw_game_won(p->display, state);
+                draw_game_won(p->display);
         }
 
         pause_until_input(p->directional_controllers, p->delay_provider);
 }
 
-void pause_until_input(std::vector<DirectionalController *> *controllers,
-                       DelayProvider *delay_provider)
-{
-        Direction dir;
-        while (!directional_input_registered(controllers, &dir)) {
-                delay_provider->delay_ms(INPUT_POLLING_DELAY);
-        };
-}
 
 /**
  * Assembles the generic configuration struct that is needed to collect user
@@ -682,33 +673,3 @@ static void str_replace(char *str, const char *oldWord, const char *newWord)
         std::strcpy(str, wrapped_str.c_str());
 }
 
-void draw_game_over(Display *display, GameState *state)
-{
-        display->draw_rounded_border(Red);
-
-        const char *msg = "Game Over";
-
-        int height = display->get_height();
-        int width = display->get_width();
-        int x_pos = (width - strlen(msg) * FONT_WIDTH) / 2;
-        int y_pos = (height - FONT_SIZE) / 2;
-
-        Point text_position = {.x = x_pos, .y = y_pos};
-
-        display->draw_string(text_position, (char *)msg, Size16, Black, Red);
-}
-
-void draw_game_won(Display *display, GameState *state)
-{
-        display->draw_rounded_border(Green);
-
-        const char *msg = "You Won!";
-
-        int height = display->get_height();
-        int width = display->get_width();
-        int x_pos = (width - strlen(msg) * FONT_WIDTH) / 2;
-        int y_pos = (height - FONT_SIZE) / 2;
-        Point text_position = {.x = x_pos, .y = y_pos};
-
-        display->draw_string(text_position, (char *)msg, Size16, Black, Green);
-}

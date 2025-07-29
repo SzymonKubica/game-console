@@ -5,6 +5,8 @@
 #include "../common/logging.hpp"
 #include "../common/constants.hpp"
 
+#include "common_transitions.hpp"
+
 #define TAG "minesweeper"
 
 typedef struct MinesweeperConfiguration {
@@ -94,11 +96,12 @@ static void draw_caret(Display *display, Point *grid_position,
 static void uncover_grid_cells_starting_from(
     Display *display, Point *grid_position,
     MinesweeperGridDimensions *dimensions,
-    std::vector<std::vector<MinesweeperGridCell>> *grid);
+    std::vector<std::vector<MinesweeperGridCell>> *grid, int *total_uncovered);
 static void
 uncover_grid_cell(Display *display, Point *grid_position,
                   MinesweeperGridDimensions *dimensions,
-                  std::vector<std::vector<MinesweeperGridCell>> *grid);
+                  std::vector<std::vector<MinesweeperGridCell>> *grid,
+                  int *total_uncovered);
 static void flag_grid_cell(Display *display, Point *grid_position,
                            MinesweeperGridDimensions *dimensions,
                            std::vector<std::vector<MinesweeperGridCell>> *grid);
@@ -110,7 +113,6 @@ unflag_grid_cell(Display *display, Point *grid_position,
 
 static void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                         int bomb_number);
-
 void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
@@ -136,8 +138,11 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         Point caret_position = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_position, gd);
 
+        int total_uncovered = 0;
+
         bool is_game_over = false;
-        while (!is_game_over) {
+        while (!is_game_over &&
+               !(total_uncovered == cols * rows - config.mines_num)) {
                 Direction dir;
                 Action act;
                 if (directional_input_registered(p->directional_controllers,
@@ -156,7 +161,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 // that the numbers don't get cropped after the
                                 // caret overlaps with them.
                                 uncover_grid_cell(p->display, &caret_position,
-                                                  gd, &grid);
+                                                  gd, &grid, &total_uncovered);
                         } else {
                                 erase_caret(p->display, &caret_position, gd,
                                             customization->accent_color);
@@ -197,10 +202,13 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 }
                                 break;
                         case Action::GREEN:
+                                if (cell.is_bomb) {
+                                        is_game_over = true;
+                                }
                                 if (!cell.is_flagged) {
                                         uncover_grid_cells_starting_from(
                                             p->display, &caret_position, gd,
-                                            &grid);
+                                            &grid, &total_uncovered);
                                 }
                                 break;
                         default:
@@ -217,10 +225,30 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
         }
 
-        while (true) {
-                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
-                p->display->refresh();
+        // When the game is lost, we make all bombs explode.
+        if (is_game_over) {
+                for (int y = 0; y < rows; y++) {
+                        for (int x = 0; x < cols; x++) {
+                                MinesweeperGridCell cell = grid[y][x];
+                                if (cell.is_bomb) {
+                                        Point point = {.x = x, .y = y};
+                                        uncover_grid_cell(p->display, &point,
+                                                          gd, &grid,
+                                                          &total_uncovered);
+                                }
+                        }
+                }
+                pause_until_input(p->directional_controllers,
+                                  p->delay_provider);
+                draw_game_over(p->display);
+                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+        } else {
+                pause_until_input(p->directional_controllers,
+                                  p->delay_provider);
+                draw_game_won(p->display);
+                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
+        pause_until_input(p->directional_controllers, p->delay_provider);
 }
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
@@ -250,7 +278,8 @@ void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
 }
 void uncover_grid_cell(Display *display, Point *grid_position,
                        MinesweeperGridDimensions *dimensions,
-                       std::vector<std::vector<MinesweeperGridCell>> *grid)
+                       std::vector<std::vector<MinesweeperGridCell>> *grid,
+                       int *total_uncovered)
 {
 
         Point actual_position = {.x = dimensions->left_horizontal_margin +
@@ -260,8 +289,13 @@ void uncover_grid_cell(Display *display, Point *grid_position,
 
         char text[2];
 
-        (*grid)[grid_position->y][grid_position->x].is_uncovered = true;
         MinesweeperGridCell cell = (*grid)[grid_position->y][grid_position->x];
+        // We need this check as we 're-uncover' cells after the caret passes
+        // over them to remove rendering overlap artifacts.
+        if (!cell.is_uncovered) {
+                (*total_uncovered)++;
+                (*grid)[grid_position->y][grid_position->x].is_uncovered = true;
+        }
         Color text_color = White;
         if (cell.is_bomb) {
                 sprintf(text, "*");
@@ -296,10 +330,11 @@ void uncover_grid_cell(Display *display, Point *grid_position,
 void uncover_grid_cells_starting_from(
     Display *display, Point *grid_position,
     MinesweeperGridDimensions *dimensions,
-    std::vector<std::vector<MinesweeperGridCell>> *grid)
+    std::vector<std::vector<MinesweeperGridCell>> *grid, int *total_uncovered)
 {
 
-        uncover_grid_cell(display, grid_position, dimensions, grid);
+        uncover_grid_cell(display, grid_position, dimensions, grid,
+                          total_uncovered);
 
         int rows = grid->size();
         int cols = (*grid->begin().base()).size();
@@ -312,9 +347,11 @@ void uncover_grid_cells_starting_from(
                         MinesweeperGridCell neighbour_cell =
                             (*grid)[nb.y][nb.x];
 
-                        if (!neighbour_cell.is_uncovered && !neighbour_cell.is_flagged) {
+                        if (!neighbour_cell.is_uncovered &&
+                            !neighbour_cell.is_flagged) {
                                 uncover_grid_cells_starting_from(
-                                    display, &nb, dimensions, grid);
+                                    display, &nb, dimensions, grid,
+                                    total_uncovered);
                         }
                 }
         }
