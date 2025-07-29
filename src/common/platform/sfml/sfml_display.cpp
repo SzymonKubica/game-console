@@ -238,8 +238,8 @@ void SfmlDisplay::refresh()
                 if (event->is<sf::Event::Closed>()) {
                         window->close();
                         // This is the only way we can terminate the game loop
-                        // in the current setup, we need to send an exception and
-                        // catch it in the emulator entrypoint.
+                        // in the current setup, we need to send an exception
+                        // and catch it in the emulator entrypoint.
                         throw std::runtime_error("Window closed");
                 }
         }

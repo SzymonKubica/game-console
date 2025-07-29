@@ -52,7 +52,7 @@ void minesweeper_game_loop(Platform *p, GameCustomization *customization)
         p->display->refresh();
         while (!(is_game_over(state) || is_game_finished(state))) {
                 Direction dir;
-                if (input_registered(p->controllers, &dir)) {
+                if (directional_input_registered(p->directional_controllers, &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
                                   direction_to_str(dir))
                         take_turn(state, (int)dir);

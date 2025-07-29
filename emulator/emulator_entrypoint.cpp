@@ -5,6 +5,7 @@
 #include "../src/common/platform/sfml/emulator_delay.cpp"
 #include "../src/common/platform/sfml/sfml_controller.hpp"
 #include "../src/common/platform/sfml/sfml_awsd_controller.hpp"
+#include "../src/common/platform/sfml/sfml_action_controller.hpp"
 
 #include "../src/common/logging.hpp"
 
@@ -21,6 +22,7 @@ SfmlDisplay *display;
 EmulatorDelay delay;
 SfmlInputController controller;
 SfmlAwsdInputController awsd_controller;
+SfmlActionInputController action_controller;
 
 void print_version(char *argv[]);
 int main(int argc, char *argv[])
@@ -50,13 +52,18 @@ int main(int argc, char *argv[])
 
         controller = SfmlInputController{};
         awsd_controller = SfmlAwsdInputController{};
+        action_controller = SfmlActionInputController{};
 
-        std::vector<Controller *> controllers(2);
+        std::vector<DirectionalController *> controllers(2);
         controllers[0] = &controller;
         controllers[1] = &awsd_controller;
 
+        std::vector<ActionController *> action_controllers(1);
+        action_controllers[0] = &action_controller;
+
         Platform platform = {.display = display,
-                             .controllers = &controllers,
+                             .directional_controllers = &controllers,
+                             .action_controllers = &action_controllers,
                              .delay_provider = &delay};
 
         while (window.isOpen()) {

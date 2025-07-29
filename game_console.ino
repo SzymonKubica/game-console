@@ -40,14 +40,17 @@ void setup(void)
 
 void loop(void)
 {
-        std::vector<Controller *> controllers(2);
+        std::vector<DirectionalController *> controllers(1);
         controllers[0] = joystick_controller;
-        controllers[1] = keypad_controller;
+
+        std::vector<ActionController *> action_controllers(1);
+        action_controllers[1] = keypad_controller;
 
         DelayProvider *delay_provider = new ArduinoDelay((void (*)(int))&delay);
 
-        Platform platform = {.display = &display,
-                             .controllers = &controllers,
-                             .delay_provider = delay_provider};
+        Platform platform = {.display = display,
+                             .directional_controllers = &controllers,
+                             .action_controllers = &action_controllers,
+                             .delay_provider = &delay};
         select_game(&platform);
 }

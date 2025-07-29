@@ -212,7 +212,7 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                 ConfigurationDiff *diff = empty_diff();
                 bool confirmation_bar_selected =
                     config->curr_selected_option == config->options_len;
-                if (input_registered(p->controllers, &dir)) {
+                if (directional_input_registered(p->directional_controllers, &dir)) {
                         /* When the user selects the last config bar,
                            i.e. the 'confirmation cell' pressing right
                            on it confirms the selected config and

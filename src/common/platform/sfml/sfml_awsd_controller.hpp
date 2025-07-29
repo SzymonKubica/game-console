@@ -1,7 +1,7 @@
 #ifdef EMULATOR
 #include "../interface/controller.hpp"
 
-class SfmlAwsdInputController : public Controller
+class SfmlAwsdInputController : public DirectionalController
 {
       public:
         /**

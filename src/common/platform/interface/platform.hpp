@@ -10,6 +10,7 @@
  */
 typedef struct Platform {
         Display *display;
-        std::vector<Controller*> *controllers;
+        std::vector<DirectionalController*> *directional_controllers;
+        std::vector<ActionController*> *action_controllers;
         DelayProvider *delay_provider;
 } Platform;

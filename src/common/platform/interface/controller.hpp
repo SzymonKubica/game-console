@@ -35,7 +35,7 @@ class ActionController
 {
       public:
         /**
-         * For a given controllers, this function will inspect its state to
+         * For a given controller, this function will inspect its state to
          * determine if an input is being entered. Note that for physical
          * controllers, this function only tests for the state of the controller
          * right now (it doesn't poll for a period of time). Becuase of this,

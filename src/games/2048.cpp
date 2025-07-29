@@ -26,15 +26,15 @@ static void copy_grid(int **source, int **destination, int size);
 void initialize_randomness_seed(int seed) { srand(seed); }
 
 static void handle_game_over(Display *display,
-                             std::vector<Controller *> *controllers,
+                             std::vector<DirectionalController *> *controllers,
                              GameState *state);
 static void handle_game_finished(Display *display,
-                                 std::vector<Controller *> *controllers,
+                                 std::vector<DirectionalController *> *controllers,
                                  GameState *state);
 static void collect_game_configuration(Platform *p,
                                        GameConfiguration *game_config,
                                        GameCustomization *customization);
-static void pause_until_input(std::vector<Controller *> *controllers,
+static void pause_until_input(std::vector<DirectionalController *> *controllers,
                               DelayProvider *delay_provider);
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
@@ -53,7 +53,7 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
 
         while (!(is_game_over(state) || is_game_finished(state))) {
                 Direction dir;
-                if (input_registered(p->controllers, &dir)) {
+                if (directional_input_registered(p->directional_controllers, &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
                                   direction_to_str(dir))
                         take_turn(state, (int)dir);
@@ -71,14 +71,14 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
                 draw_game_won(p->display, state);
         }
 
-        pause_until_input(p->controllers, p->delay_provider);
+        pause_until_input(p->directional_controllers, p->delay_provider);
 }
 
-void pause_until_input(std::vector<Controller *> *controllers,
+void pause_until_input(std::vector<DirectionalController *> *controllers,
                        DelayProvider *delay_provider)
 {
         Direction dir;
-        while (!input_registered(controllers, &dir)) {
+        while (!directional_input_registered(controllers, &dir)) {
                 delay_provider->delay_ms(INPUT_POLLING_DELAY);
         };
 }

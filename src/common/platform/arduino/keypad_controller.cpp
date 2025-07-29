@@ -1,25 +1,25 @@
 #include "keypad_controller.hpp"
 
-bool KeypadController::poll_for_input(Direction *input) {
+bool KeypadController::poll_for_input(Action *input) {
         int leftButton = this->digital_read(LEFT_BUTTON_PIN);
         int downButton = this->digital_read(DOWN_BUTTON_PIN);
         int upButton = this->digital_read(UP_BUTTON_PIN);
         int rightButton = this->digital_read(RIGHT_BUTTON_PIN);
 
         if (!leftButton) {
-                *input = Direction::LEFT;
+                *input = Action::BLUE;
                 return true;
         }
         if (!downButton) {
-                *input = Direction::DOWN;
+                *input = Action::GREEN;
                 return true;
         }
         if (!upButton) {
-                *input = Direction::UP;
+                *input = Action::YELLOW;
                 return true;
         }
         if (!rightButton) {
-                *input = Direction::RIGHT;
+                *input = Action::RED;
                 return true;
         }
         return false;
