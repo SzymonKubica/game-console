@@ -15,7 +15,7 @@ Configuration *assemble_game_selection_configuration()
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {"2048", "Snake", "Minesweeper"};
+        auto available_games = {"2048", "Snake", "Sweeper"};
         populate_string_option_values(game, available_games);
         game->currently_selected = 0;
 
@@ -86,7 +86,9 @@ Game map_game_from_str(const char *name)
                 return Game::Clean2048;
         } else if (strcmp(name, "Snake") == 0) {
                 return Game::Snake;
-        } else if (strcmp(name, "Minesweeper") == 0) {
+        } else if (strcmp(name, "Sweeper") == 0) {
+                // We need to use a shorter name here because of rendering
+                // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::Minesweeper;
         }
 

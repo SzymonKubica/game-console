@@ -48,9 +48,9 @@ void loop(void)
 
         DelayProvider *delay_provider = new ArduinoDelay((void (*)(int))&delay);
 
-        Platform platform = {.display = display,
+        Platform platform = {.display = &display,
                              .directional_controllers = &controllers,
                              .action_controllers = &action_controllers,
-                             .delay_provider = &delay};
+                             .delay_provider = delay_provider};
         select_game(&platform);
 }

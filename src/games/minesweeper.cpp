@@ -84,10 +84,17 @@ static void draw_caret(Display *display, Point *grid_position,
                  grid_position->y * FONT_SIZE + border_offset};
 
         display->draw_rectangle(actual_position, FONT_WIDTH - 2 * border_offset,
-                                FONT_SIZE - 2 * border_offset,
-                                White, 1, false);
+                                FONT_SIZE - 2 * border_offset, White, 1, false);
 }
 
+/**
+ * Performs a recursive uncovering waterfall: tries to uncover the current
+ * cell, if the cell has 0 adjacent mines it uncovers all of its neighbours.
+ */
+static void uncover_grid_cells_starting_from(
+    Display *display, Point *grid_position,
+    MinesweeperGridDimensions *dimensions,
+    std::vector<std::vector<MinesweeperGridCell>> *grid);
 static void
 uncover_grid_cell(Display *display, Point *grid_position,
                   MinesweeperGridDimensions *dimensions,
@@ -164,8 +171,8 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                         case Action::RED:
                                 break;
                         case Action::GREEN:
-                                uncover_grid_cell(p->display, &caret_position,
-                                                  gd, &grid);
+                                uncover_grid_cells_starting_from(
+                                    p->display, &caret_position, gd, &grid);
                                 break;
                         default:
                                 LOG_DEBUG(TAG, "Irrelevant action input: %s",
@@ -259,6 +266,33 @@ void uncover_grid_cell(Display *display, Point *grid_position,
                              text_color);
 }
 
+void uncover_grid_cells_starting_from(
+    Display *display, Point *grid_position,
+    MinesweeperGridDimensions *dimensions,
+    std::vector<std::vector<MinesweeperGridCell>> *grid)
+{
+
+        uncover_grid_cell(display, grid_position, dimensions, grid);
+
+        int rows = grid->size();
+        int cols = (*grid->begin().base()).size();
+        MinesweeperGridCell current_cell =
+            (*grid)[grid_position->y][grid_position->x];
+
+        if (!current_cell.is_bomb && current_cell.adjacent_bombs == 0) {
+                for (Point nb :
+                     *get_neighbours_inside_grid(grid_position, rows, cols)) {
+                        MinesweeperGridCell neighbour_cell =
+                            (*grid)[nb.y][nb.x];
+
+                        if (!neighbour_cell.is_uncovered) {
+                                uncover_grid_cells_starting_from(
+                                    display, &nb, dimensions, grid);
+                        }
+                }
+        }
+}
+
 Configuration *assemble_minesweeper_configuration();
 void free_minesweeper_configuration(Configuration *config);
 void extract_game_config(MinesweeperConfiguration *game_config,
@@ -308,7 +342,8 @@ void free_minesweeper_configuration(Configuration *config)
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config)
 {
-        // Grid size is the first config option in the game struct above.
+        // Grid size is the first config option in the game struct
+        // above.
         ConfigurationOption mines_num = *config->options[0];
 
         int curr_mines_count_idx = mines_num.currently_selected;
@@ -365,10 +400,11 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
         int actual_height = dimensions->actual_height;
 
         int border_width = 2;
-        // We need to make the border rectangle and the canvas slightly bigger
-        // to ensure that it does not overlap with the game area. Otherwise the
-        // caret rendering erases parts of the border as it moves around (as the
-        // caret intersects with the border partially)
+        // We need to make the border rectangle and the canvas slightly
+        // bigger to ensure that it does not overlap with the game area.
+        // Otherwise the caret rendering erases parts of the border as
+        // it moves around (as the caret intersects with the border
+        // partially)
         int border_offset = 1;
 
         p->display->draw_rectangle(
@@ -376,8 +412,8 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
             actual_width + 2 * border_offset, actual_height + 2 * border_offset,
             Gray, border_width, false);
 
-        /* We don't draw the individual rectangles to make rendering faster
-           on the physical Arduino LCD display. */
+        /* We don't draw the individual rectangles to make rendering
+           faster on the physical Arduino LCD display. */
         p->display->draw_rectangle(
             {.x = x_margin - border_offset, .y = y_margin - border_offset},
             actual_width + 2 * border_offset, actual_height + 2 * border_offset,

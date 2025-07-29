@@ -14,7 +14,7 @@
 #define STICK_Y_PIN 16
 #define STICK_X_PIN 17
 
-class JoystickController : public Controller
+class JoystickController : public DirectionalController
 {
       public:
         /**
