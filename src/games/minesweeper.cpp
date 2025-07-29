@@ -99,6 +99,14 @@ static void
 uncover_grid_cell(Display *display, Point *grid_position,
                   MinesweeperGridDimensions *dimensions,
                   std::vector<std::vector<MinesweeperGridCell>> *grid);
+static void flag_grid_cell(Display *display, Point *grid_position,
+                           MinesweeperGridDimensions *dimensions,
+                           std::vector<std::vector<MinesweeperGridCell>> *grid);
+static void
+unflag_grid_cell(Display *display, Point *grid_position,
+                 MinesweeperGridDimensions *dimensions,
+                 std::vector<std::vector<MinesweeperGridCell>> *grid,
+                 Color grid_background_color);
 
 static void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                         int bomb_number);
@@ -167,12 +175,33 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                         LOG_DEBUG(TAG, "Action input received: %s",
                                   action_to_str(act));
 
+                        MinesweeperGridCell cell =
+                            grid[caret_position.y][caret_position.x];
                         switch (act) {
                         case Action::RED:
+                                if (!cell.is_uncovered) {
+                                        if (!cell.is_flagged) {
+                                                flag_grid_cell(p->display,
+                                                               &caret_position,
+                                                               gd, &grid);
+
+                                        } else {
+                                                unflag_grid_cell(
+                                                    p->display, &caret_position,
+                                                    gd, &grid,
+                                                    customization
+                                                        ->accent_color);
+                                                draw_caret(p->display,
+                                                           &caret_position, gd);
+                                        }
+                                }
                                 break;
                         case Action::GREEN:
-                                uncover_grid_cells_starting_from(
-                                    p->display, &caret_position, gd, &grid);
+                                if (!cell.is_flagged) {
+                                        uncover_grid_cells_starting_from(
+                                            p->display, &caret_position, gd,
+                                            &grid);
+                                }
                                 break;
                         default:
                                 LOG_DEBUG(TAG, "Irrelevant action input: %s",
@@ -236,8 +265,6 @@ void uncover_grid_cell(Display *display, Point *grid_position,
         Color text_color = White;
         if (cell.is_bomb) {
                 sprintf(text, "*");
-        } else if (cell.is_bomb) {
-                sprintf(text, "f");
         } else if (cell.adjacent_bombs == 0) {
                 sprintf(text, " ");
         } else {
@@ -285,12 +312,45 @@ void uncover_grid_cells_starting_from(
                         MinesweeperGridCell neighbour_cell =
                             (*grid)[nb.y][nb.x];
 
-                        if (!neighbour_cell.is_uncovered) {
+                        if (!neighbour_cell.is_uncovered && !neighbour_cell.is_flagged) {
                                 uncover_grid_cells_starting_from(
                                     display, &nb, dimensions, grid);
                         }
                 }
         }
+}
+
+void flag_grid_cell(Display *display, Point *grid_position,
+                    MinesweeperGridDimensions *dimensions,
+                    std::vector<std::vector<MinesweeperGridCell>> *grid)
+{
+
+        (*grid)[grid_position->y][grid_position->x].is_flagged = true;
+        Point actual_position = {.x = dimensions->left_horizontal_margin +
+                                      grid_position->x * FONT_WIDTH,
+                                 .y = dimensions->top_vertical_margin +
+                                      grid_position->y * FONT_SIZE};
+
+        char text[2];
+        sprintf(text, "f");
+        display->draw_string(actual_position, text, FontSize::Size16, Black,
+                             White);
+}
+
+void unflag_grid_cell(Display *display, Point *grid_position,
+                      MinesweeperGridDimensions *dimensions,
+                      std::vector<std::vector<MinesweeperGridCell>> *grid,
+                      Color grid_background_color)
+{
+
+        (*grid)[grid_position->y][grid_position->x].is_flagged = false;
+        Point actual_position = {.x = dimensions->left_horizontal_margin +
+                                      grid_position->x * FONT_WIDTH,
+                                 .y = dimensions->top_vertical_margin +
+                                      grid_position->y * FONT_SIZE};
+
+        display->draw_rectangle(actual_position, FONT_WIDTH, FONT_SIZE,
+                                grid_background_color, 0, true);
 }
 
 Configuration *assemble_minesweeper_configuration();
