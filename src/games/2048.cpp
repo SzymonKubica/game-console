@@ -107,31 +107,18 @@ Configuration *assemble_2048_configuration()
             malloc(2 * sizeof(ConfigurationValue)));
         grid_size->type = ConfigurationOptionType::INT,
         grid_size->name = "Grid size";
-        grid_size->available_values_len = 3;
-        int *available_grid_sizes = new int[grid_size->available_values_len];
-        available_grid_sizes[0] = 3;
-        available_grid_sizes[1] = 4;
-        available_grid_sizes[2] = 5;
-        grid_size->available_values = available_grid_sizes;
+        std::vector<int> available_grid_sizes = {3, 4, 5};
+        populate_int_option_values(grid_size, available_grid_sizes);
+
         grid_size->currently_selected = 1;
-        grid_size->max_config_option_len = 1;
 
         ConfigurationValue *game_target = static_cast<ConfigurationValue *>(
             malloc(sizeof(ConfigurationValue)));
         game_target->name = "Game target";
-        game_target->available_values_len = 6;
-        game_target->type = ConfigurationOptionType::INT;
-        int *available_game_targets =
-            new int[game_target->available_values_len];
-        available_game_targets[0] = 128;
-        available_game_targets[1] = 256;
-        available_game_targets[2] = 512;
-        available_game_targets[3] = 1024;
-        available_game_targets[4] = 2048;
-        available_game_targets[5] = 4096;
-        game_target->available_values = available_game_targets;
+        std::vector<int> available_game_targets = {128,  256,  512,
+                                                   1024, 2048, 4096};
+        populate_int_option_values(game_target, available_game_targets);
         game_target->currently_selected = 4;
-        game_target->max_config_option_len = 4;
 
         config->config_values_len = 2;
         config->current_config_value = 0;

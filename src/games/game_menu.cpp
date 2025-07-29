@@ -15,38 +15,23 @@ Configuration *assemble_game_selection_configuration()
 
         config->name = "Game Console";
 
-        // Initialize the first config option: game gridsize
         ConfigurationValue *game = static_cast<ConfigurationValue *>(
             malloc(2 * sizeof(ConfigurationValue)));
         game->type = ConfigurationOptionType::STRING;
         game->name = "Game";
-        game->available_values_len = 3;
-        const char **available_games =
-            new const char *[game->available_values_len];
-        available_games[0] = "2048";
-        available_games[1] = "Snake";
-        available_games[2] = "Minesweeper";
-        game->available_values = available_games;
+        std::vector<const char *> available_games = {"2048", "Snake",
+                                                     "Minesweeper"};
+        populate_string_option_values(game, available_games);
         game->currently_selected = 0;
-        game->max_config_option_len = strlen("Minesweeper");
 
         ConfigurationValue *accent_color = static_cast<ConfigurationValue *>(
             malloc(sizeof(ConfigurationValue)));
         accent_color->name = "Accent color";
-        accent_color->type = ConfigurationOptionType::COLOR;
-        accent_color->available_values_len = 6;
-        Color *available_accent_colors =
-            new Color[accent_color->available_values_len];
-        available_accent_colors[0] = Color::Red;
-        available_accent_colors[1] = Color::Green;
-        available_accent_colors[2] = Color::Blue;
-        available_accent_colors[3] = Color::DarkBlue;
-        available_accent_colors[4] = Color::Magenta;
-        available_accent_colors[5] = Color::Cyan;
-        accent_color->available_values = available_accent_colors;
+        std::vector<Color> available_accent_colors = {
+            Color::Red,      Color::Green,   Color::Blue,
+            Color::DarkBlue, Color::Magenta, Color::Cyan};
+        populate_color_option_values(accent_color, available_accent_colors);
         accent_color->currently_selected = 3;
-        accent_color->max_config_option_len =
-            strlen(map_color(Color::DarkBlue));
 
         config->config_values_len = 2;
         config->current_config_value = 0;

@@ -9,8 +9,8 @@
 - [_] document the gdb workflow
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
-- [_] refactor 2048 game logic
 - [_] add proper customization passing (not just extra parameter for accent color)
+- [_] add proper deallocation function for the config objects
 
 
 # Ideas
@@ -26,6 +26,7 @@
 
 
 # Done
+- [x] refactor 2048 game logic
 - [x] finish the generic code for rendering the UI and replace the existing 2048 UI with it
 - [x] add platform context object to reduce the number of params for functions
       that have need to interact with the controllers and the display.

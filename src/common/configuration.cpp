@@ -1,10 +1,12 @@
 #include <cassert>
-#include <string.h>
+#include <string>
+#include <stdlib.h>
 
 #include "configuration.hpp"
 #include "logging.hpp"
 #include "user_interface.h"
 #include "platform/interface/controller.hpp"
+#include "platform/interface/color.hpp"
 
 #define TAG "configuration"
 
@@ -124,6 +126,76 @@ int find_max_config_option_name_text_length(Configuration *config)
                 max_length = max(max_length, strlen(current->name));
         }
         return max_length;
+}
+
+int find_max_number_length(std::vector<int> numbers);
+void populate_int_option_values(ConfigurationValue *value,
+                                std::vector<int> available_values)
+{
+        value->type = ConfigurationOptionType::INT,
+        value->available_values_len = available_values.size();
+        int *values = new int[value->available_values_len];
+        for (int i = 0; i < value->available_values_len; i++) {
+                values[i] = available_values[i];
+        }
+        value->available_values = values;
+        value->max_config_option_len = find_max_number_length(available_values);
+}
+
+int find_max_string_length(std::vector<const char *> strings);
+void populate_string_option_values(ConfigurationValue *value,
+                                   std::vector<const char *> available_values)
+{
+        value->type = ConfigurationOptionType::STRING,
+        value->available_values_len = available_values.size();
+        const char **values = new const char *[value->available_values_len];
+        for (int i = 0; i < value->available_values_len; i++) {
+                values[i] = available_values[i];
+        }
+        value->available_values = values;
+        value->max_config_option_len = find_max_string_length(available_values);
+}
+
+int find_max_color_str_length(std::vector<Color> available_values);
+void populate_color_option_values(ConfigurationValue *value,
+                                  std::vector<Color> available_values)
+{
+        value->type = ConfigurationOptionType::COLOR,
+        value->available_values_len = available_values.size();
+        Color *values = new Color[value->available_values_len];
+        for (int i = 0; i < value->available_values_len; i++) {
+                values[i] = available_values[i];
+        }
+        value->available_values = values;
+        value->max_config_option_len =
+            find_max_color_str_length(available_values);
+}
+
+int find_max_number_length(std::vector<int> numbers)
+{
+        int max_len = 0;
+        for (int value : numbers) {
+                max_len = max(max_len, std::to_string(value).size());
+        }
+        return max_len;
+}
+
+int find_max_string_length(std::vector<const char *> strings)
+{
+        int max_len = 0;
+        for (const char *value : strings) {
+                max_len = max(max_len, strlen(value));
+        }
+        return max_len;
+}
+
+int find_max_color_str_length(std::vector<Color> colors)
+{
+        int max_len = 0;
+        for (Color value : colors) {
+                max_len = max(max_len, strlen(map_color(value)));
+        }
+        return max_len;
 }
 
 void enter_configuration_collection_loop(Platform *p, Configuration *config,

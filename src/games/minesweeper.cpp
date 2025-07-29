@@ -47,16 +47,10 @@ Configuration *assemble_minesweeper_configuration()
         // Initialize the first config option: game gridsize
         ConfigurationValue *mines_count = static_cast<ConfigurationValue *>(
             malloc(2 * sizeof(ConfigurationValue)));
-        mines_count->type = ConfigurationOptionType::INT,
         mines_count->name = "Number of mines";
-        mines_count->available_values_len = 3;
-        int *available_mine_counts = new int[mines_count->available_values_len];
-        available_mine_counts[0] = 10;
-        available_mine_counts[1] = 15;
-        available_mine_counts[2] = 25;
-        mines_count->available_values = available_mine_counts;
+        std::vector<int> available_values = {10, 15, 25};
+        populate_int_option_values(mines_count, available_values);
         mines_count->currently_selected = 1;
-        mines_count->max_config_option_len = 2;
 
         config->config_values_len = 1;
         config->current_config_value = 0;

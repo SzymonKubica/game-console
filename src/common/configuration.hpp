@@ -116,3 +116,10 @@ int find_max_config_option_value_text_length(Configuration *config);
  */
 void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                          Color accent_color = DarkBlue);
+
+void populate_int_option_values(ConfigurationValue *value,
+                                std::vector<int> available_values);
+void populate_string_option_values(ConfigurationValue *value,
+                                std::vector<const char*> available_values);
+void populate_color_option_values(ConfigurationValue *value,
+                                std::vector<Color> available_values);

@@ -1,7 +1,8 @@
 #pragma once
 #include "game_executor.hpp"
 
-void enter_minesweeper_loop(Platform *platform, GameCustomization *customization);
+void enter_minesweeper_loop(Platform *platform,
+                            GameCustomization *customization);
 
 class Minesweeper : public GameExecutor
 {

@@ -1,4 +1,3 @@
-#include "../common/platform/interface/color.hpp"
 #include "../common/platform/interface/platform.hpp"
 
 typedef enum Game {
