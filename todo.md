@@ -2,15 +2,15 @@
 
 - [_] figure out how to generate sudoku
 - [_] design the input model for sudoku
-- [_] design the input model for minesweeper
 - [_] think about the sudoku game logic
 - [_] add the font to the project resources to ensure portability
-
 - [_] document the gdb workflow
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
 - [_] add proper customization passing (not just extra parameter for accent color)
 - [_] add proper deallocation function for the config objects
+- [_] fix minesweeper rendering
+- [_] add proper non-deterministic randomness for the emulated minesweeper
 
 
 # Ideas
@@ -26,6 +26,8 @@
 
 
 # Done
+- [x] implement minesweeper
+- [x] design the input model for minesweeper
 - [x] refactor 2048 game logic
 - [x] finish the generic code for rendering the UI and replace the existing 2048 UI with it
 - [x] add platform context object to reduce the number of params for functions
