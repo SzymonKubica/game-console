@@ -15,7 +15,7 @@ Configuration *assemble_game_selection_configuration()
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {"2048", "Snake", "Sweeper"};
+        auto available_games = {"2048", "Sweeper"};
         populate_string_option_values(game, available_games);
         game->currently_selected = 0;
 

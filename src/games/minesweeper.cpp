@@ -531,7 +531,7 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
             actual_width + 2 * border_offset, actual_height + 2 * border_offset,
             Gray, border_width, false);
 
-        int text_below_grid_y = y_margin + actual_height + border_offset;
+        int text_below_grid_y = y_margin + actual_height + 2 * border_offset;
         int r = FONT_SIZE / 4;
         int d = 2 * r;
         int circle_y_axis = text_below_grid_y + FONT_SIZE / 2 + r / 4;
