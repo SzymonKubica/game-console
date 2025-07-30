@@ -29,9 +29,10 @@ void initialize_randomness_seed(int seed) { srand(seed); }
 static void handle_game_over(Display *display,
                              std::vector<DirectionalController *> *controllers,
                              GameState *state);
-static void handle_game_finished(Display *display,
-                                 std::vector<DirectionalController *> *controllers,
-                                 GameState *state);
+static void
+handle_game_finished(Display *display,
+                     std::vector<DirectionalController *> *controllers,
+                     GameState *state);
 static void collect_game_configuration(Platform *p,
                                        GameConfiguration *game_config,
                                        GameCustomization *customization);
@@ -52,7 +53,8 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
 
         while (!(is_game_over(state) || is_game_finished(state))) {
                 Direction dir;
-                if (directional_input_registered(p->directional_controllers, &dir)) {
+                if (directional_input_registered(p->directional_controllers,
+                                                 &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
                                   direction_to_str(dir))
                         take_turn(state, (int)dir);
@@ -70,9 +72,9 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
                 draw_game_won(p->display);
         }
 
-        pause_until_input(p->directional_controllers, p->delay_provider);
+        pause_until_any_directional_input(p->directional_controllers,
+                                          p->delay_provider);
 }
-
 
 /**
  * Assembles the generic configuration struct that is needed to collect user
@@ -672,4 +674,3 @@ static void str_replace(char *str, const char *oldWord, const char *newWord)
         }
         std::strcpy(str, wrapped_str.c_str());
 }
-

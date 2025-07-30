@@ -9,7 +9,6 @@
 - [_] maybe using gdb in neovim?
 - [_] add proper customization passing (not just extra parameter for accent color)
 - [_] add proper deallocation function for the config objects
-- [_] fix minesweeper rendering
 - [_] add proper non-deterministic randomness for the emulated minesweeper
 
 
@@ -26,6 +25,7 @@
 
 
 # Done
+- [x] fix minesweeper rendering
 - [x] implement minesweeper
 - [x] design the input model for minesweeper
 - [x] refactor 2048 game logic

@@ -6,8 +6,10 @@
 #include "../common/constants.hpp"
 
 #include "common_transitions.hpp"
+#include "minesweeper.hpp"
 
 #define TAG "minesweeper"
+
 
 typedef struct MinesweeperConfiguration {
         int mines_num;
@@ -72,7 +74,8 @@ uncover_grid_cell(Display *display, Point *grid_position,
                   int *total_uncovered);
 static void flag_grid_cell(Display *display, Point *grid_position,
                            MinesweeperGridDimensions *dimensions,
-                           std::vector<std::vector<MinesweeperGridCell>> *grid);
+                           std::vector<std::vector<MinesweeperGridCell>> *grid,
+                           GameCustomization *customization);
 static void
 unflag_grid_cell(Display *display, Point *grid_position,
                  MinesweeperGridDimensions *dimensions,
@@ -156,9 +159,9 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                         case Action::RED:
                                 if (!cell.is_uncovered) {
                                         if (!cell.is_flagged) {
-                                                flag_grid_cell(p->display,
-                                                               &caret_position,
-                                                               gd, &grid);
+                                                flag_grid_cell(
+                                                    p->display, &caret_position,
+                                                    gd, &grid, customization);
 
                                         } else {
                                                 unflag_grid_cell(
@@ -208,17 +211,17 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 }
                         }
                 }
-                pause_until_input(p->directional_controllers,
-                                  p->delay_provider);
+
+                pause_until_any_directional_input(p->directional_controllers,
+                                                  p->delay_provider);
                 draw_game_over(p->display);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         } else {
-                pause_until_input(p->directional_controllers,
-                                  p->delay_provider);
+                pause_until_any_directional_input(p->directional_controllers,
+                                                  p->delay_provider);
                 draw_game_won(p->display);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
-        pause_until_input(p->directional_controllers, p->delay_provider);
 }
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
@@ -349,8 +352,9 @@ void uncover_grid_cells_starting_from(
             (*grid)[grid_position->y][grid_position->x];
 
         if (!current_cell.is_bomb && current_cell.adjacent_bombs == 0) {
-                for (Point nb :
-                     *get_neighbours_inside_grid(grid_position, rows, cols)) {
+                auto *neighbours =
+                    get_neighbours_inside_grid(grid_position, rows, cols);
+                for (Point nb : *neighbours) {
                         MinesweeperGridCell neighbour_cell =
                             (*grid)[nb.y][nb.x];
 
@@ -361,12 +365,14 @@ void uncover_grid_cells_starting_from(
                                     total_uncovered);
                         }
                 }
+                delete neighbours;
         }
 }
 
 void flag_grid_cell(Display *display, Point *grid_position,
                     MinesweeperGridDimensions *dimensions,
-                    std::vector<std::vector<MinesweeperGridCell>> *grid)
+                    std::vector<std::vector<MinesweeperGridCell>> *grid,
+                    GameCustomization *customization)
 {
 
         (*grid)[grid_position->y][grid_position->x].is_flagged = true;
@@ -377,8 +383,8 @@ void flag_grid_cell(Display *display, Point *grid_position,
 
         char text[2];
         sprintf(text, "f");
-        display->draw_string(actual_position, text, FontSize::Size16, Black,
-                             White);
+        display->draw_string(actual_position, text, FontSize::Size16,
+                             customization->accent_color, White);
 }
 
 void unflag_grid_cell(Display *display, Point *grid_position,
@@ -393,8 +399,10 @@ void unflag_grid_cell(Display *display, Point *grid_position,
                                  .y = dimensions->top_vertical_margin +
                                       grid_position->y * FONT_SIZE};
 
-        display->draw_rectangle(actual_position, FONT_WIDTH, FONT_SIZE,
-                                grid_background_color, 0, true);
+        display->clear_region(actual_position,
+                              {.x = actual_position.x + FONT_WIDTH,
+                               .y = actual_position.y + FONT_SIZE},
+                              grid_background_color);
 }
 
 Configuration *assemble_minesweeper_configuration();
@@ -520,6 +528,7 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
            faster on the physical Arduino LCD display. */
         p->display->clear_region(
             {.x = x_margin - border_offset, .y = y_margin - border_offset},
-            {.x = x_margin + actual_width + border_offset, .y = y_margin +actual_height + border_offset},
+            {.x = x_margin + actual_width + border_offset,
+             .y = y_margin + actual_height + border_offset},
             customization->accent_color);
 }

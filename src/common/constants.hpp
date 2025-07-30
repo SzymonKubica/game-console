@@ -20,6 +20,15 @@
 
 /* Constants below control time intervals between input polling */
 #define INPUT_POLLING_DELAY 50
+
+#ifdef EMULATOR
+// On the emulator we are using the keyboard which is faster than the keypad
+// buttons on the Arduino input shield, because of this we can afford a shorter
+// timeout to make the experience more snappy.
 #define MOVE_REGISTERED_DELAY 100
+#endif
+#ifndef EMULATOR
+#define MOVE_REGISTERED_DELAY 150
+#endif
 
 
