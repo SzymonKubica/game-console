@@ -45,8 +45,8 @@ extern const char *log_level_strings[];
         do {                                                                   \
                 if (LEVEL_ENABLED(level)) {                                    \
                         char buffer[400];                                      \
-                        sprintf(buffer, "%s: [%s] %s:%d: " format "\n", tag, log_level_strings[level], __FUNCTION__, __LINE__, ##__VA_ARGS__);                         \
-                        Serial.print(buffer);                                \
+                        sprintf(buffer, "%s: [%s] %s:%d: " format , tag, log_level_strings[level], __FUNCTION__, __LINE__, ##__VA_ARGS__);                         \
+                        Serial.println(buffer);                                \
                 }                                                              \
         } while (0);
 #endif

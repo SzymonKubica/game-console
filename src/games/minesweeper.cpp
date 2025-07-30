@@ -54,41 +54,9 @@ static void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
 
 static void erase_caret(Display *display, Point *grid_position,
                         MinesweeperGridDimensions *dimensions,
-                        Color grid_background_color)
-{
-        // We need to ensure that the caret is rendered INSIDE the text cell
-        // and its border doesn't overlap the neighbouring cells. Otherwise,
-        // we'll get weird rendering artifacts.
-        int border_offset = 1;
-        Point actual_position = {
-            .x = dimensions->left_horizontal_margin +
-                 grid_position->x * FONT_WIDTH + border_offset,
-            .y = dimensions->top_vertical_margin +
-                 grid_position->y * FONT_SIZE + border_offset};
-
-        display->draw_rectangle(actual_position, FONT_WIDTH - 2 * border_offset,
-                                FONT_SIZE - 2 * border_offset,
-                                grid_background_color, 1, false);
-}
-
+                        Color grid_background_color);
 static void draw_caret(Display *display, Point *grid_position,
-                       MinesweeperGridDimensions *dimensions)
-{
-
-        // We need to ensure that the caret is rendered INSIDE the text cell
-        // and its border doesn't overlap the neighbouring cells. Otherwise,
-        // we'll get weird rendering artifacts.
-        int border_offset = 1;
-        Point actual_position = {
-            .x = dimensions->left_horizontal_margin +
-                 grid_position->x * FONT_WIDTH + border_offset,
-            .y = dimensions->top_vertical_margin +
-                 grid_position->y * FONT_SIZE + border_offset};
-
-        display->draw_rectangle(actual_position, FONT_WIDTH - 2 * border_offset,
-                                FONT_SIZE - 2 * border_offset, White, 1, false);
-}
-
+                       MinesweeperGridDimensions *dimensions);
 /**
  * Performs a recursive uncovering waterfall: tries to uncover the current
  * cell, if the cell has 0 adjacent mines it uncovers all of its neighbours.
@@ -127,13 +95,14 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         int cols = gd->cols;
 
         draw_game_canvas(p, gd, customization);
+        LOG_DEBUG(TAG, "Minesweeper game canvas drawn.");
 
         p->display->refresh();
 
         std::vector<std::vector<MinesweeperGridCell>> grid(
             rows, std::vector<MinesweeperGridCell>(cols));
 
-        //place_bombs(&grid, config.mines_num);
+        // place_bombs(&grid, config.mines_num);
 
         Point caret_position = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_position, gd);
@@ -275,6 +244,43 @@ void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                         }
                 }
         }
+}
+
+void erase_caret(Display *display, Point *grid_position,
+                 MinesweeperGridDimensions *dimensions,
+                 Color grid_background_color)
+{
+        // We need to ensure that the caret is rendered INSIDE the text cell
+        // and its border doesn't overlap the neighbouring cells. Otherwise,
+        // we'll get weird rendering artifacts.
+        int border_offset = 1;
+        Point actual_position = {
+            .x = dimensions->left_horizontal_margin +
+                 grid_position->x * FONT_WIDTH + border_offset,
+            .y = dimensions->top_vertical_margin +
+                 grid_position->y * FONT_SIZE + border_offset};
+
+        display->draw_rectangle(actual_position, FONT_WIDTH - 2 * border_offset,
+                                FONT_SIZE - 2 * border_offset,
+                                grid_background_color, 1, false);
+}
+
+void draw_caret(Display *display, Point *grid_position,
+                MinesweeperGridDimensions *dimensions)
+{
+
+        // We need to ensure that the caret is rendered INSIDE the text cell
+        // and its border doesn't overlap the neighbouring cells. Otherwise,
+        // we'll get weird rendering artifacts.
+        int border_offset = 1;
+        Point actual_position = {
+            .x = dimensions->left_horizontal_margin +
+                 grid_position->x * FONT_WIDTH + border_offset,
+            .y = dimensions->top_vertical_margin +
+                 grid_position->y * FONT_SIZE + border_offset};
+
+        display->draw_rectangle(actual_position, FONT_WIDTH - 2 * border_offset,
+                                FONT_SIZE - 2 * border_offset, White, 1, false);
 }
 void uncover_grid_cell(Display *display, Point *grid_position,
                        MinesweeperGridDimensions *dimensions,

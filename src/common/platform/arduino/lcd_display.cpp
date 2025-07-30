@@ -116,7 +116,7 @@ void LcdDisplay::draw_rectangle(Point start, int width, int height, Color color,
 {
 
         int filled_repr = filled ? DRAW_FILL_FULL : DRAW_FILL_EMPTY;
-        Paint_DrawRectangle(start.x, start.y, start.x + width, start.y, color,
+        Paint_DrawRectangle(start.x, start.y, start.x + width, start.y + height, color,
                             static_cast<DOT_PIXEL>(border_width),
                             static_cast<DRAW_FILL>(filled_repr));
 };
