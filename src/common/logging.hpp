@@ -27,12 +27,29 @@ extern const char *log_level_strings[];
 #define LEVEL_ENABLED(level)                                                   \
         (level <= LOG_BUILD_LEVEL && level <= log_run_level)
 
+#ifdef EMULATOR
 #define LOG(tag, level, format, ...)                                           \
         do {                                                                   \
                 if (LEVEL_ENABLED(level)) {                                    \
                         printf("%s: [%s] %s:%d: " format "\n", tag, log_level_strings[level], __FUNCTION__, __LINE__, ##__VA_ARGS__);                         \
                 }                                                              \
         } while (0);
+#endif
+
+
+
+#ifndef EMULATOR
+// We need the arduino header for Serial.println.
+#include "Arduino.h"
+#define LOG(tag, level, format, ...)                                           \
+        do {                                                                   \
+                if (LEVEL_ENABLED(level)) {                                    \
+                        char buffer[400];                                      \
+                        sprintf(buffer, "%s: [%s] %s:%d: " format "\n", tag, log_level_strings[level], __FUNCTION__, __LINE__, ##__VA_ARGS__);                         \
+                        Serial.print(buffer);                                \
+                }                                                              \
+        } while (0);
+#endif
 
 #define LOG_INFO(tag, format, ...) LOG(tag, LOG_LVL_INFO, format, ##__VA_ARGS__)
 #define LOG_ERROR(tag, format, ...)                                            \

@@ -36,10 +36,12 @@ void setup(void)
         // Todo: move this to some randomness provider as it is not specific
         // to the 2048 game.
         initialize_randomness_seed(analogRead(0));
+
 }
 
 void loop(void)
 {
+        Serial.println("Game console started.");
         std::vector<DirectionalController *> controllers(1);
         controllers[0] = joystick_controller;
 

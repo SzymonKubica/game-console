@@ -133,7 +133,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<MinesweeperGridCell>> grid(
             rows, std::vector<MinesweeperGridCell>(cols));
 
-        place_bombs(&grid, config.mines_num);
+        //place_bombs(&grid, config.mines_num);
 
         Point caret_position = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_position, gd);
