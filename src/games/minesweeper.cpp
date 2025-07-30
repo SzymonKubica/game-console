@@ -10,7 +10,6 @@
 
 #define TAG "minesweeper"
 
-
 typedef struct MinesweeperConfiguration {
         int mines_num;
 } MinesweeperConfiguration;
@@ -519,11 +518,6 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
         // partially)
         int border_offset = 1;
 
-        p->display->draw_rectangle(
-            {.x = x_margin - border_offset, .y = y_margin - border_offset},
-            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
-            Gray, border_width, false);
-
         /* We don't draw the individual rectangles to make rendering
            faster on the physical Arduino LCD display. */
         p->display->clear_region(
@@ -531,4 +525,40 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
             {.x = x_margin + actual_width + border_offset,
              .y = y_margin + actual_height + border_offset},
             customization->accent_color);
+
+        p->display->draw_rectangle(
+            {.x = x_margin - border_offset, .y = y_margin - border_offset},
+            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
+            Gray, border_width, false);
+
+        int text_below_grid_y = y_margin + actual_height + border_offset;
+        int r = FONT_SIZE / 4;
+        int d = 2 * r;
+        int circle_y_axis = text_below_grid_y + FONT_SIZE / 2 + r / 4;
+        const char *select = "Select";
+        int select_len = strlen(select) * FONT_WIDTH;
+        const char *flag = "Flag";
+        int flag_len = strlen(flag) * FONT_WIDTH;
+        // We calculate the even spacing for the two indicators
+        int circles_width = 2 * d;
+        int total_width =
+            select_len + flag_len + circles_width;
+        int available_width = p->display->get_width() - 2 * x_margin;
+        int remainder_space = available_width - total_width;
+        int even_separator = remainder_space / 3;
+
+        int green_circle_x = x_margin + even_separator;
+        p->display->draw_circle({.x = green_circle_x, .y = circle_y_axis}, r,
+                                Green, 0, true);
+
+        int select_text_x = green_circle_x + d;
+        p->display->draw_string({.x = select_text_x, .y = text_below_grid_y},
+                                (char *)select, FontSize::Size16, Black, White);
+
+        int flag_red_circle_x = select_text_x + select_len + even_separator;
+        p->display->draw_circle({.x = flag_red_circle_x, .y = circle_y_axis}, r,
+                                Red, 0, true);
+        int flag_text_x = flag_red_circle_x + d;
+        p->display->draw_string({.x = flag_text_x, .y = text_below_grid_y},
+                                (char *)flag, FontSize::Size16, Black, White);
 }
