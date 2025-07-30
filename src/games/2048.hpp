@@ -2,6 +2,9 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
+
+#include "common_transitions.hpp"
+#include "../common/logging.hpp"
 #include "game_executor.hpp"
 
 typedef struct GameConfiguration {
@@ -46,7 +49,19 @@ class Clean2048 : public GameExecutor
         void enter_game_loop(Platform *p,
                              GameCustomization *customization) override
         {
-                enter_2048_loop(p, customization);
+                while (true) {
+                        enter_2048_loop(p, customization);
+                        Direction dir;
+                        Action act;
+                        pause_until_input(p->directional_controllers,
+                                          p->action_controllers, &dir, &act,
+                                          p->delay_provider);
+
+                        if (act == Action::BLUE) {
+                                LOG_DEBUG("2048", "Exiting 2048 game loop.")
+                                break;
+                        }
+                }
         }
 
         Clean2048() {}
