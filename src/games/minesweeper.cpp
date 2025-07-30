@@ -102,10 +102,11 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<MinesweeperGridCell>> grid(
             rows, std::vector<MinesweeperGridCell>(cols));
 
-        // place_bombs(&grid, config.mines_num);
+        place_bombs(&grid, config.mines_num);
 
         Point caret_position = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_position, gd);
+        LOG_DEBUG(TAG, "Caret rendered at initial position.");
 
         int total_uncovered = 0;
 
@@ -517,8 +518,8 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
 
         /* We don't draw the individual rectangles to make rendering
            faster on the physical Arduino LCD display. */
-        p->display->draw_rectangle(
+        p->display->clear_region(
             {.x = x_margin - border_offset, .y = y_margin - border_offset},
-            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
-            customization->accent_color, 0, true);
+            {.x = x_margin + actual_width + border_offset, .y = y_margin +actual_height + border_offset},
+            customization->accent_color);
 }

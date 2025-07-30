@@ -46,7 +46,7 @@ void loop(void)
         controllers[0] = joystick_controller;
 
         std::vector<ActionController *> action_controllers(1);
-        action_controllers[1] = keypad_controller;
+        action_controllers[0] = keypad_controller;
 
         DelayProvider *delay_provider = new ArduinoDelay((void (*)(int))&delay);
 
