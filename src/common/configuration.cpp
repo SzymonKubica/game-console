@@ -219,10 +219,14 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                            i.e. the 'confirmation cell' pressing right
                            on it confirms the selected config and
                            breaks out of the config collection loop. */
-                        if (confirmation_bar_selected && dir == RIGHT) {
+                        if (confirmation_bar_selected) {
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
-                                break;
+                                if (dir == RIGHT) {
+                                        break;
+                                } else {
+                                        continue;
+                                }
                         }
 
                         switch (dir) {
