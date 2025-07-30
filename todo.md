@@ -13,8 +13,6 @@
 
 
 # Ideas
-- make the top part with the game name editable. Upon changing the game, the other
-  config bars should be redrawn
 - save high score in some arduino persistent memory (EEPROM is for that and 8kB
   should be plenty.)
 - games that can be implemented with the limited display:
@@ -22,6 +20,8 @@
   - sudoku (assuming we can fit 9x9 grid)
   - game of life (controlling the input and pausing / playing the simulation could be fun)
   - some fun animations
+- we can add compatibility layer for raspberry pi and make a controller that will be embedded
+  into my desk at home / control the game via ssh.
 
 
 # Done
