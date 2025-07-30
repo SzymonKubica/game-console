@@ -224,7 +224,8 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                     MOVE_REGISTERED_DELAY);
                                 if (dir == RIGHT) {
                                         break;
-                                } else {
+                                }
+                                if (dir == LEFT){
                                         continue;
                                 }
                         }
