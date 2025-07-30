@@ -210,10 +210,11 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                 Direction dir;
                 // We get a fresh, empty diff during each iteration to avoid
                 // option value text rerendering when they are not modified.
-                ConfigurationDiff *diff = empty_diff();
                 bool confirmation_bar_selected =
                     config->curr_selected_option == config->options_len;
-                if (directional_input_registered(p->directional_controllers, &dir)) {
+                if (directional_input_registered(p->directional_controllers,
+                                                 &dir)) {
+                        ConfigurationDiff *diff = empty_diff();
                         /* When the user selects the last config bar,
                            i.e. the 'confirmation cell' pressing right
                            on it confirms the selected config and
