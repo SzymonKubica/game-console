@@ -142,6 +142,18 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 // caret overlaps with them.
                                 uncover_grid_cell(p->display, &caret_position,
                                                   gd, &grid, &total_uncovered);
+                        } else if (grid[caret_position.y][caret_position.x]
+                                       .is_flagged) {
+                                erase_caret(p->display, &caret_position, gd,
+                                            customization->accent_color);
+                                // We need to unflag and flag the cell again to
+                                // ensure that the flag indicator doesn't get
+                                // cropped after the caret overlaps with them.
+                                unflag_grid_cell(p->display, &caret_position,
+                                                 gd, &grid,
+                                                 customization->accent_color);
+                                flag_grid_cell(p->display, &caret_position, gd,
+                                               &grid, customization);
                         } else {
                                 erase_caret(p->display, &caret_position, gd,
                                             customization->accent_color);
@@ -151,9 +163,9 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                         draw_caret(p->display, &caret_position, gd);
 
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                        /* We continue here to skip the additional input polling
-                           delay at the end of the loop and make the input
-                           snappy. */
+                        /* We continue here to skip the additional input
+                           polling delay at the end of the loop and make
+                           the input snappy. */
                         continue;
                 }
                 if (action_input_registered(p->action_controllers, &act)) {
@@ -182,10 +194,11 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 }
                                 break;
                         case Action::GREEN:
-                                /* We place bombs only after the first cell
-                                   is uncovered. This is done to avoid the
-                                   situation where the first cell is a bomb and
-                                   we are getting an instant game-over. */
+                                /* We place bombs only after the first
+                                   cell is uncovered. This is done to
+                                   avoid the situation where the first
+                                   cell is a bomb and we are getting an
+                                   instant game-over. */
                                 if (!bombs_placed) {
                                         place_bombs(&grid, config.mines_num,
                                                     &caret_position);
@@ -207,9 +220,9 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 break;
                         }
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                        /* We continue here to skip the additional input polling
-                           delay at the end of the loop and make the input
-                           snappy. */
+                        /* We continue here to skip the additional input
+                           polling delay at the end of the loop and make
+                           the input snappy. */
                         continue;
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
@@ -275,9 +288,9 @@ void erase_caret(Display *display, Point *grid_position,
                  MinesweeperGridDimensions *dimensions,
                  Color grid_background_color)
 {
-        // We need to ensure that the caret is rendered INSIDE the text cell
-        // and its border doesn't overlap the neighbouring cells. Otherwise,
-        // we'll get weird rendering artifacts.
+        // We need to ensure that the caret is rendered INSIDE the text
+        // cell and its border doesn't overlap the neighbouring cells.
+        // Otherwise, we'll get weird rendering artifacts.
         int border_offset = 1;
         Point actual_position = {
             .x = dimensions->left_horizontal_margin +
@@ -294,9 +307,9 @@ void draw_caret(Display *display, Point *grid_position,
                 MinesweeperGridDimensions *dimensions)
 {
 
-        // We need to ensure that the caret is rendered INSIDE the text cell
-        // and its border doesn't overlap the neighbouring cells. Otherwise,
-        // we'll get weird rendering artifacts.
+        // We need to ensure that the caret is rendered INSIDE the text
+        // cell and its border doesn't overlap the neighbouring cells.
+        // Otherwise, we'll get weird rendering artifacts.
         int border_offset = 1;
         Point actual_position = {
             .x = dimensions->left_horizontal_margin +
@@ -321,8 +334,8 @@ void uncover_grid_cell(Display *display, Point *grid_position,
         char text[2];
 
         MinesweeperGridCell cell = (*grid)[grid_position->y][grid_position->x];
-        // We need this check as we 're-uncover' cells after the caret passes
-        // over them to remove rendering overlap artifacts.
+        // We need this check as we 're-uncover' cells after the caret
+        // passes over them to remove rendering overlap artifacts.
         if (!cell.is_uncovered) {
                 (*total_uncovered)++;
                 (*grid)[grid_position->y][grid_position->x].is_uncovered = true;
@@ -334,8 +347,9 @@ void uncover_grid_cell(Display *display, Point *grid_position,
                 sprintf(text, " ");
         } else {
                 sprintf(text, "%d", cell.adjacent_bombs);
-                /* We override the rendering color depending on the number of
-                   bombs around the cell to make it easier to read the UI. */
+                /* We override the rendering color depending on the
+                   number of bombs around the cell to make it easier to
+                   read the UI. */
                 switch (cell.adjacent_bombs) {
                 case 1:
                         text_color = Cyan;
@@ -402,10 +416,20 @@ void flag_grid_cell(Display *display, Point *grid_position,
                                  .y = dimensions->top_vertical_margin +
                                       grid_position->y * FONT_SIZE};
 
-        char text[2];
-        sprintf(text, "f");
-        display->draw_string(actual_position, text, FontSize::Size16,
-                             customization->accent_color, White);
+        {
+
+                char text[2];
+                sprintf(text, "f");
+                display->draw_string(actual_position, text, FontSize::Size16,
+                                     customization->accent_color, White);
+        }
+        if (false) {
+
+                char text[2];
+                sprintf(text, "*");
+                display->draw_string(actual_position, text, FontSize::Size16,
+                                     customization->accent_color, White);
+        }
 }
 
 void unflag_grid_cell(Display *display, Point *grid_position,
