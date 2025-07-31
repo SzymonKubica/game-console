@@ -1,4 +1,5 @@
 #include "point.hpp"
+#include "stdlib.h"
 #include "platform/interface/input.hpp"
 
 void translate(Point *p, Direction dir)
@@ -75,4 +76,9 @@ std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
                 neighbours->push_back({.x = p.x + 1, .y = p.y - 1});
 
         return neighbours;
+}
+
+
+bool is_adjacent(Point *p1, Point *p2) {
+  return (abs(p1->x - p2->x) <= 1 && abs(p1->y - p2->y) <= 1);
 }

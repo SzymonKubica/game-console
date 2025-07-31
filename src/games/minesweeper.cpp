@@ -81,8 +81,8 @@ unflag_grid_cell(Display *display, Point *grid_position,
                  std::vector<std::vector<MinesweeperGridCell>> *grid,
                  Color grid_background_color);
 
-static void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
-                        int bomb_number);
+void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
+                 int bomb_number, Point *caret_position);
 void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
@@ -104,7 +104,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<MinesweeperGridCell>> grid(
             rows, std::vector<MinesweeperGridCell>(cols));
 
-        place_bombs(&grid, config.mines_num);
+        bool bombs_placed = false;
 
         Point caret_position = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_position, gd);
@@ -121,6 +121,14 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                                  &dir)) {
                         LOG_DEBUG(TAG, "Directional input received: %s",
                                   direction_to_str(dir));
+
+                        if (!bombs_placed) {
+                                /* Before the bombs are placed, we spin the
+                                   random number generator to ensure that we
+                                   don't generate the same grid every time we
+                                   start the game console. */
+                                srand(rand());
+                        }
 
                         /* Once the cells become uncovered, the background is
                         set to black. Because of this, we need to change the
@@ -174,6 +182,16 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                                 }
                                 break;
                         case Action::GREEN:
+                                /* We place bombs only after the first cell
+                                   is uncovered. This is done to avoid the
+                                   situation where the first cell is a bomb and
+                                   we are getting an instant game-over. */
+                                if (!bombs_placed) {
+                                        place_bombs(&grid, config.mines_num,
+                                                    &caret_position);
+                                        bombs_placed = true;
+                                        LOG_DEBUG(TAG, "Bombs placed.");
+                                }
                                 if (cell.is_bomb) {
                                         is_game_over = true;
                                 }
@@ -224,7 +242,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 }
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
-                 int bomb_number)
+                 int bomb_number, Point *caret_position)
 {
         int rows = grid->size();
         int cols = (*grid->begin().base()).size();
@@ -233,7 +251,11 @@ void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                         int x = rand() % cols;
                         int y = rand() % rows;
 
-                        if (!(*grid)[y][x].is_bomb) {
+                        Point random_position = {.x = x, .y = y};
+
+                        bool is_close_to_caret =
+                            is_adjacent(caret_position, &random_position);
+                        if (!(*grid)[y][x].is_bomb && !is_close_to_caret) {
                                 (*grid)[y][x].is_bomb = true;
                                 (*grid)[y][x].adjacent_bombs = 0;
 
@@ -541,8 +563,7 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
         int flag_len = strlen(flag) * FONT_WIDTH;
         // We calculate the even spacing for the two indicators
         int circles_width = 2 * d;
-        int total_width =
-            select_len + flag_len + circles_width;
+        int total_width = select_len + flag_len + circles_width;
         int available_width = p->display->get_width() - 2 * x_margin;
         int remainder_space = available_width - total_width;
         int even_separator = remainder_space / 3;
