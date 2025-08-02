@@ -454,7 +454,6 @@ void unflag_grid_cell(Display *display, Point *grid_position,
 }
 
 Configuration *assemble_minesweeper_configuration();
-void free_minesweeper_configuration(Configuration *config);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
@@ -466,7 +465,7 @@ void collect_game_configuration(Platform *p,
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
-        free_minesweeper_configuration(config);
+        free_configuration(config);
 }
 
 Configuration *assemble_minesweeper_configuration()
@@ -487,16 +486,6 @@ Configuration *assemble_minesweeper_configuration()
         config->curr_selected_option = 0;
         config->confirmation_cell_text = "Start Game";
         return config;
-}
-
-void free_minesweeper_configuration(Configuration *config)
-{
-        for (int i = 0; i < config->options_len; i++) {
-                ConfigurationOption *option = config->options[i];
-                free(option->available_values);
-                delete config->options[i];
-        }
-        delete config;
 }
 
 void extract_game_config(MinesweeperConfiguration *game_config,

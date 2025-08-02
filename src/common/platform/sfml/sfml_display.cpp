@@ -266,8 +266,8 @@ sf::Color map_to_sf_color(Color color)
                 return sf::Color::Blue;
         case BRed:
                 return sf::Color::Magenta;
-        case GRed:
-                return sf::Color::Red;
+        case Yellow:
+                return sf::Color::Yellow;
         case Gblue:
                 return sf::Color::Blue;
         case Red:

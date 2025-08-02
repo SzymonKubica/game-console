@@ -3,7 +3,13 @@
 
 #define FONT_SIZE 16
 #define HEADING_FONT_SIZE 24
+
+#ifdef EMULATOR
+#define HEADING_FONT_WIDTH 15
+#endif
+#ifndef EMULATOR
 #define HEADING_FONT_WIDTH 17
+#endif
 
 // The font on the emulator is not pixel-accurate the same as what we
 // have on the actual hardware. Because of this we need this conditional
