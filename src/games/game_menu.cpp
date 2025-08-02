@@ -18,7 +18,7 @@ Configuration *assemble_game_selection_configuration()
         game->name = "Game";
         auto available_games = {"Sweeper", "2048", "Life"};
         populate_string_option_values(game, available_games);
-        game->currently_selected = 0;
+        game->currently_selected = 2;
 
         ConfigurationOption *accent_color = new ConfigurationOption();
         accent_color->name = "Accent color";

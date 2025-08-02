@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define TAG "game_of_life"
-#define GAME_CELL_WIDTH 4
+#define GAME_CELL_WIDTH 10
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -52,10 +52,12 @@ calculate_grid_dimensions(int display_width, int display_height,
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                       GameCustomization *customization);
 void draw_caret(Display *display, Point *grid_position,
-                GameOfLifeGridDimensions *dimensions);
+                GameOfLifeGridDimensions *dimensions, Color caret_color);
 void erase_caret(Display *display, Point *grid_position,
                  GameOfLifeGridDimensions *dimensions,
                  Color grid_background_color);
+void draw_game_cell(Display *display, Point *grid_position,
+                    GameOfLifeGridDimensions *dimensions, Color color);
 
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
@@ -75,7 +77,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         LOG_DEBUG(TAG, "Game of Life canvas drawn.");
 
         Point caret_position = {.x = 0, .y = 0};
-        draw_caret(p->display, &caret_position, gd);
+        draw_caret(p->display, &caret_position, gd,
+                   customization->accent_color);
 
         std::vector<std::vector<GameOfLifeCell>> grid(
             rows, std::vector<GameOfLifeCell>(cols));
@@ -83,9 +86,10 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         while (true) {
                 Direction dir;
                 Action act;
+                GameOfLifeCell curr = grid[caret_position.y][caret_position.x];
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
-                        if (grid[caret_position.y][caret_position.x] == EMPTY) {
+                        if (curr == EMPTY) {
                                 erase_caret(p->display, &caret_position, gd,
                                             Black);
                         } else if (grid[caret_position.y][caret_position.x] ==
@@ -95,13 +99,45 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                         }
                         translate_within_bounds(&caret_position, dir, gd->rows,
                                                 gd->cols);
-                        draw_caret(p->display, &caret_position, gd);
+                        draw_caret(p->display, &caret_position, gd,
+                                   customization->accent_color);
 
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                         /* We continue here to skip the additional input
                            polling delay at the end of the loop and make
                            the input snappy. */
                         continue;
+                }
+                if (action_input_registered(p->action_controllers, &act)) {
+                        switch (act) {
+                        case YELLOW:
+                                break;
+                        case RED:
+                                break;
+                        case BLUE:
+                                break;
+                        case GREEN:
+                                Color new_cell_color;
+                                if (curr == EMPTY) {
+                                        grid[caret_position.y]
+                                            [caret_position.x] = ALIVE;
+                                        new_cell_color = White;
+                                } else if (curr == ALIVE) {
+                                        grid[caret_position.y]
+                                            [caret_position.x] = EMPTY;
+                                        new_cell_color = Black;
+                                }
+                                draw_game_cell(p->display, &caret_position, gd,
+                                               new_cell_color);
+                                // we need to redraw the caret as we have just
+                                // drawn a cell by clearing the region
+                                draw_caret(p->display, &caret_position, gd,
+                                           customization->accent_color);
+
+                                break;
+                        }
+                        // When drawing the cell we need to wait longer
+                        p->delay_provider->delay_ms(3* MOVE_REGISTERED_DELAY);
                 }
         }
 }
@@ -203,7 +239,7 @@ calculate_grid_dimensions(int display_width, int display_height,
 }
 
 void draw_caret(Display *display, Point *grid_position,
-                GameOfLifeGridDimensions *dimensions)
+                GameOfLifeGridDimensions *dimensions, Color caret_color)
 {
 
         // We need to ensure that the caret is rendered INSIDE the text
@@ -218,7 +254,21 @@ void draw_caret(Display *display, Point *grid_position,
 
         display->draw_rectangle(
             actual_position, GAME_CELL_WIDTH - 2 * border_offset,
-            GAME_CELL_WIDTH - 2 * border_offset, White, 1, false);
+            GAME_CELL_WIDTH - 2 * border_offset, caret_color, 1, false);
+}
+
+void draw_game_cell(Display *display, Point *grid_position,
+                    GameOfLifeGridDimensions *dimensions, Color color)
+{
+        Point actual_position = {.x = dimensions->left_horizontal_margin +
+                                      grid_position->x * GAME_CELL_WIDTH,
+                                 .y = dimensions->top_vertical_margin +
+                                      grid_position->y * GAME_CELL_WIDTH};
+
+        display->clear_region(actual_position,
+                              {.x = actual_position.x + GAME_CELL_WIDTH,
+                               .y = actual_position.y + GAME_CELL_WIDTH},
+                              color);
 }
 
 void erase_caret(Display *display, Point *grid_position,
@@ -317,7 +367,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         int text_above_grid_y =
             y_margin - border_offset - FONT_SIZE - text_grid_spacing;
         int circle_y_axis_above_grid =
-            text_above_grid_y + (FONT_SIZE / 2 + r / 4);
+            text_above_grid_y + (FONT_SIZE / 2 + r / 2);
 
         const char *toggle = "Rewind mode on/off";
         int toggle_len = strlen(toggle) * FONT_WIDTH;
