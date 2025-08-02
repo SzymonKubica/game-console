@@ -188,6 +188,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
             actual_width + 2 * border_offset, actual_height + 2 * border_offset,
             customization->accent_color, border_width, false);
 
+        /* Rendering of help indicators below the grid */
         int text_below_grid_y = y_margin + actual_height + 2 * border_offset;
         int r = FONT_SIZE / 4;
         int d = 2 * r;
@@ -197,7 +198,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         const char *exit = "Exit";
         int exit_len = strlen(exit) * FONT_WIDTH;
         const char *pause = "Pause";
-        int pause_len = strlen(exit) * FONT_WIDTH;
+        int pause_len = strlen(pause) * FONT_WIDTH;
         // We calculate the even spacing for the two indicators
         int explanations_num = 3;
         int circles_width = explanations_num * d;
@@ -206,7 +207,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                           (explanations_num - 1) * text_circle_spacing_width;
         int available_width = p->display->get_width() - 2 * x_margin;
         int remainder_space = available_width - total_width;
-        int even_separator = remainder_space / (explanations_num + 1);
+        int even_separator = remainder_space / explanations_num;
 
         int green_circle_x = x_margin + even_separator;
         p->display->draw_circle({.x = green_circle_x, .y = circle_y_axis}, r,
@@ -229,4 +230,24 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         int exit_text_x = red_circle_x + d;
         p->display->draw_string({.x = exit_text_x, .y = text_below_grid_y},
                                 (char *)exit, FontSize::Size16, Black, White);
+
+        /* Rendering of help indicators above the grid */
+        int text_grid_spacing = 4;
+        int text_above_grid_y = y_margin - border_offset - FONT_SIZE - text_grid_spacing;
+        int circle_y_axis_above_grid =
+            text_above_grid_y + (FONT_SIZE / 2 + r / 4);
+
+        const char *toggle = "Rewind mode on/off";
+        int toggle_len = strlen(toggle) * FONT_WIDTH;
+
+        int total_width_above_grid = toggle_len + d + text_circle_spacing_width;
+        int centering_margin = (available_width - total_width_above_grid) / 2;
+
+        int blue_circle_x = x_margin + centering_margin;
+        p->display->draw_circle(
+            {.x = blue_circle_x, .y = circle_y_axis_above_grid}, r, DarkBlue, 0,
+            true);
+        int toggle_text_x = blue_circle_x + d;
+        p->display->draw_string({.x = toggle_text_x, .y = text_above_grid_y},
+                                (char *)toggle, FontSize::Size16, Black, White);
 }
