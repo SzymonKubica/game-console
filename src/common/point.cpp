@@ -78,7 +78,7 @@ std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
         return neighbours;
 }
 
-
-bool is_adjacent(Point *p1, Point *p2) {
-  return (abs(p1->x - p2->x) <= 1 && abs(p1->y - p2->y) <= 1);
+bool is_adjacent(Point *p1, Point *p2)
+{
+        return (abs(p1->x - p2->x) <= 1 && abs(p1->y - p2->y) <= 1);
 }

@@ -5,6 +5,7 @@
 #include "../common/platform/interface/color.hpp"
 #include "2048.hpp"
 #include "minesweeper.hpp"
+#include "game_of_life.hpp"
 
 #define TAG "game_menu"
 
@@ -15,7 +16,7 @@ Configuration *assemble_game_selection_configuration()
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {"2048", "Sweeper"};
+        auto available_games = {"Sweeper", "2048", "Life"};
         populate_string_option_values(game, available_games);
         game->currently_selected = 0;
 
@@ -77,6 +78,9 @@ void select_game(Platform *p)
         case Minesweeper:
                 (new class Minesweeper())->enter_game_loop(p, &customization);
                 break;
+        case GameOfLife:
+                (new class GameOfLife())->enter_game_loop(p, &customization);
+                break;
         }
 }
 
@@ -90,6 +94,10 @@ Game map_game_from_str(const char *name)
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::Minesweeper;
+        } else if (strcmp(name, "Life") == 0) {
+                // We need to use a shorter name here because of rendering
+                // constraints (arduino font is wider and doesn't fit nicely)
+                return Game::GameOfLife;
         }
 
         return Game::Unknown;

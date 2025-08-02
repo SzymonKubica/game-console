@@ -199,6 +199,18 @@ int find_max_color_str_length(std::vector<Color> colors)
         return max_len;
 }
 
+void free_configuration(Configuration *config)
+{
+        for (int i = 0; i < config->options_len; i++) {
+                ConfigurationOption *option = config->options[i];
+                free(option->available_values);
+                delete config->options[i];
+        }
+        delete config;
+}
+
+
+
 void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                          Color accent_color)
 {

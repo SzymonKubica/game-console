@@ -130,3 +130,6 @@ void populate_string_option_values(ConfigurationOption *value,
                                    std::vector<const char *> available_values);
 void populate_color_option_values(ConfigurationOption *value,
                                   std::vector<Color> available_values);
+
+
+void free_configuration(Configuration *config);
