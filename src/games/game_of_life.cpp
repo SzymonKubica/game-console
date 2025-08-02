@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define TAG "game_of_life"
-#define GAME_CELL_WIDTH 3
+#define GAME_CELL_WIDTH 4
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -33,6 +33,11 @@ typedef struct GameOfLifeGridDimensions {
         }
 } GameOfLifeGridDimensions;
 
+typedef enum GameOfLifeCell {
+        EMPTY = 0,
+        ALIVE = 1,
+} GameOfLifeCell;
+
 static void collect_game_configuration(Platform *p,
                                        GameOfLifeConfiguration *game_config,
                                        GameCustomization *customization);
@@ -46,6 +51,11 @@ calculate_grid_dimensions(int display_width, int display_height,
 
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                       GameCustomization *customization);
+void draw_caret(Display *display, Point *grid_position,
+                GameOfLifeGridDimensions *dimensions);
+void erase_caret(Display *display, Point *grid_position,
+                 GameOfLifeGridDimensions *dimensions,
+                 Color grid_background_color);
 
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
@@ -63,6 +73,37 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 
         draw_game_canvas(p, gd, customization);
         LOG_DEBUG(TAG, "Game of Life canvas drawn.");
+
+        Point caret_position = {.x = 0, .y = 0};
+        draw_caret(p->display, &caret_position, gd);
+
+        std::vector<std::vector<GameOfLifeCell>> grid(
+            rows, std::vector<GameOfLifeCell>(cols));
+
+        while (true) {
+                Direction dir;
+                Action act;
+                if (directional_input_registered(p->directional_controllers,
+                                                 &dir)) {
+                        if (grid[caret_position.y][caret_position.x] == EMPTY) {
+                                erase_caret(p->display, &caret_position, gd,
+                                            Black);
+                        } else if (grid[caret_position.y][caret_position.x] ==
+                                   ALIVE) {
+                                erase_caret(p->display, &caret_position, gd,
+                                            White);
+                        }
+                        translate_within_bounds(&caret_position, dir, gd->rows,
+                                                gd->cols);
+                        draw_caret(p->display, &caret_position, gd);
+
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                        /* We continue here to skip the additional input
+                           polling delay at the end of the loop and make
+                           the input snappy. */
+                        continue;
+                }
+        }
 }
 
 void collect_game_configuration(Platform *p,
@@ -161,6 +202,46 @@ calculate_grid_dimensions(int display_width, int display_height,
             actual_width, actual_height);
 }
 
+void draw_caret(Display *display, Point *grid_position,
+                GameOfLifeGridDimensions *dimensions)
+{
+
+        // We need to ensure that the caret is rendered INSIDE the text
+        // cell and its border doesn't overlap the neighbouring cells.
+        // Otherwise, we'll get weird rendering artifacts.
+        int border_offset = 1;
+        Point actual_position = {
+            .x = dimensions->left_horizontal_margin +
+                 grid_position->x * GAME_CELL_WIDTH + border_offset,
+            .y = dimensions->top_vertical_margin +
+                 grid_position->y * GAME_CELL_WIDTH + border_offset};
+
+        display->draw_rectangle(
+            actual_position, GAME_CELL_WIDTH - 2 * border_offset,
+            GAME_CELL_WIDTH - 2 * border_offset, White, 1, false);
+}
+
+void erase_caret(Display *display, Point *grid_position,
+                 GameOfLifeGridDimensions *dimensions,
+                 Color grid_background_color)
+{
+
+        // We need to ensure that the caret is rendered INSIDE the text
+        // cell and its border doesn't overlap the neighbouring cells.
+        // Otherwise, we'll get weird rendering artifacts.
+        int border_offset = 1;
+        Point actual_position = {
+            .x = dimensions->left_horizontal_margin +
+                 grid_position->x * GAME_CELL_WIDTH + border_offset,
+            .y = dimensions->top_vertical_margin +
+                 grid_position->y * GAME_CELL_WIDTH + border_offset};
+
+        display->draw_rectangle(actual_position,
+                                GAME_CELL_WIDTH - 2 * border_offset,
+                                GAME_CELL_WIDTH - 2 * border_offset,
+                                grid_background_color, 1, false);
+}
+
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                       GameCustomization *customization)
 
@@ -233,7 +314,8 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
 
         /* Rendering of help indicators above the grid */
         int text_grid_spacing = 4;
-        int text_above_grid_y = y_margin - border_offset - FONT_SIZE - text_grid_spacing;
+        int text_above_grid_y =
+            y_margin - border_offset - FONT_SIZE - text_grid_spacing;
         int circle_y_axis_above_grid =
             text_above_grid_y + (FONT_SIZE / 2 + r / 4);
 
