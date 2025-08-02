@@ -104,6 +104,9 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<MinesweeperGridCell>> grid(
             rows, std::vector<MinesweeperGridCell>(cols));
 
+        /* We only place bombs after the user selects the cell to uncover.
+           This avoids situations where the first selected cell is a bomb
+           and the game is immediately over without user's logical error. */
         bool bombs_placed = false;
 
         Point caret_position = {.x = 0, .y = 0};

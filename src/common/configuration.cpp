@@ -207,14 +207,38 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
         render_config_menu(p->display, config, diff, false, accent_color);
         free(diff);
         while (true) {
+                Action act;
                 Direction dir;
                 // We get a fresh, empty diff during each iteration to avoid
                 // option value text rerendering when they are not modified.
+                ConfigurationDiff *diff = empty_diff();
                 bool confirmation_bar_selected =
                     config->curr_selected_option == config->options_len;
+                if (action_input_registered(p->action_controllers, &act)) {
+                        /* To make the UI more intuitive, we also allow users to
+                        cycle configuration options and confirm final selection
+                        using the green button. This change was inspired by
+                        initial play testing by Tomek. */
+                        if (act == Action::GREEN) {
+                                if (confirmation_bar_selected) {
+                                        p->delay_provider->delay_ms(
+                                            MOVE_REGISTERED_DELAY);
+                                        break;
+                                } else {
+                                        increment_current_option_value(config,
+                                                                       diff);
+                                        render_config_menu(p->display, config,
+                                                           diff, true,
+                                                           accent_color);
+                                        free(diff);
+                                        p->delay_provider->delay_ms(
+                                            MOVE_REGISTERED_DELAY);
+                                        continue;
+                                }
+                        }
+                }
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
-                        ConfigurationDiff *diff = empty_diff();
                         /* When the user selects the last config bar,
                            i.e. the 'confirmation cell' pressing right
                            on it confirms the selected config and
@@ -225,7 +249,7 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                 if (dir == RIGHT) {
                                         break;
                                 }
-                                if (dir == LEFT){
+                                if (dir == LEFT) {
                                         continue;
                                 }
                         }
