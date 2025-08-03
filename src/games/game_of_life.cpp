@@ -7,8 +7,11 @@
 #define TAG "game_of_life"
 #define GAME_CELL_WIDTH 6
 
+#define GAME_LOOP_DELAY 100
+
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
+        // Simulation steps taken per second
         int simulation_speed;
 } GameOfLifeConfiguration;
 
@@ -87,14 +90,14 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         draw_game_canvas(p, gd, customization);
         LOG_DEBUG(TAG, "Game of Life canvas drawn.");
 
-        Point caret_position = {.x = 0, .y = 0};
-        draw_caret(p->display, &caret_position, gd,
-                   customization->accent_color);
+        Point caret_pos = {.x = 0, .y = 0};
+        draw_caret(p->display, &caret_pos, gd, customization->accent_color);
 
         std::vector<std::vector<GameOfLifeCell>> grid(
             rows, std::vector<GameOfLifeCell>(cols));
 
-        int evolution_period = 1000 / MOVE_REGISTERED_DELAY;
+        int evolution_period =
+            (1000 / config.simulation_speed) / MOVE_REGISTERED_DELAY;
         int iteration = 0;
 
         bool exit_requested = false;
@@ -107,26 +110,24 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                 }
                 Direction dir;
                 Action act;
-                GameOfLifeCell curr = grid[caret_position.y][caret_position.x];
+                GameOfLifeCell curr = grid[caret_pos.y][caret_pos.x];
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
-                        LOG_DEBUG(TAG, "Current cell value: %d", curr)
                         if (curr == EMPTY) {
-                                erase_caret(p->display, &caret_position, gd,
-                                            Black);
+                                erase_caret(p->display, &caret_pos, gd, Black);
                         } else if (curr == ALIVE) {
-                                erase_caret(p->display, &caret_position, gd,
-                                            White);
+                                erase_caret(p->display, &caret_pos, gd, White);
                         }
-                        translate_within_bounds(&caret_position, dir, gd->rows,
+                        translate_within_bounds(&caret_pos, dir, gd->rows,
                                                 gd->cols);
-                        draw_caret(p->display, &caret_position, gd,
+                        draw_caret(p->display, &caret_pos, gd,
                                    customization->accent_color);
                 }
                 if (action_input_registered(p->action_controllers, &act)) {
                         switch (act) {
                         case YELLOW:
                                 is_paused = !is_paused;
+                                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                                 break;
                         case RED:
                                 exit_requested = true;
@@ -136,28 +137,26 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                         case GREEN:
                                 Color new_cell_color;
                                 if (curr == EMPTY) {
-                                        grid[caret_position.y]
-                                            [caret_position.x] = ALIVE;
+                                        grid[caret_pos.y][caret_pos.x] = ALIVE;
                                         new_cell_color = White;
                                 } else if (curr == ALIVE) {
-                                        grid[caret_position.y]
-                                            [caret_position.x] = EMPTY;
+                                        grid[caret_pos.y][caret_pos.x] = EMPTY;
                                         new_cell_color = Black;
                                 }
-                                draw_game_cell(p->display, &caret_position, gd,
+                                draw_game_cell(p->display, &caret_pos, gd,
                                                new_cell_color);
                                 // we need to redraw the caret as we have just
                                 // drawn a cell by clearing the region
-                                draw_caret(p->display, &caret_position, gd,
+                                draw_caret(p->display, &caret_pos, gd,
                                            customization->accent_color);
 
+                                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                                 break;
                         }
                 }
                 iteration += 1;
                 iteration %= evolution_period;
-                // When drawing the cell we need to wait longer
-                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                p->delay_provider->delay_ms(GAME_LOOP_DELAY);
         }
 }
 
@@ -185,8 +184,8 @@ Configuration *assemble_game_of_life_configuration()
         choices->currently_selected = 1;
 
         ConfigurationOption *simulation_speed = new ConfigurationOption();
-        simulation_speed->name = "Speed";
-        std::vector<int> available_speeds = {1, 2, 3};
+        simulation_speed->name = "Evolutions/second";
+        std::vector<int> available_speeds = {1, 2, 4};
         populate_int_option_values(simulation_speed, available_speeds);
         simulation_speed->currently_selected = 1;
 
