@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define TAG "game_of_life"
-#define GAME_CELL_WIDTH 6
+#define GAME_CELL_WIDTH 8
 
 #define GAME_LOOP_DELAY 100
 
@@ -462,7 +462,6 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
 {
         p->display->initialize();
         p->display->clear(Black);
-        p->display->draw_rounded_border(customization->accent_color);
 
         int x_margin = dimensions->left_horizontal_margin;
         int y_margin = dimensions->top_vertical_margin;
@@ -470,13 +469,13 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         int actual_width = dimensions->actual_width;
         int actual_height = dimensions->actual_height;
 
-        int border_width = 2;
+        int border_width = 1;
         // We need to make the border rectangle and the canvas slightly
         // bigger to ensure that it does not overlap with the game area.
         // Otherwise the caret rendering erases parts of the border as
         // it moves around (as the caret intersects with the border
         // partially)
-        int border_offset = 1;
+        int border_offset = 2;
 
         p->display->draw_rectangle(
             {.x = x_margin - border_offset, .y = y_margin - border_offset},
@@ -484,7 +483,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
             customization->accent_color, border_width, false);
 
         /* Rendering of help indicators below the grid */
-        int text_below_grid_y = y_margin + actual_height + 2 * border_offset;
+        int text_below_grid_y = y_margin + actual_height + 1 * border_offset;
         int r = FONT_SIZE / 4;
         int d = 2 * r;
         int circle_y_axis = text_below_grid_y + FONT_SIZE / 2 + r / 4;

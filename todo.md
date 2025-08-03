@@ -10,7 +10,7 @@
 - [_] add proper customization passing (not just extra parameter for accent color)
 - [_] add proper non-deterministic randomness for the emulated minesweeper
 - [_] add rewind functionality for game of life
-- [_] fix memory leaks in the game of life loop
+- [_] fix memory leaks in the game menu
 
 
 # Ideas
@@ -26,6 +26,7 @@
 
 
 # Done
+- [x] fix memory leaks in the game of life loop
 - [x] add proper deallocation function for the config objects
 - [x] fix minesweeper rendering
 - [x] implement minesweeper
