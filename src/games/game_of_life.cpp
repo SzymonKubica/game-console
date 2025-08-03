@@ -5,7 +5,7 @@
 #include <cstring>
 
 #define TAG "game_of_life"
-#define GAME_CELL_WIDTH 10
+#define GAME_CELL_WIDTH 6
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
