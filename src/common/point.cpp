@@ -74,7 +74,6 @@ void translate_toroidal_array(Point *p, Direction dir, int rows, int cols)
 std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
 {
         std::vector<Point> *neighbours = new std::vector<Point>();
-        neighbours->reserve(8);
         // Dereference for readability;
         Point p = *point;
 
@@ -105,7 +104,6 @@ std::vector<Point> *get_neighbours_toroidal_array(Point *point, int rows,
                                                   int cols)
 {
         std::vector<Point> *neighbours = new std::vector<Point>();
-        neighbours->reserve(8);
         // Dereference for readability;
         Point p = *point;
 

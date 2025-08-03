@@ -75,6 +75,8 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
 void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                   GameOfLifeGridDimensions *dimensions);
 
+void free_diffs(std::vector<EvolutionDiff> *diffs);
+
 void spawn_cells_randomly(Display *display,
                           std::vector<std::vector<GameOfLifeCell>> *grid,
                           GameOfLifeGridDimensions *dimensions);
@@ -118,6 +120,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                             take_simulation_step(&grid,
                                                  config.use_toroidal_array);
                         render_diffs(p->display, diffs, gd);
+                        free_diffs(diffs);
                 }
                 Direction dir;
                 Action act;
@@ -285,6 +288,8 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                                         alive_nb++;
                                 }
                         }
+
+                        neighbours->clear();
                         free(neighbours);
 
                         GameOfLifeCell new_state = EMPTY;
@@ -331,6 +336,15 @@ void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                 }
                 draw_game_cell(display, diff.position, dimensions, color);
         }
+}
+
+void free_diffs(std::vector<EvolutionDiff> *diffs)
+{
+        for (auto diff : *diffs) {
+                delete diff.position;
+        }
+        diffs->clear();
+        delete diffs;
 }
 
 void spawn_cells_randomly(Display *display,

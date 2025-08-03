@@ -8,8 +8,9 @@
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
 - [_] add proper customization passing (not just extra parameter for accent color)
-- [_] add proper deallocation function for the config objects
 - [_] add proper non-deterministic randomness for the emulated minesweeper
+- [_] add rewind functionality for game of life
+- [_] fix memory leaks in the game of life loop
 
 
 # Ideas
@@ -25,6 +26,7 @@
 
 
 # Done
+- [x] add proper deallocation function for the config objects
 - [x] fix minesweeper rendering
 - [x] implement minesweeper
 - [x] design the input model for minesweeper
