@@ -50,6 +50,27 @@ void translate_within_bounds(Point *p, Direction dir, int rows, int cols)
         }
 }
 
+void translate_toroidal_array(Point *p, Direction dir, int rows, int cols)
+{
+        switch (dir) {
+        case Direction::UP:
+                p->y = mathematical_modulo(p->y - 1, rows);
+                break;
+        case Direction::DOWN:
+                p->y = mathematical_modulo(p->y + 1, rows);
+                break;
+        case Direction::LEFT:
+                p->x = mathematical_modulo(p->x - 1, cols);
+                break;
+        case Direction::RIGHT:
+                p->x = mathematical_modulo(p->x + 1, cols);
+                break;
+        default:
+                // No translation for unknown direction
+                break;
+        }
+}
+
 std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
 {
         std::vector<Point> *neighbours = new std::vector<Point>();

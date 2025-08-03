@@ -103,7 +103,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         int iteration = 0;
 
         bool exit_requested = false;
-        bool is_paused = false;
+        bool is_paused = true;
         while (!exit_requested) {
                 if (!is_paused && iteration == evolution_period - 1) {
                         std::vector<EvolutionDiff> *diffs =
@@ -121,8 +121,14 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                         } else if (curr == ALIVE) {
                                 erase_caret(p->display, &caret_pos, gd, White);
                         }
-                        translate_within_bounds(&caret_pos, dir, gd->rows,
-                                                gd->cols);
+
+                        if (config.use_toroidal_array) {
+                                translate_toroidal_array(&caret_pos, dir,
+                                                         gd->rows, gd->cols);
+                        } else {
+                                translate_within_bounds(&caret_pos, dir,
+                                                        gd->rows, gd->cols);
+                        }
                         draw_caret(p->display, &caret_pos, gd,
                                    customization->accent_color);
                 }
@@ -186,7 +192,7 @@ Configuration *assemble_game_of_life_configuration()
         spawn_randomly->name = "Spawn randomly";
         std::vector<const char *> yes_or_no = {"Yes", "No"};
         populate_string_option_values(spawn_randomly, yes_or_no);
-        spawn_randomly->currently_selected = 0;
+        spawn_randomly->currently_selected = 1;
 
         ConfigurationOption *simulation_speed = new ConfigurationOption();
         simulation_speed->name = "Evolutions/second";
@@ -197,7 +203,7 @@ Configuration *assemble_game_of_life_configuration()
         ConfigurationOption *toroidal_array = new ConfigurationOption();
         toroidal_array->name = "Toroidal array";
         populate_string_option_values(toroidal_array, yes_or_no);
-        toroidal_array->currently_selected = 1;
+        toroidal_array->currently_selected = 0;
 
         config->options_len = 3;
         config->options = new ConfigurationOption *[config->options_len];
@@ -237,7 +243,8 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
             use_toroidal_array.currently_selected;
         const char *toroidal_array_choice = static_cast<const char **>(
             use_toroidal_array.available_values)[use_toroidal_array_choice_idx];
-        game_config->use_toroidal_array = extract_yes_or_no_option(choice);
+        game_config->use_toroidal_array =
+            extract_yes_or_no_option(toroidal_array_choice);
 }
 
 std::vector<EvolutionDiff> *
