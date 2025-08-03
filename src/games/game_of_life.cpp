@@ -75,6 +75,10 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
 void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                   GameOfLifeGridDimensions *dimensions);
 
+void spawn_cells_randomly(Display *display,
+                          std::vector<std::vector<GameOfLifeCell>> *grid,
+                          GameOfLifeGridDimensions *dimensions);
+
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
 
@@ -97,6 +101,10 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 
         std::vector<std::vector<GameOfLifeCell>> grid(
             rows, std::vector<GameOfLifeCell>(cols));
+
+        if (config.prepopulate_grid) {
+                spawn_cells_randomly(p->display, &grid, gd);
+        }
 
         int evolution_period =
             (1000 / config.simulation_speed) / MOVE_REGISTERED_DELAY;
@@ -322,6 +330,22 @@ void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                         color = Black; // Dead cells are rendered in black
                 }
                 draw_game_cell(display, diff.position, dimensions, color);
+        }
+}
+
+void spawn_cells_randomly(Display *display,
+                          std::vector<std::vector<GameOfLifeCell>> *grid,
+                          GameOfLifeGridDimensions *dimensions)
+{
+        for (int y = 0; y < dimensions->rows; y++) {
+                for (int x = 0; x < dimensions->cols; x++) {
+                        if (rand() % 2 == 0) {
+                                (*grid)[y][x] = ALIVE;
+                                Point position = {.x = x, .y = y};
+                                draw_game_cell(display, &position, dimensions,
+                                               White);
+                        }
+                }
         }
 }
 
