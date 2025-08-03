@@ -274,9 +274,9 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
 
         for (int y = 0; y < rows; y++) {
                 for (int x = 0; x < cols; x++) {
-                        LOG_DEBUG(TAG,
-                                  "Processing cell at (%d, %d) with state %d",
-                                  x, y, (*grid)[y][x]);
+                        LOG_VERBOSE(TAG,
+                                    "Processing cell at (%d, %d) with state %d",
+                                    x, y, (*grid)[y][x]);
                         int alive_nb = 0;
                         Point curr = {.x = x, .y = y};
 
@@ -317,7 +317,7 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                                                       .new_state = new_state};
                                 diffs->push_back(diff);
                         }
-                        LOG_DEBUG(TAG, "Diffs len %d", (int)diffs->size());
+                        LOG_VERBOSE(TAG, "Diffs len %d", (int)diffs->size());
                 }
         }
 
@@ -527,6 +527,9 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                                 (char *)exit, FontSize::Size16, Black, White);
 
         /* Rendering of help indicators above the grid */
+        // TODO: enable this and fix aligment once the rewind feature is
+        // available
+        /*
         int text_grid_spacing = 4;
         int text_above_grid_y =
             y_margin - border_offset - FONT_SIZE - text_grid_spacing;
@@ -546,4 +549,5 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         int toggle_text_x = blue_circle_x + d;
         p->display->draw_string({.x = toggle_text_x, .y = text_above_grid_y},
                                 (char *)toggle, FontSize::Size16, Black, White);
+        */
 }
