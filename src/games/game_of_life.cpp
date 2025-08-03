@@ -109,7 +109,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         }
 
         int evolution_period =
-            (1000 / config.simulation_speed) / MOVE_REGISTERED_DELAY;
+            (1000 / config.simulation_speed) / GAME_LOOP_DELAY;
         int iteration = 0;
 
         bool exit_requested = false;
