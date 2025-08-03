@@ -12,6 +12,7 @@
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
         // Simulation steps taken per second
+        bool use_toroidal_array;
         int simulation_speed;
 } GameOfLifeConfiguration;
 
@@ -68,7 +69,8 @@ void draw_game_cell(Display *display, Point *grid_position,
                     GameOfLifeGridDimensions *dimensions, Color color);
 
 std::vector<EvolutionDiff> *
-take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid);
+take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
+                     bool use_toroidal_array);
 
 void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                   GameOfLifeGridDimensions *dimensions);
@@ -105,7 +107,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         while (!exit_requested) {
                 if (!is_paused && iteration == evolution_period - 1) {
                         std::vector<EvolutionDiff> *diffs =
-                            take_simulation_step(&grid);
+                            take_simulation_step(&grid,
+                                                 config.use_toroidal_array);
                         render_diffs(p->display, diffs, gd);
                 }
                 Direction dir;
@@ -127,7 +130,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                         switch (act) {
                         case YELLOW:
                                 is_paused = !is_paused;
-                                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
                                 break;
                         case RED:
                                 exit_requested = true;
@@ -150,7 +154,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                 draw_caret(p->display, &caret_pos, gd,
                                            customization->accent_color);
 
-                                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
                                 break;
                         }
                 }
@@ -177,11 +182,11 @@ Configuration *assemble_game_of_life_configuration()
         config->name = "Game of Life";
 
         // Initialize the first config option: game gridsize
-        ConfigurationOption *choices = new ConfigurationOption();
-        choices->name = "Spawn randomly";
-        std::vector<const char *> available_values = {"Yes", "No"};
-        populate_string_option_values(choices, available_values);
-        choices->currently_selected = 1;
+        ConfigurationOption *spawn_randomly = new ConfigurationOption();
+        spawn_randomly->name = "Spawn randomly";
+        std::vector<const char *> yes_or_no = {"Yes", "No"};
+        populate_string_option_values(spawn_randomly, yes_or_no);
+        spawn_randomly->currently_selected = 0;
 
         ConfigurationOption *simulation_speed = new ConfigurationOption();
         simulation_speed->name = "Evolutions/second";
@@ -189,13 +194,27 @@ Configuration *assemble_game_of_life_configuration()
         populate_int_option_values(simulation_speed, available_speeds);
         simulation_speed->currently_selected = 1;
 
-        config->options_len = 2;
+        ConfigurationOption *toroidal_array = new ConfigurationOption();
+        toroidal_array->name = "Toroidal array";
+        populate_string_option_values(toroidal_array, yes_or_no);
+        toroidal_array->currently_selected = 1;
+
+        config->options_len = 3;
         config->options = new ConfigurationOption *[config->options_len];
-        config->options[0] = choices;
+        config->options[0] = spawn_randomly;
         config->options[1] = simulation_speed;
+        config->options[2] = toroidal_array;
         config->curr_selected_option = 0;
         config->confirmation_cell_text = "Start Game";
         return config;
+}
+
+bool extract_yes_or_no_option(const char *value)
+{
+        if (strlen(value) == 3 && strncmp(value, "Yes", 3) == 0) {
+                return true;
+        }
+        return false;
 }
 
 void extract_game_config(GameOfLifeConfiguration *game_config,
@@ -204,26 +223,26 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
 
         ConfigurationOption prepopulate_grid = *config->options[0];
         int curr_choice_idx = prepopulate_grid.currently_selected;
-
         const char *choice = static_cast<const char **>(
             prepopulate_grid.available_values)[curr_choice_idx];
-        if (strlen(choice) == 3 && strncmp(choice, "Yes", 3) == 0) {
-                game_config->prepopulate_grid = true;
-        }
-        if (strlen(choice) == 2 && strncmp(choice, "No", 2) == 0) {
-                game_config->prepopulate_grid = false;
-        }
-        // Grid size is the first config option in the game struct
-        // above.
-        ConfigurationOption simulation_speed = *config->options[1];
+        game_config->prepopulate_grid = extract_yes_or_no_option(choice);
 
+        ConfigurationOption simulation_speed = *config->options[1];
         int curr_speed_idx = simulation_speed.currently_selected;
         game_config->simulation_speed = static_cast<int *>(
             simulation_speed.available_values)[curr_speed_idx];
+
+        ConfigurationOption use_toroidal_array = *config->options[2];
+        int use_toroidal_array_choice_idx =
+            use_toroidal_array.currently_selected;
+        const char *toroidal_array_choice = static_cast<const char **>(
+            use_toroidal_array.available_values)[use_toroidal_array_choice_idx];
+        game_config->use_toroidal_array = extract_yes_or_no_option(choice);
 }
 
 std::vector<EvolutionDiff> *
-take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid)
+take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
+                     bool use_toroidal_array)
 {
         std::vector<EvolutionDiff> *diffs = new std::vector<EvolutionDiff>();
 
@@ -235,12 +254,23 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid)
                 for (int x = 0; x < cols; x++) {
                         int alive_nb = 0;
                         Point curr = {.x = x, .y = y};
-                        for (Point nb :
-                             *get_neighbours_inside_grid(&curr, rows, cols)) {
+
+                        std::vector<Point> *neighbours;
+
+                        if (use_toroidal_array) {
+                                neighbours = get_neighbours_toroidal_array(
+                                    &curr, rows, cols);
+                        } else {
+                                neighbours = get_neighbours_inside_grid(
+                                    &curr, rows, cols);
+                        }
+
+                        for (Point nb : *neighbours) {
                                 if ((*grid)[nb.y][nb.x] == ALIVE) {
                                         alive_nb++;
                                 }
                         }
+                        free(neighbours);
 
                         GameOfLifeCell new_state = EMPTY;
                         GameOfLifeCell current_state = (*grid)[y][x];

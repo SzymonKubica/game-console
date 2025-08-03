@@ -2,6 +2,8 @@
 #include "stdlib.h"
 #include "platform/interface/input.hpp"
 
+#include "maths_utils.hpp"
+
 void translate(Point *p, Direction dir)
 {
         switch (dir) {
@@ -75,6 +77,33 @@ std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
         if (p.x < cols - 1 && p.y > 0)
                 neighbours->push_back({.x = p.x + 1, .y = p.y - 1});
 
+        return neighbours;
+}
+
+std::vector<Point> *get_neighbours_toroidal_array(Point *point, int rows,
+                                                  int cols)
+{
+        std::vector<Point> *neighbours = new std::vector<Point>();
+        neighbours->reserve(8);
+        // Dereference for readability;
+        Point p = *point;
+
+        neighbours->push_back(
+            {.x = p.x, .y = mathematical_modulo(p.y - 1, rows)});
+        neighbours->push_back(
+            {.x = p.x, .y = mathematical_modulo(p.y + 1, rows)});
+        neighbours->push_back(
+            {.x = mathematical_modulo(p.x - 1, cols), .y = p.y});
+        neighbours->push_back(
+            {.x = mathematical_modulo(p.x + 1, cols), .y = p.y});
+        neighbours->push_back({.x = mathematical_modulo(p.x - 1, cols),
+                               .y = mathematical_modulo(p.y - 1, rows)});
+        neighbours->push_back({.x = mathematical_modulo(p.x + 1, cols),
+                               .y = mathematical_modulo(p.y + 1, rows)});
+        neighbours->push_back({.x = mathematical_modulo(p.x - 1, cols),
+                               .y = mathematical_modulo(p.y + 1, rows)});
+        neighbours->push_back({.x = mathematical_modulo(p.x + 1, cols),
+                               .y = mathematical_modulo(p.y - 1, rows)});
         return neighbours;
 }
 

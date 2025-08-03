@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "configuration.hpp"
+#include "maths_utils.hpp"
 #include "constants.hpp"
 #include "logging.hpp"
 #include "user_interface.h"
@@ -10,8 +11,6 @@
 #include "platform/interface/color.hpp"
 
 #define TAG "configuration"
-
-static int mathematical_modulo(int a, int b);
 
 void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                                 int steps);
@@ -61,12 +60,6 @@ void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                   config->curr_selected_option);
 }
 
-int mathematical_modulo(int a, int b)
-{
-        // This is a workaround for the fact that the % operator in C++ can
-        // return negative values if the first operand is negative.
-        return (a % b + b) % b;
-}
 
 void shift_current_config_option_value(Configuration *config,
                                        ConfigurationDiff *diff, int steps);
