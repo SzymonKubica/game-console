@@ -71,57 +71,57 @@ void translate_toroidal_array(Point *p, Direction dir, int rows, int cols)
         }
 }
 
-std::vector<Point> *get_neighbours_inside_grid(Point *point, int rows, int cols)
+std::vector<Point> get_neighbours_inside_grid(Point *point, int rows, int cols)
 {
-        std::vector<Point> *neighbours = new std::vector<Point>();
+        std::vector<Point> neighbours;
         // Dereference for readability;
         Point p = *point;
 
         // We add adjacent neighbours if within grid
         if (p.y > 0)
-                neighbours->push_back({.x = p.x, .y = p.y - 1});
+                neighbours.push_back({.x = p.x, .y = p.y - 1});
         if (p.y < rows - 1)
-                neighbours->push_back({.x = p.x, .y = p.y + 1});
+                neighbours.push_back({.x = p.x, .y = p.y + 1});
         if (p.x > 0)
-                neighbours->push_back({.x = p.x - 1, .y = p.y});
+                neighbours.push_back({.x = p.x - 1, .y = p.y});
         if (p.x < cols - 1)
-                neighbours->push_back({.x = p.x + 1, .y = p.y});
+                neighbours.push_back({.x = p.x + 1, .y = p.y});
 
         // We add diagonal neighbours if within grid
         if (p.y > 0 && p.x > 0)
-                neighbours->push_back({.x = p.x - 1, .y = p.y - 1});
+                neighbours.push_back({.x = p.x - 1, .y = p.y - 1});
         if (p.y < rows - 1 && p.x < cols - 1)
-                neighbours->push_back({.x = p.x + 1, .y = p.y + 1});
+                neighbours.push_back({.x = p.x + 1, .y = p.y + 1});
         if (p.x > 0 && p.y < rows - 1)
-                neighbours->push_back({.x = p.x - 1, .y = p.y + 1});
+                neighbours.push_back({.x = p.x - 1, .y = p.y + 1});
         if (p.x < cols - 1 && p.y > 0)
-                neighbours->push_back({.x = p.x + 1, .y = p.y - 1});
+                neighbours.push_back({.x = p.x + 1, .y = p.y - 1});
 
         return neighbours;
 }
 
-std::vector<Point> *get_neighbours_toroidal_array(Point *point, int rows,
+std::vector<Point> get_neighbours_toroidal_array(Point *point, int rows,
                                                   int cols)
 {
-        std::vector<Point> *neighbours = new std::vector<Point>();
+        std::vector<Point> neighbours;
         // Dereference for readability;
         Point p = *point;
 
-        neighbours->push_back(
+        neighbours.push_back(
             {.x = p.x, .y = mathematical_modulo(p.y - 1, rows)});
-        neighbours->push_back(
+        neighbours.push_back(
             {.x = p.x, .y = mathematical_modulo(p.y + 1, rows)});
-        neighbours->push_back(
+        neighbours.push_back(
             {.x = mathematical_modulo(p.x - 1, cols), .y = p.y});
-        neighbours->push_back(
+        neighbours.push_back(
             {.x = mathematical_modulo(p.x + 1, cols), .y = p.y});
-        neighbours->push_back({.x = mathematical_modulo(p.x - 1, cols),
+        neighbours.push_back({.x = mathematical_modulo(p.x - 1, cols),
                                .y = mathematical_modulo(p.y - 1, rows)});
-        neighbours->push_back({.x = mathematical_modulo(p.x + 1, cols),
+        neighbours.push_back({.x = mathematical_modulo(p.x + 1, cols),
                                .y = mathematical_modulo(p.y + 1, rows)});
-        neighbours->push_back({.x = mathematical_modulo(p.x - 1, cols),
+        neighbours.push_back({.x = mathematical_modulo(p.x - 1, cols),
                                .y = mathematical_modulo(p.y + 1, rows)});
-        neighbours->push_back({.x = mathematical_modulo(p.x + 1, cols),
+        neighbours.push_back({.x = mathematical_modulo(p.x + 1, cols),
                                .y = mathematical_modulo(p.y - 1, rows)});
         return neighbours;
 }

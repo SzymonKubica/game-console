@@ -116,11 +116,15 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         bool is_paused = true;
         while (!exit_requested) {
                 if (!is_paused && iteration == evolution_period - 1) {
+                        LOG_DEBUG(TAG, "Taking a simulation step");
                         std::vector<EvolutionDiff> *diffs =
                             take_simulation_step(&grid,
                                                  config.use_toroidal_array);
                         render_diffs(p->display, diffs, gd);
+                        LOG_DEBUG(TAG, "Got %zu diffs", diffs->size());
+                        LOG_DEBUG(TAG, "Diffs rendered successfully!");
                         free_diffs(diffs);
+                        LOG_DEBUG(TAG, "Diffs freed successfully!");
                 }
                 Direction dir;
                 Action act;
@@ -270,10 +274,13 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
 
         for (int y = 0; y < rows; y++) {
                 for (int x = 0; x < cols; x++) {
+                        LOG_DEBUG(TAG,
+                                  "Processing cell at (%d, %d) with state %d",
+                                  x, y, (*grid)[y][x]);
                         int alive_nb = 0;
                         Point curr = {.x = x, .y = y};
 
-                        std::vector<Point> *neighbours;
+                        std::vector<Point> neighbours;
 
                         if (use_toroidal_array) {
                                 neighbours = get_neighbours_toroidal_array(
@@ -283,14 +290,11 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                                     &curr, rows, cols);
                         }
 
-                        for (Point nb : *neighbours) {
+                        for (Point nb : neighbours) {
                                 if ((*grid)[nb.y][nb.x] == ALIVE) {
                                         alive_nb++;
                                 }
                         }
-
-                        neighbours->clear();
-                        free(neighbours);
 
                         GameOfLifeCell new_state = EMPTY;
                         GameOfLifeCell current_state = (*grid)[y][x];
@@ -313,6 +317,7 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                                                       .new_state = new_state};
                                 diffs->push_back(diff);
                         }
+                        LOG_DEBUG(TAG, "Diffs len %d", (int)diffs->size());
                 }
         }
 

@@ -276,7 +276,7 @@ void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                                 (*grid)[y][x].adjacent_bombs = 0;
 
                                 Point current = {.x = x, .y = y};
-                                for (Point nb : *get_neighbours_inside_grid(
+                                for (Point nb : get_neighbours_inside_grid(
                                          &current, rows, cols)) {
                                         (*grid)[nb.y][nb.x].adjacent_bombs++;
                                 }
@@ -390,9 +390,9 @@ void uncover_grid_cells_starting_from(
             (*grid)[grid_position->y][grid_position->x];
 
         if (!current_cell.is_bomb && current_cell.adjacent_bombs == 0) {
-                auto *neighbours =
+                auto neighbours =
                     get_neighbours_inside_grid(grid_position, rows, cols);
-                for (Point nb : *neighbours) {
+                for (Point nb : neighbours) {
                         MinesweeperGridCell neighbour_cell =
                             (*grid)[nb.y][nb.x];
 
@@ -403,7 +403,6 @@ void uncover_grid_cells_starting_from(
                                     total_uncovered);
                         }
                 }
-                delete neighbours;
         }
 }
 
