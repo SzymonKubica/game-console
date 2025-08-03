@@ -38,6 +38,11 @@ typedef enum GameOfLifeCell {
         ALIVE = 1,
 } GameOfLifeCell;
 
+typedef struct EvolutionDiff {
+        Point *position;
+        GameOfLifeCell new_state;
+} EvolutionDiff;
+
 static void collect_game_configuration(Platform *p,
                                        GameOfLifeConfiguration *game_config,
                                        GameCustomization *customization);
@@ -58,6 +63,12 @@ void erase_caret(Display *display, Point *grid_position,
                  Color grid_background_color);
 void draw_game_cell(Display *display, Point *grid_position,
                     GameOfLifeGridDimensions *dimensions, Color color);
+
+std::vector<EvolutionDiff> *
+take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid);
+
+void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
+                  GameOfLifeGridDimensions *dimensions);
 
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
@@ -83,17 +94,27 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<GameOfLifeCell>> grid(
             rows, std::vector<GameOfLifeCell>(cols));
 
-        while (true) {
+        int evolution_period = 1000 / MOVE_REGISTERED_DELAY;
+        int iteration = 0;
+
+        bool exit_requested = false;
+        bool is_paused = false;
+        while (!exit_requested) {
+                if (!is_paused && iteration == evolution_period - 1) {
+                        std::vector<EvolutionDiff> *diffs =
+                            take_simulation_step(&grid);
+                        render_diffs(p->display, diffs, gd);
+                }
                 Direction dir;
                 Action act;
                 GameOfLifeCell curr = grid[caret_position.y][caret_position.x];
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
+                        LOG_DEBUG(TAG, "Current cell value: %d", curr)
                         if (curr == EMPTY) {
                                 erase_caret(p->display, &caret_position, gd,
                                             Black);
-                        } else if (grid[caret_position.y][caret_position.x] ==
-                                   ALIVE) {
+                        } else if (curr == ALIVE) {
                                 erase_caret(p->display, &caret_position, gd,
                                             White);
                         }
@@ -101,18 +122,14 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                                 gd->cols);
                         draw_caret(p->display, &caret_position, gd,
                                    customization->accent_color);
-
-                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
-                        /* We continue here to skip the additional input
-                           polling delay at the end of the loop and make
-                           the input snappy. */
-                        continue;
                 }
                 if (action_input_registered(p->action_controllers, &act)) {
                         switch (act) {
                         case YELLOW:
+                                is_paused = !is_paused;
                                 break;
                         case RED:
+                                exit_requested = true;
                                 break;
                         case BLUE:
                                 break;
@@ -136,9 +153,11 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 
                                 break;
                         }
-                        // When drawing the cell we need to wait longer
-                        p->delay_provider->delay_ms(3* MOVE_REGISTERED_DELAY);
                 }
+                iteration += 1;
+                iteration %= evolution_period;
+                // When drawing the cell we need to wait longer
+                p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
 }
 
@@ -202,6 +221,72 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
         int curr_speed_idx = simulation_speed.currently_selected;
         game_config->simulation_speed = static_cast<int *>(
             simulation_speed.available_values)[curr_speed_idx];
+}
+
+std::vector<EvolutionDiff> *
+take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid)
+{
+        std::vector<EvolutionDiff> *diffs = new std::vector<EvolutionDiff>();
+
+        // This assumes that the grid is rectangular.
+        int rows = grid->size();
+        int cols = (*grid)[0].size();
+
+        for (int y = 0; y < rows; y++) {
+                for (int x = 0; x < cols; x++) {
+                        int alive_nb = 0;
+                        Point curr = {.x = x, .y = y};
+                        for (Point nb :
+                             *get_neighbours_inside_grid(&curr, rows, cols)) {
+                                if ((*grid)[nb.y][nb.x] == ALIVE) {
+                                        alive_nb++;
+                                }
+                        }
+
+                        GameOfLifeCell new_state = EMPTY;
+                        GameOfLifeCell current_state = (*grid)[y][x];
+
+                        if (current_state == ALIVE) {
+                                // Underpopulation or overpopulation
+                                if (alive_nb < 2 || alive_nb > 3) {
+                                        new_state = EMPTY;
+                                } else {
+                                        // Lives on to the next generation as it
+                                        // has exactly 2 or 3 neighbours.
+                                        new_state = ALIVE;
+                                }
+                        } else if (alive_nb == 3) {
+                                new_state = ALIVE; // Reproduction
+                        }
+                        if (new_state != current_state) {
+                                EvolutionDiff diff = {.position =
+                                                          new Point{x, y},
+                                                      .new_state = new_state};
+                                diffs->push_back(diff);
+                        }
+                }
+        }
+
+        // We apply the diffs to the grid.
+        for (EvolutionDiff &diff : *diffs) {
+                (*grid)[diff.position->y][diff.position->x] = diff.new_state;
+        }
+        return diffs;
+}
+
+void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
+                  GameOfLifeGridDimensions *dimensions)
+{
+
+        for (EvolutionDiff &diff : *diffs) {
+                Color color;
+                if (diff.new_state == ALIVE) {
+                        color = White; // Alive cells are rendered in white
+                } else {
+                        color = Black; // Dead cells are rendered in black
+                }
+                draw_game_cell(display, diff.position, dimensions, color);
+        }
 }
 
 GameOfLifeGridDimensions *
