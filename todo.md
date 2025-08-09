@@ -21,7 +21,6 @@
 
 # In Progress
 
-
 # Done
 - [x] figure out how to use the graphical gdb showing code snippets
 - [x] maybe using gdb in neovim?
