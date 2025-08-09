@@ -1,19 +1,4 @@
-# TODO
-
-- [_] figure out how to generate sudoku
-- [_] design the input model for sudoku
-- [_] think about the sudoku game logic
-- [_] add the font to the project resources to ensure portability
-- [_] document the gdb workflow
-- [_] figure out how to use the graphical gdb showing code snippets
-- [_] maybe using gdb in neovim?
-- [_] add proper customization passing (not just extra parameter for accent color)
-- [_] add rewind functionality for game of life
-
-
 # Ideas
-- save high score in some arduino persistent memory (EEPROM is for that and 8kB
-  should be plenty.)
 - games that can be implemented with the limited display:
   - snake
   - sudoku (assuming we can fit 9x9 grid)
@@ -21,8 +6,27 @@
 - we can add compatibility layer for raspberry pi and make a controller that will be embedded
   into my desk at home / control the game via ssh.
 
+# TODO
+
+- [_] figure out how to generate sudoku
+- [_] design the input model for sudoku
+- [_] think about the sudoku game logic
+- [_] add proper customization passing (not just extra parameter for accent color)
+
+- [_] add rewind functionality for game of life
+- [_] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
+  should be plenty.) Ensure that the config / scores are only written if the user
+  explicitly says that the write has to happen. EEPROM has a finite number of write
+  cycles so we should not try to write to it in some tight loop.
+
+# In Progress
+
 
 # Done
+- [x] figure out how to use the graphical gdb showing code snippets
+- [x] maybe using gdb in neovim?
+- [x] document the gdb workflow
+- [x] add the font to the project resources to ensure portability
 - [x] add proper non-deterministic randomness for the emulated minesweeper
 - [x] fix memory leaks in the game menu
 - [x] fix memory leaks in the game of life loop
