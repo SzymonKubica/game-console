@@ -127,9 +127,9 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 
                         if (!bombs_placed) {
                                 /* Before the bombs are placed, we spin the
-                                   random number generator to ensure that we
-                                   don't generate the same grid every time we
-                                   start the game console. */
+                                   random number generator on each step to
+                                   ensure that we don't generate the same grid
+                                   every time we start the game console. */
                                 srand(rand());
                         }
 

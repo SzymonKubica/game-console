@@ -1,3 +1,4 @@
+#include "font_provider.hpp"
 #ifdef EMULATOR
 #include "sfml_display.hpp"
 #include <SFML/Graphics.hpp>
@@ -204,11 +205,7 @@ void SfmlDisplay::draw_string(Point start, char *string_buffer,
                               FontSize font_size, Color bg_color,
                               Color fg_color)
 {
-        // TODO
-        // The font probably needs to live in the project resources for
-        // portability
-        const sf::Font font(
-            "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf");
+        const sf::Font font = get_emulator_font();
         sf::Text text(font, string_buffer, font_size);
         text.setFillColor(map_to_sf_color(fg_color));
         text.setPosition({(float)start.x, (float)start.y});

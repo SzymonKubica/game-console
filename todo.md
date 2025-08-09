@@ -8,9 +8,7 @@
 - [_] figure out how to use the graphical gdb showing code snippets
 - [_] maybe using gdb in neovim?
 - [_] add proper customization passing (not just extra parameter for accent color)
-- [_] add proper non-deterministic randomness for the emulated minesweeper
 - [_] add rewind functionality for game of life
-- [_] fix memory leaks in the game menu
 
 
 # Ideas
@@ -19,13 +17,14 @@
 - games that can be implemented with the limited display:
   - snake
   - sudoku (assuming we can fit 9x9 grid)
-  - game of life (controlling the input and pausing / playing the simulation could be fun)
   - some fun animations
 - we can add compatibility layer for raspberry pi and make a controller that will be embedded
   into my desk at home / control the game via ssh.
 
 
 # Done
+- [x] add proper non-deterministic randomness for the emulated minesweeper
+- [x] fix memory leaks in the game menu
 - [x] fix memory leaks in the game of life loop
 - [x] add proper deallocation function for the config objects
 - [x] fix minesweeper rendering
