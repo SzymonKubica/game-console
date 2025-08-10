@@ -22,7 +22,7 @@
 #ifdef EMULATOR
 #define REWIND_BUF_SIZE 20
 #else
-#define REWIND_BUF_SIZE 5
+#define REWIND_BUF_SIZE 3
 #endif
 
 typedef struct GameOfLifeConfiguration {
