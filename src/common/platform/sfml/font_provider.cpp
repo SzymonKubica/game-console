@@ -1,3 +1,4 @@
+#ifdef EMULATOR
 #include "font_provider.hpp"
 #include "emulator_config.h"
 
@@ -8,3 +9,4 @@ const sf::Font get_emulator_font()
             source_dir + "/emulator/assets/JetBrainsMonoNerdFont-Regular.ttf");
         return font;
 }
+#endif

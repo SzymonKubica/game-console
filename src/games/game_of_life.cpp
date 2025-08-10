@@ -11,6 +11,12 @@
 
 #define GAME_LOOP_DELAY 100
 
+#ifdef EMULATOR
+#define EXPLANATION_ABOVE_GRID_OFFEST 4
+#else
+#define EXPLANATION_ABOVE_GRID_OFFEST 0
+#endif
+
 // The number of evolutions that the user can go back in time.
 #define REWIND_BUF_SIZE 20
 
@@ -71,6 +77,12 @@ calculate_grid_dimensions(int display_width, int display_height,
 
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                       GameCustomization *customization);
+void draw_rewind_mode_indicator(Platform *p,
+                                GameOfLifeGridDimensions *dimensions,
+                                GameCustomization *customization);
+void clear_rewind_mode_indicator(Platform *p,
+                                 GameOfLifeGridDimensions *dimensions,
+                                 GameCustomization *customization);
 void draw_caret(Display *display, Point *grid_position,
                 GameOfLifeGridDimensions *dimensions, Color caret_color);
 void erase_caret(Display *display, Point *grid_position,
@@ -203,9 +215,16 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                 if (action_input_registered(p->action_controllers, &act)) {
                         switch (act) {
                         case YELLOW:
-                                if (mode == PAUSED || mode == REWIND) {
+                                if (mode == PAUSED) {
                                         mode = RUNNING;
                                         LOG_DEBUG(TAG, "Simulation running...");
+                                } else if (mode == REWIND) {
+                                        mode = PAUSED;
+                                        LOG_DEBUG(
+                                            TAG,
+                                            "Simulation paused after rewind.");
+                                        clear_rewind_mode_indicator(
+                                            p, gd, customization);
                                 } else {
                                         mode = PAUSED;
                                         LOG_DEBUG(TAG, "Simulation paused.");
@@ -219,11 +238,15 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                         case BLUE:
                                 if (mode == REWIND) {
                                         mode = RUNNING;
+                                        clear_rewind_mode_indicator(
+                                            p, gd, customization);
                                         LOG_DEBUG(TAG, "Simulation running...");
                                 } else if (rewind_buf_idx != -1) {
                                         // We can only rewind if the buffer has
                                         // at least one entry.
                                         mode = REWIND;
+                                        draw_rewind_mode_indicator(
+                                            p, gd, customization);
                                         // We need to record the latest index in
                                         // the rewind buffer.
                                         rewind_initial_idx = rewind_buf_idx;
@@ -436,8 +459,8 @@ GameOfLifeCell flip_state(GameOfLifeCell state)
         case ALIVE:
                 return EMPTY;
         }
-        throw std::invalid_argument(
-            "Invalid GameOfLifeCell state for flipping");
+        // Unreachable (assuming noone casts random integers as GameOfLifeCell).
+        return EMPTY;
 }
 
 /**
@@ -688,11 +711,6 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         // partially)
         int border_offset = 2;
 
-        p->display->draw_rectangle(
-            {.x = x_margin - border_offset, .y = y_margin - border_offset},
-            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
-            customization->accent_color, border_width, false);
-
         /* Rendering of help indicators below the grid */
         int text_below_grid_y = y_margin + actual_height + 1 * border_offset;
         int r = FONT_SIZE / 4;
@@ -737,28 +755,94 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
                                 (char *)exit, FontSize::Size16, Black, White);
 
         /* Rendering of help indicators above the grid */
-        // TODO: enable this and fix aligment once the rewind feature is
-        // available
-        /*
         int text_grid_spacing = 4;
-        int text_above_grid_y =
-            y_margin - border_offset - FONT_SIZE - text_grid_spacing;
+        // Because of slightly different font dimensions, we need this offset
+        // override to ensure proper vertical space above the game grid.
+        int text_above_grid_y = y_margin - border_offset - FONT_SIZE -
+                                EXPLANATION_ABOVE_GRID_OFFEST;
         int circle_y_axis_above_grid =
             text_above_grid_y + (FONT_SIZE / 2 + r / 2);
 
         const char *toggle = "Rewind mode on/off";
         int toggle_len = strlen(toggle) * FONT_WIDTH;
 
-        int total_width_above_grid = toggle_len + d +
-        text_circle_spacing_width; int centering_margin =
-        (available_width - total_width_above_grid) / 2;
+        int total_width_above_grid = toggle_len + d + text_circle_spacing_width;
+        int centering_margin = (available_width - total_width_above_grid) / 2;
 
         int blue_circle_x = x_margin + centering_margin;
         p->display->draw_circle(
-            {.x = blue_circle_x, .y = circle_y_axis_above_grid}, r,
-        DarkBlue, 0, true); int toggle_text_x = blue_circle_x + d;
-        p->display->draw_string({.x = toggle_text_x, .y =
-        text_above_grid_y}, (char *)toggle, FontSize::Size16, Black,
-        White);
-        */
+            {.x = blue_circle_x, .y = circle_y_axis_above_grid}, r, DarkBlue, 0,
+            true);
+        int toggle_text_x = blue_circle_x + d;
+        p->display->draw_string({.x = toggle_text_x, .y = text_above_grid_y},
+                                (char *)toggle, FontSize::Size16, Black, White);
+
+        // We draw the border at the end to ensure that it doesn't get cropped
+        // by draw string operations above.
+        p->display->draw_rectangle(
+            {.x = x_margin - border_offset, .y = y_margin - border_offset},
+            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
+            customization->accent_color, border_width, false);
+}
+
+void draw_rewind_mode_indicator(Platform *p,
+                                GameOfLifeGridDimensions *dimensions,
+                                GameCustomization *customization)
+{
+
+        int x_margin = dimensions->left_horizontal_margin;
+        int y_margin = dimensions->top_vertical_margin;
+        int actual_width = dimensions->actual_width;
+        int actual_height = dimensions->actual_height;
+        int border_width = 1;
+        // We need to make the border rectangle and the canvas slightly
+        // bigger to ensure that it does not overlap with the game area.
+        // Otherwise the caret rendering erases parts of the border as
+        // it moves around (as the caret intersects with the border
+        // partially)
+        int border_offset = 2;
+
+        Color indicator_border_color;
+
+        /* The indicator border is supposed to resmble the blue color of the
+           button that toggles the rewind mode. However, if the accent color is
+           blue, we need to use a different color for the border to make it
+           visible against the background. In this case, we use cyan as the
+           border color. */
+
+        if (customization->accent_color == DarkBlue) {
+                indicator_border_color = Cyan;
+        } else {
+                indicator_border_color = DarkBlue;
+        }
+
+        p->display->draw_rectangle(
+            {.x = x_margin - border_offset, .y = y_margin - border_offset},
+            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
+            indicator_border_color, border_width, false);
+}
+
+void clear_rewind_mode_indicator(Platform *p,
+                                 GameOfLifeGridDimensions *dimensions,
+                                 GameCustomization *customization)
+{
+
+        int x_margin = dimensions->left_horizontal_margin;
+        int y_margin = dimensions->top_vertical_margin;
+        int actual_width = dimensions->actual_width;
+        int actual_height = dimensions->actual_height;
+        int border_width = 1;
+        // We need to make the border rectangle and the canvas slightly
+        // bigger to ensure that it does not overlap with the game area.
+        // Otherwise the caret rendering erases parts of the border as
+        // it moves around (as the caret intersects with the border
+        // partially)
+        int border_offset = 2;
+
+        Color indicator_border_color;
+
+        p->display->draw_rectangle(
+            {.x = x_margin - border_offset, .y = y_margin - border_offset},
+            actual_width + 2 * border_offset, actual_height + 2 * border_offset,
+            customization->accent_color, border_width, false);
 }
