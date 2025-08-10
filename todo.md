@@ -24,6 +24,8 @@
       like that even if I use the rewind feature.
       Update: there is no memory leaks for sure, the game can handle a rewind buffer
       of 3 evolutions just fine and does not freeze.
+- [_] add ability to scroll through the config menu for games that require more
+      than 3 config options
 - [_] figure out how to generate sudoku
 - [_] design the input model for sudoku
 - [_] think about the sudoku game logic

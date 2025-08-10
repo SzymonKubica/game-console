@@ -30,6 +30,8 @@ typedef struct GameOfLifeConfiguration {
         // Simulation steps taken per second
         bool use_toroidal_array;
         int simulation_speed;
+        // int rewind_buffer_size; TODO: reenable once we are able to source the
+        // config
 } GameOfLifeConfiguration;
 
 /**
@@ -328,6 +330,16 @@ Configuration *assemble_game_of_life_configuration()
         toroidal_array->name = "Toroidal array";
         populate_string_option_values(toroidal_array, yes_or_no);
         toroidal_array->currently_selected = 0;
+
+        /*
+        TODO: find a way to scroll through the config options as we need more
+        than 3 options to configure the game properly. ConfigurationOption
+        *rewind_buffer_size = new ConfigurationOption();
+        rewind_buffer_size->name = "Evolutions/second";
+        std::vector<int> available_sizes = {1, 2, 4};
+        populate_int_option_values(rewind_buffer_size, available_speeds);
+        rewind_buffer_size->currently_selected = 0;
+        */
 
         config->options_len = 3;
         config->options = new ConfigurationOption *[config->options_len];
