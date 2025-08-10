@@ -604,7 +604,9 @@ void spawn_cells_randomly(Display *display,
 {
         for (int y = 0; y < dimensions->rows; y++) {
                 for (int x = 0; x < dimensions->cols; x++) {
-                        if (rand() % 2 == 0) {
+                        // We use 30% chance os spawning a cell to avoid massive
+                        // overpopulation
+                        if (rand() % 10 <= 3) {
                                 (*grid)[y][x] = ALIVE;
                                 Point position = {.x = x, .y = y};
                                 draw_game_cell(display, &position, dimensions,
