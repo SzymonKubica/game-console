@@ -6,6 +6,14 @@
 - we can add compatibility layer for raspberry pi and make a controller that will be embedded
   into my desk at home / control the game via ssh.
 
+- game of life based puzzle game:
+  - you have a limited number of seeds
+  - you need to clear a given pattern on the grid
+  - the pattern is constructed of cells that become cleared whenever at least
+    one game of life cell lives there for at least one generation
+  - you can pause the evolution and plant a seed whenever you want
+  - the fewer evolution generations and seeds you use the better
+
 # TODO
 
 - [_] figure out how to generate sudoku
@@ -22,6 +30,7 @@
 # In Progress
 
 # Done
+- [x] create macropad setting for neovim gdb plugin
 - [x] figure out how to use the graphical gdb showing code snippets
 - [x] maybe using gdb in neovim?
 - [x] document the gdb workflow

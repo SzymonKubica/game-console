@@ -57,13 +57,15 @@ int main(int argc, char *argv[])
         hjkl_controller = SfmlHjklInputController{};
         action_controller = SfmlActionInputController{};
 
-        std::vector<DirectionalController *> controllers(3);
-        controllers[0] = &controller;
-        controllers[1] = &awsd_controller;
-        controllers[2] = &hjkl_controller;
+        std::vector<DirectionalController *> controllers = {
+            &controller,
+            &awsd_controller,
+            &hjkl_controller,
+        };
 
-        std::vector<ActionController *> action_controllers(1);
-        action_controllers[0] = &action_controller;
+        std::vector<ActionController *> action_controllers = {
+            &action_controller,
+        };
 
         Platform platform = {.display = display,
                              .directional_controllers = &controllers,
@@ -85,7 +87,6 @@ int main(int argc, char *argv[])
                 }
         }
 }
-
 
 void print_version(char *argv[])
 {

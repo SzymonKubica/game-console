@@ -9,6 +9,9 @@
 
 #define GAME_LOOP_DELAY 100
 
+// The number of evolutions that the user can go back in time.
+#define REWIND_BUF_SIZE 20
+
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
         // Simulation steps taken per second
@@ -41,6 +44,12 @@ typedef enum GameOfLifeCell {
         EMPTY = 0,
         ALIVE = 1,
 } GameOfLifeCell;
+
+typedef enum SimulationMode {
+        RUNNING = 0,
+        PAUSED = 1,
+        REWIND = 2,
+} SimulationMode;
 
 typedef struct EvolutionDiff {
         Point *position;
@@ -81,6 +90,15 @@ void spawn_cells_randomly(Display *display,
                           std::vector<std::vector<GameOfLifeCell>> *grid,
                           GameOfLifeGridDimensions *dimensions);
 
+void add_diffs_to_rewind_buffer(
+    std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+    int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs);
+
+void handle_rewind_input(
+    Direction dir, std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+    int *rewind_buf_idx, std::vector<std::vector<GameOfLifeCell>> *grid,
+    GameOfLifeGridDimensions *gd, Display *display);
+
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
 
@@ -104,6 +122,13 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         std::vector<std::vector<GameOfLifeCell>> grid(
             rows, std::vector<GameOfLifeCell>(cols));
 
+        /* A ring buffer of evolution diffs that are used to allow for going
+           back in time. Note that each user input also counts as a simulation
+           step so will be included in the rewind buffer. */
+        std::vector<std::vector<EvolutionDiff> *> rewind_buffer(REWIND_BUF_SIZE,
+                                                                nullptr);
+        int rewind_buf_idx = 0;
+
         if (config.prepopulate_grid) {
                 spawn_cells_randomly(p->display, &grid, gd);
         }
@@ -113,24 +138,31 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         int iteration = 0;
 
         bool exit_requested = false;
-        bool is_paused = true;
+        SimulationMode mode = PAUSED;
         while (!exit_requested) {
-                if (!is_paused && iteration == evolution_period - 1) {
+                if (mode == RUNNING && iteration == evolution_period - 1) {
                         LOG_DEBUG(TAG, "Taking a simulation step");
                         std::vector<EvolutionDiff> *diffs =
                             take_simulation_step(&grid,
                                                  config.use_toroidal_array);
-                        render_diffs(p->display, diffs, gd);
+
                         LOG_DEBUG(TAG, "Got %zu diffs", diffs->size());
                         LOG_DEBUG(TAG, "Diffs rendered successfully!");
-                        free_diffs(diffs);
-                        LOG_DEBUG(TAG, "Diffs freed successfully!");
+                        render_diffs(p->display, diffs, gd);
+                        add_diffs_to_rewind_buffer(&rewind_buffer,
+                                                   &rewind_buf_idx, diffs);
                 }
                 Direction dir;
                 Action act;
                 GameOfLifeCell curr = grid[caret_pos.y][caret_pos.x];
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
+                        if (mode == REWIND) {
+                          handle_rewind_input(dir, &rewind_buffer,
+                                              &rewind_buf_idx, &grid, gd,
+                                              p->display);
+                          continue;
+                        }
                         if (curr == EMPTY) {
                                 erase_caret(p->display, &caret_pos, gd, Black);
                         } else if (curr == ALIVE) {
@@ -150,7 +182,13 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                 if (action_input_registered(p->action_controllers, &act)) {
                         switch (act) {
                         case YELLOW:
-                                is_paused = !is_paused;
+                                if (mode == PAUSED || mode == REWIND) {
+                                  mode = RUNNING;
+                                  LOG_DEBUG(TAG, "Simulation running...");
+                                } else {
+                                  mode = PAUSED;
+                                  LOG_DEBUG(TAG, "Simulation paused.");
+                                }
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
                                 break;
@@ -158,6 +196,13 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                 exit_requested = true;
                                 break;
                         case BLUE:
+                                if (mode == REWIND) {
+                                  mode = RUNNING;
+                                  LOG_DEBUG(TAG, "Simulation running...");
+                                } else {
+                                  mode = REWIND;
+                                  LOG_DEBUG(TAG, "Rewind mode enabled.");
+                                }
                                 break;
                         case GREEN:
                                 Color new_cell_color;
@@ -168,6 +213,15 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                         grid[caret_pos.y][caret_pos.x] = EMPTY;
                                         new_cell_color = Black;
                                 }
+                                EvolutionDiff diff = EvolutionDiff{
+                                    .position =
+                                        new Point{caret_pos.x, caret_pos.y},
+                                    .new_state = grid[caret_pos.y][caret_pos.x],
+                                };
+                                std::vector<EvolutionDiff> *diffs =
+                                    new std::vector<EvolutionDiff>(1, diff);
+                                add_diffs_to_rewind_buffer(
+                                    &rewind_buffer, &rewind_buf_idx, diffs);
                                 draw_game_cell(p->display, &caret_pos, gd,
                                                new_cell_color);
                                 // we need to redraw the caret as we have just
@@ -341,6 +395,26 @@ void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                 }
                 draw_game_cell(display, diff.position, dimensions, color);
         }
+}
+
+void add_diffs_to_rewind_buffer(
+    std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+    int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs)
+{
+        int idx = *rewind_buf_idx;
+        if ((*rewind_buffer)[idx] != nullptr) {
+                free_diffs((*rewind_buffer)[idx]);
+        }
+        (*rewind_buffer)[idx] = diffs;
+        // We need to increment the index and wrap it around as we are using
+        // a ring buffer.
+        *rewind_buf_idx = (idx + 1) % REWIND_BUF_SIZE;
+}
+
+void handle_rewind_input(
+    Direction dir, std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+    int *rewind_buf_idx, std::vector<std::vector<GameOfLifeCell>> *grid,
+    GameOfLifeGridDimensions *gd, Display *display) {
 }
 
 void free_diffs(std::vector<EvolutionDiff> *diffs)
