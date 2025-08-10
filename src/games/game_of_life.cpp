@@ -22,7 +22,7 @@
 #ifdef EMULATOR
 #define REWIND_BUF_SIZE 20
 #else
-#define REWIND_BUF_SIZE 3
+#define REWIND_BUF_SIZE 10
 #endif
 
 typedef struct GameOfLifeConfiguration {
@@ -55,10 +55,10 @@ typedef struct GameOfLifeGridDimensions {
         }
 } GameOfLifeGridDimensions;
 
-typedef enum GameOfLifeCell {
-        EMPTY = 0,
-        ALIVE = 1,
-} GameOfLifeCell;
+typedef enum GameOfLifeCell
+    : bool { EMPTY = false,
+             ALIVE = true,
+    } GameOfLifeCell;
 
 typedef enum SimulationMode {
         RUNNING = 0,
@@ -67,7 +67,7 @@ typedef enum SimulationMode {
 } SimulationMode;
 
 typedef struct EvolutionDiff {
-        Point *position;
+        Point position;
         GameOfLifeCell new_state;
 } EvolutionDiff;
 
@@ -270,8 +270,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                         new_cell_color = Black;
                                 }
                                 EvolutionDiff diff = EvolutionDiff{
-                                    .position =
-                                        new Point{caret_pos.x, caret_pos.y},
+                                    .position = {caret_pos.x, caret_pos.y},
                                     .new_state = grid[caret_pos.y][caret_pos.x],
                                 };
                                 std::vector<EvolutionDiff> *diffs =
@@ -433,8 +432,7 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                                 new_state = ALIVE; // Reproduction
                         }
                         if (new_state != current_state) {
-                                EvolutionDiff diff = {.position =
-                                                          new Point{x, y},
+                                EvolutionDiff diff = {.position = {x, y},
                                                       .new_state = new_state};
                                 diffs->push_back(diff);
                         }
@@ -449,7 +447,7 @@ void apply_diffs(std::vector<EvolutionDiff> *diffs,
                  std::vector<std::vector<GameOfLifeCell>> *grid)
 {
         for (EvolutionDiff &diff : *diffs) {
-                (*grid)[diff.position->y][diff.position->x] = diff.new_state;
+                (*grid)[diff.position.y][diff.position.x] = diff.new_state;
         }
 }
 
@@ -464,7 +462,7 @@ void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                 } else {
                         color = Black; // Dead cells are rendered in black
                 }
-                draw_game_cell(display, diff.position, dimensions, color);
+                draw_game_cell(display, &(diff.position), dimensions, color);
         }
 }
 
@@ -488,7 +486,7 @@ void unapply_diffs(std::vector<EvolutionDiff> *diffs,
                    std::vector<std::vector<GameOfLifeCell>> *grid)
 {
         for (EvolutionDiff &diff : *diffs) {
-                (*grid)[diff.position->y][diff.position->x] =
+                (*grid)[diff.position.y][diff.position.x] =
                     flip_state(diff.new_state);
         }
 }
@@ -507,7 +505,7 @@ void unrender_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                 } else {
                         color = Black; // Dead cells are rendered in black
                 }
-                draw_game_cell(display, diff.position, dimensions, color);
+                draw_game_cell(display, &(diff.position), dimensions, color);
         }
 }
 
@@ -596,9 +594,6 @@ void handle_rewind(Direction dir,
 
 void free_diffs(std::vector<EvolutionDiff> *diffs)
 {
-        for (auto diff : *diffs) {
-                delete diff.position;
-        }
         diffs->clear();
         delete diffs;
 }
