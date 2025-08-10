@@ -1,8 +1,10 @@
 #include "../common/logging.hpp"
 #include "../common/configuration.hpp"
 #include "../common/constants.hpp"
+#include "../common/maths_utils.hpp"
 #include "game_executor.hpp"
 #include <cstring>
+#include <stdexcept>
 
 #define TAG "game_of_life"
 #define GAME_CELL_WIDTH 8
@@ -84,6 +86,15 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
 void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
                   GameOfLifeGridDimensions *dimensions);
 
+void apply_diffs(std::vector<EvolutionDiff> *diffs,
+                 std::vector<std::vector<GameOfLifeCell>> *grid);
+
+void unrender_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
+                    GameOfLifeGridDimensions *dimensions);
+
+void unapply_diffs(std::vector<EvolutionDiff> *diffs,
+                   std::vector<std::vector<GameOfLifeCell>> *grid);
+
 void free_diffs(std::vector<EvolutionDiff> *diffs);
 
 void spawn_cells_randomly(Display *display,
@@ -94,10 +105,11 @@ void add_diffs_to_rewind_buffer(
     std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
     int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs);
 
-void handle_rewind_input(
-    Direction dir, std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-    int *rewind_buf_idx, std::vector<std::vector<GameOfLifeCell>> *grid,
-    GameOfLifeGridDimensions *gd, Display *display);
+void handle_rewind(Direction dir,
+                   std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+                   int latest_state_idx, int *rewind_buf_idx,
+                   std::vector<std::vector<GameOfLifeCell>> *grid,
+                   GameOfLifeGridDimensions *gd, Display *display);
 
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
@@ -127,7 +139,10 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
            step so will be included in the rewind buffer. */
         std::vector<std::vector<EvolutionDiff> *> rewind_buffer(REWIND_BUF_SIZE,
                                                                 nullptr);
-        int rewind_buf_idx = 0;
+        int rewind_buf_idx = -1;
+        // Keeps track of the latest diff in the rewind buffer. Prevents us from
+        // wrapping back to it.
+        int rewind_initial_idx = -1;
 
         if (config.prepopulate_grid) {
                 spawn_cells_randomly(p->display, &grid, gd);
@@ -157,37 +172,43 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                 GameOfLifeCell curr = grid[caret_pos.y][caret_pos.x];
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
+                        // TODO: clean up control flow to remove this deeply
+                        // nested logic.
                         if (mode == REWIND) {
-                          handle_rewind_input(dir, &rewind_buffer,
-                                              &rewind_buf_idx, &grid, gd,
-                                              p->display);
-                          continue;
-                        }
-                        if (curr == EMPTY) {
-                                erase_caret(p->display, &caret_pos, gd, Black);
-                        } else if (curr == ALIVE) {
-                                erase_caret(p->display, &caret_pos, gd, White);
-                        }
-
-                        if (config.use_toroidal_array) {
-                                translate_toroidal_array(&caret_pos, dir,
-                                                         gd->rows, gd->cols);
+                                handle_rewind(
+                                    dir, &rewind_buffer, rewind_initial_idx,
+                                    &rewind_buf_idx, &grid, gd, p->display);
                         } else {
-                                translate_within_bounds(&caret_pos, dir,
-                                                        gd->rows, gd->cols);
+                                if (curr == EMPTY) {
+                                        erase_caret(p->display, &caret_pos, gd,
+                                                    Black);
+                                } else if (curr == ALIVE) {
+                                        erase_caret(p->display, &caret_pos, gd,
+                                                    White);
+                                }
+
+                                if (config.use_toroidal_array) {
+                                        translate_toroidal_array(&caret_pos,
+                                                                 dir, gd->rows,
+                                                                 gd->cols);
+                                } else {
+                                        translate_within_bounds(&caret_pos, dir,
+                                                                gd->rows,
+                                                                gd->cols);
+                                }
+                                draw_caret(p->display, &caret_pos, gd,
+                                           customization->accent_color);
                         }
-                        draw_caret(p->display, &caret_pos, gd,
-                                   customization->accent_color);
                 }
                 if (action_input_registered(p->action_controllers, &act)) {
                         switch (act) {
                         case YELLOW:
                                 if (mode == PAUSED || mode == REWIND) {
-                                  mode = RUNNING;
-                                  LOG_DEBUG(TAG, "Simulation running...");
+                                        mode = RUNNING;
+                                        LOG_DEBUG(TAG, "Simulation running...");
                                 } else {
-                                  mode = PAUSED;
-                                  LOG_DEBUG(TAG, "Simulation paused.");
+                                        mode = PAUSED;
+                                        LOG_DEBUG(TAG, "Simulation paused.");
                                 }
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
@@ -197,11 +218,16 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                 break;
                         case BLUE:
                                 if (mode == REWIND) {
-                                  mode = RUNNING;
-                                  LOG_DEBUG(TAG, "Simulation running...");
-                                } else {
-                                  mode = REWIND;
-                                  LOG_DEBUG(TAG, "Rewind mode enabled.");
+                                        mode = RUNNING;
+                                        LOG_DEBUG(TAG, "Simulation running...");
+                                } else if (rewind_buf_idx != -1) {
+                                        // We can only rewind if the buffer has
+                                        // at least one entry.
+                                        mode = REWIND;
+                                        // We need to record the latest index in
+                                        // the rewind buffer.
+                                        rewind_initial_idx = rewind_buf_idx;
+                                        LOG_DEBUG(TAG, "Rewind mode enabled.");
                                 }
                                 break;
                         case GREEN:
@@ -219,7 +245,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                     .new_state = grid[caret_pos.y][caret_pos.x],
                                 };
                                 std::vector<EvolutionDiff> *diffs =
-                                    new std::vector<EvolutionDiff>(1, diff);
+                                    new std::vector<EvolutionDiff>();
+                                diffs->push_back(diff);
                                 add_diffs_to_rewind_buffer(
                                     &rewind_buffer, &rewind_buf_idx, diffs);
                                 draw_game_cell(p->display, &caret_pos, gd,
@@ -374,12 +401,16 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                         LOG_VERBOSE(TAG, "Diffs len %d", (int)diffs->size());
                 }
         }
+        apply_diffs(diffs, grid);
+        return diffs;
+}
 
-        // We apply the diffs to the grid.
+void apply_diffs(std::vector<EvolutionDiff> *diffs,
+                 std::vector<std::vector<GameOfLifeCell>> *grid)
+{
         for (EvolutionDiff &diff : *diffs) {
                 (*grid)[diff.position->y][diff.position->x] = diff.new_state;
         }
-        return diffs;
 }
 
 void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
@@ -397,24 +428,130 @@ void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
         }
 }
 
+GameOfLifeCell flip_state(GameOfLifeCell state)
+{
+        switch (state) {
+        case EMPTY:
+                return ALIVE;
+        case ALIVE:
+                return EMPTY;
+        }
+        throw std::invalid_argument(
+            "Invalid GameOfLifeCell state for flipping");
+}
+
+/**
+ * Used for rewind, it flips the state of the diffs. This acts as if the action
+ * of applying the diff on the grid was reversed.
+ */
+void unapply_diffs(std::vector<EvolutionDiff> *diffs,
+                   std::vector<std::vector<GameOfLifeCell>> *grid)
+{
+        for (EvolutionDiff &diff : *diffs) {
+                (*grid)[diff.position->y][diff.position->x] =
+                    flip_state(diff.new_state);
+        }
+}
+
+/**
+ * Same as unapply but for rendering.
+ */
+void unrender_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
+                    GameOfLifeGridDimensions *dimensions)
+{
+
+        for (EvolutionDiff &diff : *diffs) {
+                Color color;
+                if (flip_state(diff.new_state) == ALIVE) {
+                        color = White; // Alive cells are rendered in white
+                } else {
+                        color = Black; // Dead cells are rendered in black
+                }
+                draw_game_cell(display, diff.position, dimensions, color);
+        }
+}
+
 void add_diffs_to_rewind_buffer(
     std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
     int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs)
 {
+
+        // We need to increment the index and wrap it around as we are using
+        // a ring buffer.
+        *rewind_buf_idx = (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
         int idx = *rewind_buf_idx;
+        LOG_DEBUG(TAG, "Current rewind buffer index is now %d",
+                  *rewind_buf_idx);
+        LOG_DEBUG(TAG, "Adding diffs to rewind buffer at index %d",
+                  *rewind_buf_idx);
         if ((*rewind_buffer)[idx] != nullptr) {
+                LOG_DEBUG(
+                    TAG,
+                    "Rewind buffer already has diffs at index %d, freeing them",
+                    *rewind_buf_idx);
                 free_diffs((*rewind_buffer)[idx]);
         }
         (*rewind_buffer)[idx] = diffs;
-        // We need to increment the index and wrap it around as we are using
-        // a ring buffer.
-        *rewind_buf_idx = (idx + 1) % REWIND_BUF_SIZE;
 }
 
-void handle_rewind_input(
-    Direction dir, std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-    int *rewind_buf_idx, std::vector<std::vector<GameOfLifeCell>> *grid,
-    GameOfLifeGridDimensions *gd, Display *display) {
+void handle_rewind(Direction dir,
+                   std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
+                   int latest_state_idx, int *rewind_buf_idx,
+                   std::vector<std::vector<GameOfLifeCell>> *grid,
+                   GameOfLifeGridDimensions *gd, Display *display)
+{
+        // Ignore irrelevant input.
+        if (dir == UP || dir == DOWN) {
+                return;
+        }
+
+        // First we short-circuit if the user tries to go back too far.
+        bool forward_in_time = dir == RIGHT;
+        bool back_in_time = dir == LEFT;
+        // Rewind cannot go back in time past the REWIND_BUF_SIZE as it would
+        // wrap around to the latest state.
+        if (back_in_time &&
+            *rewind_buf_idx == (latest_state_idx + 1) % REWIND_BUF_SIZE) {
+                return;
+        }
+
+        if (forward_in_time) {
+                auto diffs = (*rewind_buffer)[*rewind_buf_idx];
+                apply_diffs(diffs, grid);
+                render_diffs(display, diffs, gd);
+
+                // Rewind cannot go into the future.
+                if (*rewind_buf_idx == latest_state_idx) {
+                        return;
+                }
+                *rewind_buf_idx = (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
+        } else if (back_in_time) {
+                auto diffs = (*rewind_buffer)[*rewind_buf_idx];
+
+                unapply_diffs(diffs, grid);
+                unrender_diffs(display, diffs, gd);
+                // We need to use proper modulo as % is weird with
+                // negative numbers.
+                *rewind_buf_idx =
+                    mathematical_modulo((*rewind_buf_idx - 1), REWIND_BUF_SIZE);
+
+                /* If the rewind ring buffer has not been fully populated yet,
+                   trying to rewind back in time would wrap around to the end of
+                   the array and try to render nullptr diffs (as the indices
+                   larger than the latest_state_idx haven't been initialized
+                   yet). We need to short-circuit if that happens. */
+                auto next_diffs = (*rewind_buffer)[*rewind_buf_idx];
+                if (next_diffs == nullptr) {
+                        LOG_DEBUG(TAG,
+                                  "Rewind buffer is empty at index %d, "
+                                  "skipping index update",
+                                  *rewind_buf_idx);
+                        // We need to increment the index to go back to safety
+                        *rewind_buf_idx =
+                            (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
+                        return;
+                }
+        }
 }
 
 void free_diffs(std::vector<EvolutionDiff> *diffs)
@@ -612,15 +749,16 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
         const char *toggle = "Rewind mode on/off";
         int toggle_len = strlen(toggle) * FONT_WIDTH;
 
-        int total_width_above_grid = toggle_len + d + text_circle_spacing_width;
-        int centering_margin = (available_width - total_width_above_grid) / 2;
+        int total_width_above_grid = toggle_len + d +
+        text_circle_spacing_width; int centering_margin =
+        (available_width - total_width_above_grid) / 2;
 
         int blue_circle_x = x_margin + centering_margin;
         p->display->draw_circle(
-            {.x = blue_circle_x, .y = circle_y_axis_above_grid}, r, DarkBlue, 0,
-            true);
-        int toggle_text_x = blue_circle_x + d;
-        p->display->draw_string({.x = toggle_text_x, .y = text_above_grid_y},
-                                (char *)toggle, FontSize::Size16, Black, White);
+            {.x = blue_circle_x, .y = circle_y_axis_above_grid}, r,
+        DarkBlue, 0, true); int toggle_text_x = blue_circle_x + d;
+        p->display->draw_string({.x = toggle_text_x, .y =
+        text_above_grid_y}, (char *)toggle, FontSize::Size16, Black,
+        White);
         */
 }
