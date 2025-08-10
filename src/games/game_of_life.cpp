@@ -30,8 +30,7 @@ typedef struct GameOfLifeConfiguration {
         // Simulation steps taken per second
         bool use_toroidal_array;
         int simulation_speed;
-        // int rewind_buffer_size; TODO: reenable once we are able to source the
-        // config
+        int rewind_buffer_size;
 } GameOfLifeConfiguration;
 
 /**
@@ -156,8 +155,9 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         /* A ring buffer of evolution diffs that are used to allow for going
            back in time. Note that each user input also counts as a simulation
            step so will be included in the rewind buffer. */
-        std::vector<std::vector<EvolutionDiff> *> rewind_buffer(REWIND_BUF_SIZE,
-                                                                nullptr);
+        std::vector<std::vector<EvolutionDiff> *> rewind_buffer(
+            config.rewind_buffer_size, nullptr);
+
         int rewind_buf_idx = -1;
         // Keeps track of the latest diff in the rewind buffer. Prevents us from
         // wrapping back to it.
@@ -368,6 +368,26 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
             prepopulate_grid.available_values)[curr_choice_idx];
         game_config->prepopulate_grid = extract_yes_or_no_option(choice);
 
+#ifndef EMULATOR
+        /* Because of memory constaints, we need to disable the rewind buffer
+         * if the grid is randomly prepopulated. This is because random noise in
+         * the initial grid creates long vectors of diffs that need to be stored
+         * in the rewind buffer. Setting the size of the buffer to 1 effectively
+         * diables the rewind functionality without changing the code.
+         *
+         * TODO: find a way to optimize the EvolutionDiff struct so that it is
+         * possible to store more diffs in the rewind buffer without running out
+         * of memory.
+         */
+        if (game_config->prepopulate_grid) {
+                game_config->rewind_buffer_size = 1;
+        } else {
+                game_config->rewind_buffer_size = REWIND_BUF_SIZE;
+        }
+#else
+        game_config->rewind_buffer_size = REWIND_BUF_SIZE;
+#endif
+
         ConfigurationOption simulation_speed = *config->options[1];
         int curr_speed_idx = simulation_speed.currently_selected;
         game_config->simulation_speed = static_cast<int *>(
@@ -516,7 +536,7 @@ void add_diffs_to_rewind_buffer(
 
         // We need to increment the index and wrap it around as we are using
         // a ring buffer.
-        *rewind_buf_idx = (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
+        *rewind_buf_idx = (*rewind_buf_idx + 1) % rewind_buffer->size();
         int idx = *rewind_buf_idx;
         LOG_DEBUG(TAG, "Current rewind buffer index is now %d",
                   *rewind_buf_idx);
@@ -546,10 +566,10 @@ void handle_rewind(Direction dir,
         // First we short-circuit if the user tries to go back too far.
         bool forward_in_time = dir == RIGHT;
         bool back_in_time = dir == LEFT;
-        // Rewind cannot go back in time past the REWIND_BUF_SIZE as it would
+        // Rewind cannot go back in time past oldest state as it would
         // wrap around to the latest state.
         if (back_in_time &&
-            *rewind_buf_idx == (latest_state_idx + 1) % REWIND_BUF_SIZE) {
+            *rewind_buf_idx == (latest_state_idx + 1) % rewind_buffer->size()) {
                 return;
         }
 
@@ -562,7 +582,7 @@ void handle_rewind(Direction dir,
                 if (*rewind_buf_idx == latest_state_idx) {
                         return;
                 }
-                *rewind_buf_idx = (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
+                *rewind_buf_idx = (*rewind_buf_idx + 1) % rewind_buffer->size();
         } else if (back_in_time) {
                 auto diffs = (*rewind_buffer)[*rewind_buf_idx];
 
@@ -570,8 +590,8 @@ void handle_rewind(Direction dir,
                 unrender_diffs(display, diffs, gd);
                 // We need to use proper modulo as % is weird with
                 // negative numbers.
-                *rewind_buf_idx =
-                    mathematical_modulo((*rewind_buf_idx - 1), REWIND_BUF_SIZE);
+                *rewind_buf_idx = mathematical_modulo((*rewind_buf_idx - 1),
+                                                      rewind_buffer->size());
 
                 /* If the rewind ring buffer has not been fully populated yet,
                    trying to rewind back in time would wrap around to the end of
@@ -586,7 +606,7 @@ void handle_rewind(Direction dir,
                                   *rewind_buf_idx);
                         // We need to increment the index to go back to safety
                         *rewind_buf_idx =
-                            (*rewind_buf_idx + 1) % REWIND_BUF_SIZE;
+                            (*rewind_buf_idx + 1) % rewind_buffer->size();
                         return;
                 }
         }
