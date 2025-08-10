@@ -1,10 +1,10 @@
+#include <cstring>
+
 #include "../common/logging.hpp"
 #include "../common/configuration.hpp"
 #include "../common/constants.hpp"
 #include "../common/maths_utils.hpp"
 #include "game_executor.hpp"
-#include <cstring>
-#include <stdexcept>
 
 #define TAG "game_of_life"
 #define GAME_CELL_WIDTH 8
@@ -17,8 +17,13 @@
 #define EXPLANATION_ABOVE_GRID_OFFEST 0
 #endif
 
-// The number of evolutions that the user can go back in time.
+// The number of evolutions that the user can go back in time. Because of memory
+// constaints we allow for a smaller buffer on the target device.
+#ifdef EMULATOR
 #define REWIND_BUF_SIZE 20
+#else
+#define REWIND_BUF_SIZE 5
+#endif
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
