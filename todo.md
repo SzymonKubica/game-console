@@ -3,8 +3,11 @@
   - snake
   - sudoku (assuming we can fit 9x9 grid)
   - some fun animations
-- we can add compatibility layer for raspberry pi and make a controller that will be embedded
   into my desk at home / control the game via ssh.
+- [_] figure out how to generate sudoku
+- [_] design the input model for sudoku
+- [_] think about the sudoku game logic
+- we can add compatibility layer for raspberry pi and make a controller that will be embedded
 
 - game of life based puzzle game:
   - you have a limited number of seeds
@@ -15,22 +18,11 @@
   - the fewer evolution generations and seeds you use the better
 
 # TODO
-
-- [_] fix / find memory leaks in the game of life code / optimize internal representation
-      to avoid memory issues. Current hypothesis is that there are no memory leaks.
-      The reason is that if we decrease the rewind ring buffer size to 0, the
-      game on target device no longer freezes because of memory issues. Also, when
-      running the emulator the memory footprint of the console is 148Mb and stays
-      like that even if I use the rewind feature.
-      Update: there is no memory leaks for sure, the game can handle a rewind buffer
-      of 3 evolutions just fine and does not freeze.
+- [_] further optimise game of life implementation to remove memory issues no matter
+      how complicated the diff
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
-- [_] figure out how to generate sudoku
-- [_] design the input model for sudoku
-- [_] think about the sudoku game logic
 - [_] add proper customization passing (not just extra parameter for accent color)
-
 - [_] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
   should be plenty.) Ensure that the config / scores are only written if the user
   explicitly says that the write has to happen. EEPROM has a finite number of write
@@ -39,6 +31,14 @@
 # In Progress
 
 # Done
+- [x] fix / find memory leaks in the game of life code / optimize internal representation
+      to avoid memory issues. Current hypothesis is that there are no memory leaks.
+      The reason is that if we decrease the rewind ring buffer size to 0, the
+      game on target device no longer freezes because of memory issues. Also, when
+      running the emulator the memory footprint of the console is 148Mb and stays
+      like that even if I use the rewind feature.
+      Update: there is no memory leaks for sure, the game can handle a rewind buffer
+      of 3 evolutions just fine and does not freeze.
 - [x] add rewind functionality for game of life
 - [x] create macropad setting for neovim gdb plugin
 - [x] figure out how to use the graphical gdb showing code snippets
