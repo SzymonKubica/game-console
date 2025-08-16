@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstring>
 
 #include "../common/logging.hpp"
@@ -24,6 +25,9 @@
 #else
 #define REWIND_BUF_SIZE 10
 #endif
+
+#define ALIVE true
+#define EMPTY false
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -54,21 +58,26 @@ typedef struct GameOfLifeGridDimensions {
         }
 } GameOfLifeGridDimensions;
 
-typedef enum GameOfLifeCell
-    : bool { EMPTY = false,
-             ALIVE = true,
-    } GameOfLifeCell;
+typedef bool GameOfLifeCell;
+typedef uint8_t *Grid;
+inline bool get_cell(int x, int y, int cols, Grid grid);
+inline void set_cell(int x, int y, int cols, Grid grid, bool alive);
+inline Grid allocate_grid(int cells);
+
+/**
+ * Models a change of the Game of Life state from one frame to another. This
+ * is needed to render changes when a single iteration of the simulation loop
+ * is taken. Note that counterintuitively, it is more efficient to crate a new
+ * full grid (represented as a bitset) on each iteration than it is to create
+ * diff objects. This is beause our grid is relatively small.
+ */
+typedef std::pair<uint8_t *, uint8_t *> StateEvolution;
 
 typedef enum SimulationMode {
         RUNNING = 0,
         PAUSED = 1,
         REWIND = 2,
 } SimulationMode;
-
-typedef struct EvolutionDiff {
-        Point position;
-        GameOfLifeCell new_state;
-} EvolutionDiff;
 
 static void collect_game_configuration(Platform *p,
                                        GameOfLifeConfiguration *game_config,
@@ -97,36 +106,21 @@ void erase_caret(Display *display, Point *grid_position,
 void draw_game_cell(Display *display, Point *grid_position,
                     GameOfLifeGridDimensions *dimensions, Color color);
 
-std::vector<EvolutionDiff> *
-take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
-                     bool use_toroidal_array);
+StateEvolution take_simulation_step(Grid grid,
+                                    GameOfLifeGridDimensions *dimensions,
+                                    bool use_toroidal_array);
 
-void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
-                  GameOfLifeGridDimensions *dimensions);
+void render_state_change(Display *display, StateEvolution evolution,
+                         GameOfLifeGridDimensions *dimensions);
 
-void apply_diffs(std::vector<EvolutionDiff> *diffs,
-                 std::vector<std::vector<GameOfLifeCell>> *grid);
-
-void unrender_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
-                    GameOfLifeGridDimensions *dimensions);
-
-void unapply_diffs(std::vector<EvolutionDiff> *diffs,
-                   std::vector<std::vector<GameOfLifeCell>> *grid);
-
-void free_diffs(std::vector<EvolutionDiff> *diffs);
-
-void spawn_cells_randomly(Display *display,
-                          std::vector<std::vector<GameOfLifeCell>> *grid,
+void spawn_cells_randomly(Display *display, Grid grid,
                           GameOfLifeGridDimensions *dimensions);
 
-void add_diffs_to_rewind_buffer(
-    std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-    int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs);
+void save_grid_state_in_rewind_buffer(std::vector<Grid> *rewind_buffer,
+                                      int *rewind_buf_idx, Grid grid);
 
-void handle_rewind(Direction dir,
-                   std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-                   int latest_state_idx, int *rewind_buf_idx,
-                   std::vector<std::vector<GameOfLifeCell>> *grid,
+Grid handle_rewind(Direction dir, std::vector<Grid> *rewind_buffer,
+                   int latest_state_idx, int *rewind_buf_idx, Grid grid,
                    GameOfLifeGridDimensions *gd, Display *display);
 
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
@@ -142,6 +136,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
             p->display->get_display_corner_radius());
         int rows = gd->rows;
         int cols = gd->cols;
+        int total_cells = rows * cols;
 
         draw_game_canvas(p, gd, customization);
         LOG_DEBUG(TAG, "Game of Life canvas drawn.");
@@ -149,14 +144,18 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         Point caret_pos = {.x = 0, .y = 0};
         draw_caret(p->display, &caret_pos, gd, customization->accent_color);
 
-        std::vector<std::vector<GameOfLifeCell>> grid(
-            rows, std::vector<GameOfLifeCell>(cols));
+        /* Because of memory constraints, we need to use a hand-rolled bitset
+           to store each 'frame' of the game simulation. The reason for this
+           is that storing the diffs with two integer (x, y) coordinates
+           occupies too much memory. */
 
-        /* A ring buffer of evolution diffs that are used to allow for going
-           back in time. Note that each user input also counts as a simulation
-           step so will be included in the rewind buffer. */
-        std::vector<std::vector<EvolutionDiff> *> rewind_buffer(
-            config.rewind_buffer_size, nullptr);
+        uint8_t *grid = allocate_grid(total_cells);
+
+        /* A ring buffer storing previous simulation states that are used to
+           allow for going back in time. Note that each user input also counts
+           as a simulation step so will be included in the rewind buffer. */
+        std::vector<uint8_t *> rewind_buffer(config.rewind_buffer_size,
+                                             nullptr);
 
         int rewind_buf_idx = -1;
         // Keeps track of the latest diff in the rewind buffer. Prevents us from
@@ -164,7 +163,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         int rewind_initial_idx = -1;
 
         if (config.prepopulate_grid) {
-                spawn_cells_randomly(p->display, &grid, gd);
+                spawn_cells_randomly(p->display, grid, gd);
         }
 
         int evolution_period =
@@ -176,27 +175,26 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         while (!exit_requested) {
                 if (mode == RUNNING && iteration == evolution_period - 1) {
                         LOG_DEBUG(TAG, "Taking a simulation step");
-                        std::vector<EvolutionDiff> *diffs =
-                            take_simulation_step(&grid,
-                                                 config.use_toroidal_array);
+                        StateEvolution evolution = take_simulation_step(
+                            grid, gd, config.use_toroidal_array);
 
-                        LOG_DEBUG(TAG, "Got %zu diffs", diffs->size());
-                        LOG_DEBUG(TAG, "Diffs rendered successfully!");
-                        render_diffs(p->display, diffs, gd);
-                        add_diffs_to_rewind_buffer(&rewind_buffer,
-                                                   &rewind_buf_idx, diffs);
+                        render_state_change(p->display, evolution, gd);
+                        save_grid_state_in_rewind_buffer(
+                            &rewind_buffer, &rewind_buf_idx, grid);
+                        grid = evolution.second;
                 }
                 Direction dir;
                 Action act;
-                GameOfLifeCell curr = grid[caret_pos.y][caret_pos.x];
+                GameOfLifeCell curr =
+                    get_cell(caret_pos.x, caret_pos.y, gd->cols, grid);
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
                         // TODO: clean up control flow to remove this deeply
                         // nested logic.
                         if (mode == REWIND) {
-                                handle_rewind(
+                                grid = handle_rewind(
                                     dir, &rewind_buffer, rewind_initial_idx,
-                                    &rewind_buf_idx, &grid, gd, p->display);
+                                    &rewind_buf_idx, grid, gd, p->display);
                         } else {
                                 if (curr == EMPTY) {
                                         erase_caret(p->display, &caret_pos, gd,
@@ -262,28 +260,34 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                                 break;
                         case GREEN:
                                 Color new_cell_color;
+
+                                // We copy the current state and only modify the
+                                // caret position.
+                                Grid new_grid = allocate_grid(total_cells);
+                                int size = (total_cells + 7) / 8;
+                                std::memcpy(new_grid, grid,
+                                            size * sizeof(uint8_t));
+
                                 if (curr == EMPTY) {
-                                        grid[caret_pos.y][caret_pos.x] = ALIVE;
+                                        set_cell(caret_pos.x, caret_pos.y, cols,
+                                                 new_grid, ALIVE);
                                         new_cell_color = White;
                                 } else if (curr == ALIVE) {
-                                        grid[caret_pos.y][caret_pos.x] = EMPTY;
+                                        set_cell(caret_pos.x, caret_pos.y, cols,
+                                                 new_grid, EMPTY);
                                         new_cell_color = Black;
                                 }
-                                EvolutionDiff diff = EvolutionDiff{
-                                    .position = {caret_pos.x, caret_pos.y},
-                                    .new_state = grid[caret_pos.y][caret_pos.x],
-                                };
-                                std::vector<EvolutionDiff> *diffs =
-                                    new std::vector<EvolutionDiff>();
-                                diffs->push_back(diff);
-                                add_diffs_to_rewind_buffer(
-                                    &rewind_buffer, &rewind_buf_idx, diffs);
+
+                                save_grid_state_in_rewind_buffer(
+                                    &rewind_buffer, &rewind_buf_idx, grid);
                                 draw_game_cell(p->display, &caret_pos, gd,
                                                new_cell_color);
                                 // we need to redraw the caret as we have just
                                 // drawn a cell by clearing the region
                                 draw_caret(p->display, &caret_pos, gd,
                                            customization->accent_color);
+
+                                grid = new_grid;
 
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
@@ -402,21 +406,23 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
             extract_yes_or_no_option(toroidal_array_choice);
 }
 
-std::vector<EvolutionDiff> *
-take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
-                     bool use_toroidal_array)
+StateEvolution take_simulation_step(Grid grid,
+                                    GameOfLifeGridDimensions *dimensions,
+                                    bool use_toroidal_array)
 {
-        std::vector<EvolutionDiff> *diffs = new std::vector<EvolutionDiff>();
-
         // This assumes that the grid is rectangular.
-        int rows = grid->size();
-        int cols = (*grid)[0].size();
+        int rows = dimensions->rows;
+        int cols = dimensions->cols;
+        int total_cells = rows * cols;
 
+        Grid new_grid = allocate_grid(total_cells);
         for (int y = 0; y < rows; y++) {
                 for (int x = 0; x < cols; x++) {
+                        GameOfLifeCell current_state =
+                            get_cell(x, y, cols, grid);
                         LOG_VERBOSE(TAG,
                                     "Processing cell at (%d, %d) with state %d",
-                                    x, y, (*grid)[y][x]);
+                                    x, y, current_state);
                         int alive_nb = 0;
                         Point curr = {.x = x, .y = y};
 
@@ -431,13 +437,12 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                         }
 
                         for (Point nb : neighbours) {
-                                if ((*grid)[nb.y][nb.x] == ALIVE) {
+                                if (get_cell(nb.x, nb.y, cols, grid) == ALIVE) {
                                         alive_nb++;
                                 }
                         }
 
                         GameOfLifeCell new_state = EMPTY;
-                        GameOfLifeCell current_state = (*grid)[y][x];
 
                         if (current_state == ALIVE) {
                                 // Underpopulation or overpopulation
@@ -451,87 +456,38 @@ take_simulation_step(std::vector<std::vector<GameOfLifeCell>> *grid,
                         } else if (alive_nb == 3) {
                                 new_state = ALIVE; // Reproduction
                         }
-                        if (new_state != current_state) {
-                                EvolutionDiff diff = {.position = {x, y},
-                                                      .new_state = new_state};
-                                diffs->push_back(diff);
+
+                        set_cell(x, y, cols, new_grid, new_state);
+                }
+        }
+        return std::make_pair(grid, new_grid);
+}
+
+void render_state_change(Display *display, StateEvolution evolution,
+                         GameOfLifeGridDimensions *dimensions)
+{
+        int rows = dimensions->rows;
+        int cols = dimensions->cols;
+
+        for (int y = 0; y < rows; y++) {
+                for (int x = 0; x < cols; x++) {
+                        GameOfLifeCell prev =
+                            get_cell(x, y, cols, evolution.first);
+                        GameOfLifeCell curr =
+                            get_cell(x, y, cols, evolution.second);
+
+                        if (curr != prev) {
+                                Color color = curr == ALIVE ? White : Black;
+                                Point position = {.x = x, .y = y};
+                                draw_game_cell(display, &position, dimensions,
+                                               color);
                         }
-                        LOG_VERBOSE(TAG, "Diffs len %d", (int)diffs->size());
                 }
         }
-        apply_diffs(diffs, grid);
-        return diffs;
 }
 
-void apply_diffs(std::vector<EvolutionDiff> *diffs,
-                 std::vector<std::vector<GameOfLifeCell>> *grid)
-{
-        for (EvolutionDiff &diff : *diffs) {
-                (*grid)[diff.position.y][diff.position.x] = diff.new_state;
-        }
-}
-
-void render_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
-                  GameOfLifeGridDimensions *dimensions)
-{
-
-        for (EvolutionDiff &diff : *diffs) {
-                Color color;
-                if (diff.new_state == ALIVE) {
-                        color = White; // Alive cells are rendered in white
-                } else {
-                        color = Black; // Dead cells are rendered in black
-                }
-                draw_game_cell(display, &(diff.position), dimensions, color);
-        }
-}
-
-GameOfLifeCell flip_state(GameOfLifeCell state)
-{
-        switch (state) {
-        case EMPTY:
-                return ALIVE;
-        case ALIVE:
-                return EMPTY;
-        }
-        // Unreachable (assuming noone casts random integers as GameOfLifeCell).
-        return EMPTY;
-}
-
-/**
- * Used for rewind, it flips the state of the diffs. This acts as if the action
- * of applying the diff on the grid was reversed.
- */
-void unapply_diffs(std::vector<EvolutionDiff> *diffs,
-                   std::vector<std::vector<GameOfLifeCell>> *grid)
-{
-        for (EvolutionDiff &diff : *diffs) {
-                (*grid)[diff.position.y][diff.position.x] =
-                    flip_state(diff.new_state);
-        }
-}
-
-/**
- * Same as unapply but for rendering.
- */
-void unrender_diffs(Display *display, std::vector<EvolutionDiff> *diffs,
-                    GameOfLifeGridDimensions *dimensions)
-{
-
-        for (EvolutionDiff &diff : *diffs) {
-                Color color;
-                if (flip_state(diff.new_state) == ALIVE) {
-                        color = White; // Alive cells are rendered in white
-                } else {
-                        color = Black; // Dead cells are rendered in black
-                }
-                draw_game_cell(display, &(diff.position), dimensions, color);
-        }
-}
-
-void add_diffs_to_rewind_buffer(
-    std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-    int *rewind_buf_idx, std::vector<EvolutionDiff> *diffs)
+void save_grid_state_in_rewind_buffer(std::vector<Grid> *rewind_buffer,
+                                      int *rewind_buf_idx, Grid grid)
 {
 
         // We need to increment the index and wrap it around as we are using
@@ -540,27 +496,25 @@ void add_diffs_to_rewind_buffer(
         int idx = *rewind_buf_idx;
         LOG_DEBUG(TAG, "Current rewind buffer index is now %d",
                   *rewind_buf_idx);
-        LOG_DEBUG(TAG, "Adding diffs to rewind buffer at index %d",
+        LOG_DEBUG(TAG, "Adding current state to rewind buffer at index %d",
                   *rewind_buf_idx);
         if ((*rewind_buffer)[idx] != nullptr) {
                 LOG_DEBUG(
                     TAG,
-                    "Rewind buffer already has diffs at index %d, freeing them",
+                    "Rewind buffer already has saved state at index %d, freeing it",
                     *rewind_buf_idx);
-                free_diffs((*rewind_buffer)[idx]);
+                delete (*rewind_buffer)[idx];
         }
-        (*rewind_buffer)[idx] = diffs;
+        (*rewind_buffer)[idx] = grid;
 }
 
-void handle_rewind(Direction dir,
-                   std::vector<std::vector<EvolutionDiff> *> *rewind_buffer,
-                   int latest_state_idx, int *rewind_buf_idx,
-                   std::vector<std::vector<GameOfLifeCell>> *grid,
+Grid handle_rewind(Direction dir, std::vector<Grid> *rewind_buffer,
+                   int latest_state_idx, int *rewind_buf_idx, Grid grid,
                    GameOfLifeGridDimensions *gd, Display *display)
 {
         // Ignore irrelevant input.
         if (dir == UP || dir == DOWN) {
-                return;
+                return grid;
         }
 
         // First we short-circuit if the user tries to go back too far.
@@ -570,24 +524,25 @@ void handle_rewind(Direction dir,
         // wrap around to the latest state.
         if (back_in_time &&
             *rewind_buf_idx == (latest_state_idx + 1) % rewind_buffer->size()) {
-                return;
+                return grid;
         }
 
         if (forward_in_time) {
-                auto diffs = (*rewind_buffer)[*rewind_buf_idx];
-                apply_diffs(diffs, grid);
-                render_diffs(display, diffs, gd);
+                auto next_state = (*rewind_buffer)[*rewind_buf_idx];
+                render_state_change(display, std::make_pair(grid, next_state),
+                                    gd);
 
                 // Rewind cannot go into the future.
                 if (*rewind_buf_idx == latest_state_idx) {
-                        return;
+                        return grid;
                 }
                 *rewind_buf_idx = (*rewind_buf_idx + 1) % rewind_buffer->size();
+                return next_state;
         } else if (back_in_time) {
-                auto diffs = (*rewind_buffer)[*rewind_buf_idx];
+                auto previous_state = (*rewind_buffer)[*rewind_buf_idx];
 
-                unapply_diffs(diffs, grid);
-                unrender_diffs(display, diffs, gd);
+                render_state_change(display,
+                                    std::make_pair(grid, previous_state), gd);
                 // We need to use proper modulo as % is weird with
                 // negative numbers.
                 *rewind_buf_idx = mathematical_modulo((*rewind_buf_idx - 1),
@@ -607,19 +562,13 @@ void handle_rewind(Direction dir,
                         // We need to increment the index to go back to safety
                         *rewind_buf_idx =
                             (*rewind_buf_idx + 1) % rewind_buffer->size();
-                        return;
                 }
+                return previous_state;
         }
+        return grid;
 }
 
-void free_diffs(std::vector<EvolutionDiff> *diffs)
-{
-        diffs->clear();
-        delete diffs;
-}
-
-void spawn_cells_randomly(Display *display,
-                          std::vector<std::vector<GameOfLifeCell>> *grid,
+void spawn_cells_randomly(Display *display, Grid grid,
                           GameOfLifeGridDimensions *dimensions)
 {
         for (int y = 0; y < dimensions->rows; y++) {
@@ -627,7 +576,7 @@ void spawn_cells_randomly(Display *display,
                         // We use 30% chance os spawning a cell to avoid massive
                         // overpopulation
                         if (rand() % 10 <= 3) {
-                                (*grid)[y][x] = ALIVE;
+                                set_cell(x, y, dimensions->cols, grid, ALIVE);
                                 Point position = {.x = x, .y = y};
                                 draw_game_cell(display, &position, dimensions,
                                                White);
@@ -879,4 +828,44 @@ void clear_rewind_mode_indicator(Platform *p,
             {.x = x_margin - border_offset, .y = y_margin - border_offset},
             actual_width + 2 * border_offset, actual_height + 2 * border_offset,
             customization->accent_color, border_width, false);
+}
+
+inline bool get_cell(int x, int y, int cols, Grid grid)
+{
+        int grid_idx = y * cols + x;
+        int byte_idx = grid_idx / 8;
+        int inside_byte_idx = grid_idx % 8;
+
+        // We need to and with 1 to truncate higher bits of the selected byte.
+        return (grid[byte_idx] >> inside_byte_idx) & 1;
+}
+
+inline void set_cell(int x, int y, int cols, Grid grid, bool alive)
+{
+        int grid_idx = y * cols + x;
+        int byte_idx = grid_idx / 8;
+        int inside_byte_idx = grid_idx % 8;
+
+        if (alive) {
+                grid[byte_idx] |= (1 << inside_byte_idx);
+        } else {
+                grid[byte_idx] &= ~(1 << inside_byte_idx);
+        }
+}
+
+/**
+ * The grid is stored as a bitset. Note that in order to fit the total number
+ * of cells, we need to ensure that we take the ceilling of the division of the
+ * nubmer of cells by 8. The reason we divide by 8 is that the grid is
+ * represented as an array of bytes each of which having 8 bits.
+ */
+inline Grid allocate_grid(int cells)
+{
+        int size_in_bytes_ceiling = (cells + 7) / 8;
+        auto grid = new uint8_t[size_in_bytes_ceiling];
+
+        for (int i = 0; i < size_in_bytes_ceiling; i++) {
+                grid[i] = 0;
+        }
+        return grid;
 }
