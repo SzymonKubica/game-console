@@ -1,15 +1,18 @@
 #include "../common/platform/interface/platform.hpp"
 #include "game_executor.hpp"
+#include "game_menu.hpp"
 
 #include "../common/configuration.hpp"
 #include "../common/logging.hpp"
 #include "../common/constants.hpp"
 
 #include "common_transitions.hpp"
+#include "settings.hpp"
 #include "minesweeper.hpp"
 
 #define TAG "minesweeper"
 
+MinesweeperConfiguration DEFAULT_MINESWEEPER_CONFIG = {.mines_num = 25};
 
 typedef struct MinesweeperGridDimensions {
         int rows;
@@ -446,32 +449,69 @@ void unflag_grid_cell(Display *display, Point *grid_position,
                               grid_background_color);
 }
 
-Configuration *assemble_minesweeper_configuration();
+Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
 void collect_minesweeper_configuration(Platform *p,
-                                MinesweeperConfiguration *game_config,
-                                GameCustomization *customization)
+                                       MinesweeperConfiguration *game_config,
+                                       GameCustomization *customization)
 {
-        Configuration *config = assemble_minesweeper_configuration();
+        Configuration *config =
+            assemble_minesweeper_configuration(p->persistent_storage);
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
         free_configuration(config);
 }
 
-Configuration *assemble_minesweeper_configuration()
+MinesweeperConfiguration *
+load_initial_minesweeper_config(PersistentStorage *storage)
 {
+        int storage_offset = get_settings_storage_offsets()[Minesweeper];
+
+        MinesweeperConfiguration config = {.mines_num = 0};
+
+        LOG_DEBUG(
+            TAG, "Trying to load initial settings from the persistent storage");
+        storage->get(storage_offset, config);
+
+        MinesweeperConfiguration *output = new MinesweeperConfiguration();
+
+        if (config.mines_num == 0) {
+                LOG_DEBUG(TAG,
+                          "The storage does not contain a valid "
+                          "game of life configuration, using default values.");
+                memcpy(output, &DEFAULT_MINESWEEPER_CONFIG,
+                       sizeof(MinesweeperConfiguration));
+                storage->put(storage_offset, DEFAULT_MINESWEEPER_CONFIG);
+
+        } else {
+                LOG_DEBUG(TAG, "Using configuration from persistent storage.");
+                memcpy(output, &config, sizeof(MinesweeperConfiguration));
+        }
+
+        LOG_DEBUG(TAG, "Loaded minesweeper game configuration: mines_num=%d",
+                  output->mines_num);
+
+        return output;
+}
+
+Configuration *assemble_minesweeper_configuration(PersistentStorage *storage)
+{
+        MinesweeperConfiguration *initial_config =
+            load_initial_minesweeper_config(storage);
         Configuration *config = new Configuration();
         config->name = "Minesweeper";
 
         // Initialize the first config option: game gridsize
         ConfigurationOption *mines_count = new ConfigurationOption();
         mines_count->name = "Number of mines";
-        std::vector<int> available_values = {10, 15, 25};
+        std::vector<int> available_values = {10, 15, 25, 30, 35};
         populate_int_option_values(mines_count, available_values);
-        mines_count->currently_selected = 1;
+        mines_count->currently_selected = get_config_option_value_index(
+            mines_count, initial_config->mines_num);
+        ;
 
         config->options_len = 1;
         config->options = new ConfigurationOption *[config->options_len];

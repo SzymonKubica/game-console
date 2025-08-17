@@ -27,15 +27,10 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
         int offset = offsets[selected_game];
 
         switch (selected_game) {
-        case Unknown:
         case MainMenu: {
-                Game selected_game;
-                GameCustomization customization;
-                collect_game_configuration(platform, &selected_game,
-                                           &customization);
-                platform->persistent_storage->put(offset, selected_game);
-                platform->persistent_storage->put(offset + sizeof(Game),
-                                                  customization);
+                GameMenuConfiguration config;
+                collect_game_configuration(platform, &config);
+                platform->persistent_storage->put(offset, config);
         } break;
         case Clean2048: {
                 Game2048Configuration config;
@@ -61,14 +56,16 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
 
 std::vector<int> get_settings_storage_offsets()
 {
-        std::vector<int> offsets(4);
+        // We add padding to ensure there are no issues with alignment.
+        int padding = 100;
+        std::vector<int> offsets(5);
         offsets[MainMenu] = 0;
         offsets[Clean2048] =
-            offsets[MainMenu] + sizeof(Game) + sizeof(GameCustomization);
+            offsets[MainMenu] + sizeof(GameMenuConfiguration) + padding;
         offsets[Minesweeper] =
-            offsets[Clean2048] + sizeof(Game2048Configuration);
+            offsets[Clean2048] + sizeof(Game2048Configuration) + padding;
         offsets[GameOfLife] =
-            offsets[Minesweeper] + sizeof(MinesweeperConfiguration);
+            offsets[Minesweeper] + sizeof(MinesweeperConfiguration) + padding;
 
         return offsets;
 }

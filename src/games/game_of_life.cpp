@@ -46,7 +46,7 @@ typedef struct GameOfLifeGridDimensions {
         }
 } GameOfLifeGridDimensions;
 
-GameOfLifeConfiguration DEFAULT_CONFIG = {
+GameOfLifeConfiguration DEFAULT_GAME_OF_LIFE_CONFIG = {
     .prepopulate_grid = false,
     .use_toroidal_array = true,
     .simulation_speed = 2,
@@ -129,8 +129,7 @@ const char *map_boolean_to_yes_or_no(bool value);
 GameOfLifeConfiguration *
 load_initial_game_of_life_config(PersistentStorage *storage)
 {
-        int storage_offset =
-            get_settings_storage_offsets()[GameOfLife];
+        int storage_offset = get_settings_storage_offsets()[GameOfLife];
 
         GameOfLifeConfiguration config = {
             .prepopulate_grid = false,
@@ -149,9 +148,9 @@ load_initial_game_of_life_config(PersistentStorage *storage)
                 LOG_DEBUG(TAG,
                           "The storage does not contain a valid "
                           "game of life configuration, using default values.");
-                memcpy(output, &DEFAULT_CONFIG,
+                memcpy(output, &DEFAULT_GAME_OF_LIFE_CONFIG,
                        sizeof(GameOfLifeConfiguration));
-                storage->put(storage_offset, DEFAULT_CONFIG);
+                storage->put(storage_offset, DEFAULT_GAME_OF_LIFE_CONFIG);
 
         } else {
                 LOG_DEBUG(TAG, "Using configuration from persistent storage.");
@@ -359,8 +358,8 @@ void collect_game_of_life_configuration(Platform *p,
 
 Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
 {
-        GameOfLifeConfiguration initial_config =
-            *load_initial_game_of_life_config(storage);
+        GameOfLifeConfiguration *initial_config =
+            load_initial_game_of_life_config(storage);
 
         Configuration *config = new Configuration();
         config->name = "Game of Life";
@@ -376,7 +375,7 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         spawn_randomly->currently_selected =
             get_config_option_string_value_index(
                 spawn_randomly,
-                map_boolean_to_yes_or_no(initial_config.prepopulate_grid));
+                map_boolean_to_yes_or_no(initial_config->prepopulate_grid));
 
         ConfigurationOption *simulation_speed = new ConfigurationOption();
         simulation_speed->name = "Evolutions/second";
@@ -384,7 +383,7 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         populate_int_option_values(simulation_speed, available_speeds);
 
         simulation_speed->currently_selected = get_config_option_value_index(
-            simulation_speed, initial_config.simulation_speed);
+            simulation_speed, initial_config->simulation_speed);
 
         ConfigurationOption *toroidal_array = new ConfigurationOption();
         toroidal_array->name = "Toroidal array";
@@ -392,7 +391,7 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         toroidal_array->currently_selected =
             get_config_option_string_value_index(
                 toroidal_array,
-                map_boolean_to_yes_or_no(initial_config.use_toroidal_array));
+                map_boolean_to_yes_or_no(initial_config->use_toroidal_array));
 
         config->options_len = 3;
         config->options = new ConfigurationOption *[config->options_len];
@@ -401,6 +400,8 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         config->options[2] = toroidal_array;
         config->curr_selected_option = 0;
         config->confirmation_cell_text = "Start Game";
+
+        free(initial_config);
         return config;
 }
 

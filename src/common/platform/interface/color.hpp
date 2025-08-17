@@ -5,7 +5,7 @@
  * dependency on it in the generic user interface code.
  */
 #include <cstring>
-typedef enum Color {
+typedef enum Color: int {
         White = 0xFFFF,
         Black = 0x0000,
         Blue = 0x001F,

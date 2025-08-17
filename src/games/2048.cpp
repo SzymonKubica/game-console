@@ -99,7 +99,8 @@ Game2048Configuration *load_initial_config(PersistentStorage *storage)
                 LOG_DEBUG(TAG,
                           "The storage does not contain a valid "
                           "game of life configuration, using default values.");
-                memcpy(output, &DEFAULT_2048_GAME_CONFIG, sizeof(Game2048Configuration));
+                memcpy(output, &DEFAULT_2048_GAME_CONFIG,
+                       sizeof(Game2048Configuration));
                 storage->put(storage_offset, DEFAULT_2048_GAME_CONFIG);
 
         } else {
@@ -130,7 +131,7 @@ Game2048Configuration *load_initial_config(PersistentStorage *storage)
 Configuration *assemble_2048_configuration(PersistentStorage *storage)
 {
 
-        Game2048Configuration initial_config = *load_initial_config(storage);
+        Game2048Configuration *initial_config = load_initial_config(storage);
         Configuration *config = new Configuration();
         config->name = "2048";
 
@@ -140,14 +141,14 @@ Configuration *assemble_2048_configuration(PersistentStorage *storage)
         auto available_grid_sizes = {3, 4, 5};
         populate_int_option_values(grid_size, available_grid_sizes);
         grid_size->currently_selected =
-            get_config_option_value_index(grid_size, initial_config.grid_size);
+            get_config_option_value_index(grid_size, initial_config->grid_size);
 
         ConfigurationOption *game_target = new ConfigurationOption();
         game_target->name = "Game target";
         auto available_game_targets = {128, 256, 512, 1024, 2048, 4096};
         populate_int_option_values(game_target, available_game_targets);
         game_target->currently_selected = get_config_option_value_index(
-            game_target, initial_config.target_max_tile);
+            game_target, initial_config->target_max_tile);
 
         int options_len = 2;
         config->options_len = options_len;
@@ -157,6 +158,7 @@ Configuration *assemble_2048_configuration(PersistentStorage *storage)
         config->curr_selected_option = 0;
 
         config->confirmation_cell_text = "Start Game";
+        free(initial_config);
         return config;
 }
 void extract_game_config(Game2048Configuration *game_config,

@@ -1,20 +1,23 @@
 #include "../common/platform/interface/platform.hpp"
 #include "game_executor.hpp"
-#include <cstdint>
 
-typedef enum Game: int8_t {
-        Unknown = -1,
-        MainMenu = 0,
-        Clean2048 = 1,
-        Minesweeper = 2,
-        GameOfLife = 3,
-        Settings = 4,
-} Game;
+typedef enum Game
+    : int { Unknown = 0,
+            MainMenu = 1,
+            Clean2048 = 2,
+            Minesweeper = 3,
+            GameOfLife = 4,
+            Settings = 5,
+    } Game;
+
+typedef struct GameMenuConfiguration {
+        Game game;
+        Color accent_color;
+} GameMenuConfiguration;
 
 extern Game map_game_from_str(const char *name);
 
 void select_game(Platform *p);
 
-void collect_game_configuration(Platform *p, Game *selected_game,
-                                GameCustomization *customization);
-
+void collect_game_configuration(Platform *p,
+                                GameMenuConfiguration *configuration);

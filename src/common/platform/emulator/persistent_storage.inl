@@ -7,8 +7,15 @@ template <typename T> T &PersistentStorage::get(int offset, T &t)
         std::ifstream ifs("persistent_storage.bin", std::ios::binary);
 
         if (!ifs) {
-                std::cerr << "Error opening file for writing." << std::endl;
+                std::cerr << "Error opening file for reading." << std::endl;
                 return t; // Return the original object if file opening fails
+        }
+        ifs.seekg(0, std::ios::end);
+        std::streamsize file_size = ifs.tellg();
+
+        if (file_size < offset) {
+                std::cerr << "File too small, returning default" << std::endl;
+                return t;
         }
 
         ifs.seekg(offset, std::ios::beg);

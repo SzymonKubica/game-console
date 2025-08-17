@@ -59,7 +59,7 @@ class Clean2048 : public GameExecutor
                         try {
                                 enter_2048_loop(p, customization);
                         } catch (const ConfigurationLoopExitException &e) {
-                                LOG_INFO("minesweeper",
+                                LOG_INFO("2048",
                                          "User requested exit in the game "
                                          "config loop.");
                                 return;
