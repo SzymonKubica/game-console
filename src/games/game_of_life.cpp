@@ -129,8 +129,8 @@ const char *map_boolean_to_yes_or_no(bool value);
 GameOfLifeConfiguration *
 load_initial_game_of_life_config(PersistentStorage *storage)
 {
-        // TODO: design an offset resoltuion solution to avoid conflicts.
-        int game_of_life_config_offset = get_settings_storage_offsets()[GameOfLife];
+        int storage_offset =
+            get_settings_storage_offsets()[GameOfLife];
 
         GameOfLifeConfiguration config = {
             .prepopulate_grid = false,
@@ -141,7 +141,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
 
         LOG_DEBUG(
             TAG, "Trying to load initial settings from the persistent storage");
-        storage->get(game_of_life_config_offset, config);
+        storage->get(storage_offset, config);
 
         GameOfLifeConfiguration *output = new GameOfLifeConfiguration();
 
@@ -151,7 +151,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
                           "game of life configuration, using default values.");
                 memcpy(output, &DEFAULT_CONFIG,
                        sizeof(GameOfLifeConfiguration));
-                storage->put(game_of_life_config_offset, DEFAULT_CONFIG);
+                storage->put(storage_offset, DEFAULT_CONFIG);
 
         } else {
                 LOG_DEBUG(TAG, "Using configuration from persistent storage.");
@@ -346,8 +346,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 }
 
 void collect_game_of_life_configuration(Platform *p,
-                                GameOfLifeConfiguration *game_config,
-                                GameCustomization *customization)
+                                        GameOfLifeConfiguration *game_config,
+                                        GameCustomization *customization)
 {
         Configuration *config =
             assemble_game_of_life_configuration(p->persistent_storage);

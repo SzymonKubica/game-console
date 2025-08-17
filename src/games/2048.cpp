@@ -13,6 +13,7 @@
 
 #include "game_menu.hpp"
 #include "common_transitions.hpp"
+#include "settings.hpp"
 
 #define TAG "2048"
 #define UP 0
@@ -22,6 +23,11 @@
 
 #define GRID_BG_COLOR White
 
+Game2048Configuration DEFAULT_2048_GAME_CONFIG = {
+    .grid_size = 4,
+    .target_max_tile = 2048,
+};
+
 static void copy_grid(int **source, int **destination, int size);
 
 void initialize_randomness_seed(int seed) { srand(seed); }
@@ -29,6 +35,7 @@ void initialize_randomness_seed(int seed) { srand(seed); }
 static void handle_game_over(Display *display,
                              std::vector<DirectionalController *> *controllers,
                              GameState *state);
+
 static void
 handle_game_finished(Display *display,
                      std::vector<DirectionalController *> *controllers,
@@ -73,6 +80,41 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
                                           p->delay_provider);
 }
 
+Game2048Configuration *load_initial_config(PersistentStorage *storage)
+{
+        int storage_offset = get_settings_storage_offsets()[Clean2048];
+
+        Game2048Configuration config = {
+            .grid_size = 0,
+            .target_max_tile = 0,
+        };
+
+        LOG_DEBUG(
+            TAG, "Trying to load initial settings from the persistent storage");
+        storage->get(storage_offset, config);
+
+        Game2048Configuration *output = new Game2048Configuration();
+
+        if (config.target_max_tile == 0) {
+                LOG_DEBUG(TAG,
+                          "The storage does not contain a valid "
+                          "game of life configuration, using default values.");
+                memcpy(output, &DEFAULT_2048_GAME_CONFIG, sizeof(Game2048Configuration));
+                storage->put(storage_offset, DEFAULT_2048_GAME_CONFIG);
+
+        } else {
+                LOG_DEBUG(TAG, "Using configuration from persistent storage.");
+                memcpy(output, &config, sizeof(Game2048Configuration));
+        }
+
+        LOG_DEBUG(TAG,
+                  "Loaded 2048 game configuration: grid_size=%d, "
+                  "target_max_tile=%d",
+                  output->grid_size, output->target_max_tile);
+
+        return output;
+}
+
 /**
  * Assembles the generic configuration struct that is needed to collect user
  * defined game configuration for 2048. Note that this is a declarative way of
@@ -85,8 +127,10 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
  * function below to ensure that the specific game config can be successfully
  * extracted from the generic config struct.
  */
-Configuration *assemble_2048_configuration()
+Configuration *assemble_2048_configuration(PersistentStorage *storage)
 {
+
+        Game2048Configuration initial_config = *load_initial_config(storage);
         Configuration *config = new Configuration();
         config->name = "2048";
 
@@ -95,13 +139,15 @@ Configuration *assemble_2048_configuration()
         grid_size->name = "Grid size";
         auto available_grid_sizes = {3, 4, 5};
         populate_int_option_values(grid_size, available_grid_sizes);
-        grid_size->currently_selected = 1;
+        grid_size->currently_selected =
+            get_config_option_value_index(grid_size, initial_config.grid_size);
 
         ConfigurationOption *game_target = new ConfigurationOption();
         game_target->name = "Game target";
         auto available_game_targets = {128, 256, 512, 1024, 2048, 4096};
         populate_int_option_values(game_target, available_game_targets);
-        game_target->currently_selected = 4;
+        game_target->currently_selected = get_config_option_value_index(
+            game_target, initial_config.target_max_tile);
 
         int options_len = 2;
         config->options_len = options_len;
@@ -113,7 +159,8 @@ Configuration *assemble_2048_configuration()
         config->confirmation_cell_text = "Start Game";
         return config;
 }
-void extract_game_config(Game2048Configuration *game_config, Configuration *config)
+void extract_game_config(Game2048Configuration *game_config,
+                         Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
         ConfigurationOption grid_size = *config->options[0];
@@ -133,7 +180,8 @@ void extract_game_config(Game2048Configuration *game_config, Configuration *conf
 void collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
                                 GameCustomization *customization)
 {
-        Configuration *config = assemble_2048_configuration();
+        Configuration *config =
+            assemble_2048_configuration(p->persistent_storage);
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
