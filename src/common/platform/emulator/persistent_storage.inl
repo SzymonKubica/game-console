@@ -4,7 +4,7 @@
 
 template <typename T> T &PersistentStorage::get(int offset, T &t)
 {
-        std::ifstream ifs("persistent_storage.bin", std::ios::binary);
+        std::ifstream ifs("persistent_storage.bin", std::ios::in | std::ios::binary);
 
         if (!ifs) {
                 std::cerr << "Error opening file for reading." << std::endl;
@@ -26,7 +26,7 @@ template <typename T> T &PersistentStorage::get(int offset, T &t)
 
 template <typename T> const T &PersistentStorage::put(int offset, const T &t)
 {
-        std::ofstream ofs("persistent_storage.bin", std::ios::binary);
+        std::ofstream ofs("persistent_storage.bin", std::ios::out | std::ios::binary);
 
         if (!ofs) {
                 std::cerr << "Error opening file for writing." << std::endl;
@@ -35,6 +35,7 @@ template <typename T> const T &PersistentStorage::put(int offset, const T &t)
 
         ofs.seekp(offset, std::ios::beg);
         ofs.write(reinterpret_cast<const char *>(&t), sizeof(T));
+        ofs.flush();
         return t;
 }
 #endif

@@ -469,6 +469,7 @@ MinesweeperConfiguration *
 load_initial_minesweeper_config(PersistentStorage *storage)
 {
         int storage_offset = get_settings_storage_offsets()[Minesweeper];
+        LOG_DEBUG(TAG, "Loading minesweeper saved config from offset %d", storage_offset);
 
         MinesweeperConfiguration config = {.mines_num = 0};
 

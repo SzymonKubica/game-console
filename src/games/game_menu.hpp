@@ -17,6 +17,8 @@ typedef struct GameMenuConfiguration {
 
 extern Game map_game_from_str(const char *name);
 
+extern const char *map_game_to_str(Game game);
+
 void select_game(Platform *p);
 
 void collect_game_configuration(Platform *p,

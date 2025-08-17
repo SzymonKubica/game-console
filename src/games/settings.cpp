@@ -25,6 +25,7 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
         std::vector<int> offsets = get_settings_storage_offsets();
 
         int offset = offsets[selected_game];
+        LOG_DEBUG(TAG, "Computed configuration storage offset for game %s: %d", map_game_to_str(selected_game), offset)
 
         switch (selected_game) {
         case MainMenu: {
@@ -57,6 +58,8 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
 std::vector<int> get_settings_storage_offsets()
 {
         // We add padding to ensure there are no issues with alignment.
+        // TODO: figure out what is causing the saved values to become messed
+        // up.
         int padding = 100;
         std::vector<int> offsets(5);
         offsets[MainMenu] = 0;

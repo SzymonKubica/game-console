@@ -24,6 +24,7 @@
   each square separately.
 
 # TODO
+- [_] debug defaults saving for the emulator.
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] add proper customization passing (not just extra parameter for accent color)
@@ -31,8 +32,6 @@
   should be plenty.) Ensure that the config / scores are only written if the user
   explicitly says that the write has to happen. EEPROM has a finite number of write
   cycles so we should not try to write to it in some tight loop.
-- [_] define persistent memory interface (first step with templates and then try to add the concept from cpp 20)
-- [_] implement emulated persistent memory based on local files
 - [_] make the game of life random grid population truly random (currently it looks
       like the same pattern every time) (The idea is to mess with the seed on input and save
       it in persitent memory)
@@ -42,6 +41,8 @@
 # In Progress
 
 # Done
+- [x] define persistent memory interface (first step with templates and then try to add the concept from cpp 20)
+- [x] implement emulated persistent memory based on local files
 - [x] further optimise game of life implementation to remove memory issues no matter
       how complicated the diff
 - [x] fix / find memory leaks in the game of life code / optimize internal representation
