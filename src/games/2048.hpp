@@ -8,10 +8,10 @@
 #include "common_transitions.hpp"
 #include "game_executor.hpp"
 
-typedef struct GameConfiguration {
+typedef struct Game2048Configuration {
         int grid_size;
         int target_max_tile;
-} GameConfiguration;
+} Game2048Configuration;
 
 class GameState
 {
@@ -31,6 +31,10 @@ class GameState
         {
         }
 };
+
+void collect_2048_configuration(Platform *p,
+                                       Game2048Configuration *game_config,
+                                       GameCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 

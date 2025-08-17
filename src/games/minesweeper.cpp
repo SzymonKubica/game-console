@@ -10,9 +10,6 @@
 
 #define TAG "minesweeper"
 
-typedef struct MinesweeperConfiguration {
-        int mines_num;
-} MinesweeperConfiguration;
 
 typedef struct MinesweeperGridDimensions {
         int rows;
@@ -44,9 +41,6 @@ typedef struct MinesweeperGridCell {
 
 } MinesweeperGridCell;
 
-static void collect_game_configuration(Platform *p,
-                                       MinesweeperConfiguration *game_config,
-                                       GameCustomization *customization);
 static MinesweeperGridDimensions *
 calculate_grid_dimensions(int display_width, int display_height,
                           int display_rounded_corner_radius);
@@ -88,7 +82,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
 
-        collect_game_configuration(p, &config, customization);
+        collect_minesweeper_configuration(p, &config, customization);
 
         MinesweeperGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -456,7 +450,7 @@ Configuration *assemble_minesweeper_configuration();
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-void collect_game_configuration(Platform *p,
+void collect_minesweeper_configuration(Platform *p,
                                 MinesweeperConfiguration *game_config,
                                 GameCustomization *customization)
 {

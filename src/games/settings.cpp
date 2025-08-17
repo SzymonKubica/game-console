@@ -1,10 +1,13 @@
+#include "2048.hpp"
 #include "game_menu.hpp"
 #include "../common/configuration.hpp"
 #include "../common/logging.hpp"
 #include "../common/platform/interface/color.hpp"
 #include "settings.hpp"
 #include "game_of_life.hpp"
+#include "minesweeper.hpp"
 
+#define TAG "settings"
 
 Configuration *assemble_settings_menu_configuration();
 void extract_menu_setting(Game *selected_game, Configuration *config);
@@ -13,34 +16,62 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
 {
         Configuration *config = assemble_settings_menu_configuration();
 
-                enter_configuration_collection_loop(
-                    platform, config, customization->accent_color);
+        enter_configuration_collection_loop(platform, config,
+                                            customization->accent_color);
 
         Game selected_game;
         extract_menu_setting(&selected_game, config);
 
+        std::vector<int> offsets = get_settings_storage_offsets();
+
+        int offset = offsets[selected_game];
+
         switch (selected_game) {
         case Unknown:
-        case Clean2048:
-                break;
-        case Snake:
-                break;
-        case Minesweeper:
-                break;
-        case GameOfLife:
+        case MainMenu: {
+                Game selected_game;
+                GameCustomization customization;
+                collect_game_configuration(platform, &selected_game,
+                                           &customization);
+                platform->persistent_storage->put(offset, selected_game);
+                platform->persistent_storage->put(offset + sizeof(Game),
+                                                  customization);
+        } break;
+        case Clean2048: {
+                Game2048Configuration config;
+                collect_2048_configuration(platform, &config, customization);
+                platform->persistent_storage->put(offset, config);
+        } break;
+        case Minesweeper: {
+                MinesweeperConfiguration config;
+                collect_minesweeper_configuration(platform, &config,
+                                                  customization);
+                platform->persistent_storage->put(offset, config);
+        } break;
+        case GameOfLife: {
                 GameOfLifeConfiguration config;
                 collect_game_of_life_configuration(platform, &config,
                                                    customization);
-                // TODO: change the offset
-                platform->persistent_storage->put(0, config);
-                break;
-        case MainMenu:
-                break;
+                platform->persistent_storage->put(offset, config);
+        } break;
         default:
                 break;
         }
 }
 
+std::vector<int> get_settings_storage_offsets()
+{
+        std::vector<int> offsets(4);
+        offsets[MainMenu] = 0;
+        offsets[Clean2048] =
+            offsets[MainMenu] + sizeof(Game) + sizeof(GameCustomization);
+        offsets[Minesweeper] =
+            offsets[Clean2048] + sizeof(Game2048Configuration);
+        offsets[GameOfLife] =
+            offsets[Minesweeper] + sizeof(MinesweeperConfiguration);
+
+        return offsets;
+}
 Configuration *assemble_settings_menu_configuration()
 {
         Configuration *config = new Configuration();

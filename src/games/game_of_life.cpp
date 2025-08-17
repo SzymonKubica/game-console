@@ -6,6 +6,8 @@
 #include "../common/maths_utils.hpp"
 #include "game_executor.hpp"
 #include "game_of_life.hpp"
+#include "settings.hpp"
+#include "game_menu.hpp"
 
 #define TAG "game_of_life"
 #define GAME_CELL_WIDTH 8
@@ -128,7 +130,7 @@ GameOfLifeConfiguration *
 load_initial_game_of_life_config(PersistentStorage *storage)
 {
         // TODO: design an offset resoltuion solution to avoid conflicts.
-        int game_of_life_config_offset = 0;
+        int game_of_life_config_offset = get_settings_storage_offsets()[GameOfLife];
 
         GameOfLifeConfiguration config = {
             .prepopulate_grid = false,

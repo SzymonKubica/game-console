@@ -70,8 +70,8 @@ int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
  *  - `value_cell` refers to the cell on each of the config bars that holds
  *  the actual value that is being modified by the configuration bar.
  */
-void render_config_menu_legacy(Display *display, GameConfiguration *config,
-                               GameConfiguration *previous_config,
+void render_config_menu_legacy(Display *display, Game2048Configuration *config,
+                               Game2048Configuration *previous_config,
                                bool already_rendered)
 {
         if (!already_rendered) {

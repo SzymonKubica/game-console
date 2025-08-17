@@ -8,6 +8,8 @@
 #include "settings.hpp"
 #include "game_of_life.hpp"
 
+#define TAG "game_menu"
+
 Configuration *assemble_menu_selection_configuration()
 {
         Configuration *config = new Configuration();
@@ -57,22 +59,14 @@ void extract_game_config(Game *selected_game, GameCustomization *customization,
 
 void select_game(Platform *p)
 {
-        Configuration *config = assemble_menu_selection_configuration();
-
-        enter_configuration_collection_loop(p, config, DarkBlue, false);
-
         Game selected_game;
         GameCustomization customization;
-        extract_game_config(&selected_game, &customization, config);
+        collect_game_configuration(p, &selected_game, &customization);
 
         switch (selected_game) {
         case Unknown:
         case Clean2048:
                 (new class Clean2048())->enter_game_loop(p, &customization);
-                break;
-        case Snake:
-                LOG_DEBUG(TAG,
-                          "Selected game: Snake. Game not implemented yet.");
                 break;
         case Minesweeper:
                 (new class Minesweeper())->enter_game_loop(p, &customization);
@@ -90,12 +84,18 @@ void select_game(Platform *p)
         }
 }
 
+void collect_game_configuration(Platform *p, Game *selected_game,
+                                GameCustomization *customization)
+{
+        Configuration *config = assemble_menu_selection_configuration();
+        enter_configuration_collection_loop(p, config, DarkBlue, false);
+        extract_game_config(selected_game, customization, config);
+}
+
 Game map_game_from_str(const char *name)
 {
         if (strcmp(name, "2048") == 0) {
                 return Game::Clean2048;
-        } else if (strcmp(name, "Snake") == 0) {
-                return Game::Snake;
         } else if (strcmp(name, "Sweeper") == 0) {
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
@@ -109,7 +109,6 @@ Game map_game_from_str(const char *name)
         } else if (strcmp(name, "Settings") == 0) {
                 return Game::Settings;
         }
-
 
         return Game::Unknown;
 }

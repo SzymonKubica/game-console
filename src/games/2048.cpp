@@ -33,16 +33,13 @@ static void
 handle_game_finished(Display *display,
                      std::vector<DirectionalController *> *controllers,
                      GameState *state);
-static void collect_game_configuration(Platform *p,
-                                       GameConfiguration *game_config,
-                                       GameCustomization *customization);
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
 
 void enter_2048_loop(Platform *p, GameCustomization *customization)
 {
-        GameConfiguration config;
-        collect_game_configuration(p, &config, customization);
+        Game2048Configuration config;
+        collect_2048_configuration(p, &config, customization);
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
@@ -116,7 +113,7 @@ Configuration *assemble_2048_configuration()
         config->confirmation_cell_text = "Start Game";
         return config;
 }
-void extract_game_config(GameConfiguration *game_config, Configuration *config)
+void extract_game_config(Game2048Configuration *game_config, Configuration *config)
 {
         // Grid size is the first config option in the game struct above.
         ConfigurationOption grid_size = *config->options[0];
@@ -133,7 +130,7 @@ void extract_game_config(GameConfiguration *game_config, Configuration *config)
             static_cast<int *>(game_target.available_values)[curr_target_idx];
 }
 
-void collect_game_configuration(Platform *p, GameConfiguration *game_config,
+void collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
                                 GameCustomization *customization)
 {
         Configuration *config = assemble_2048_configuration();

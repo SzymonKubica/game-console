@@ -4,8 +4,16 @@
 #include "../common/logging.hpp"
 #include "../common/configuration.hpp"
 
+typedef struct MinesweeperConfiguration {
+        int mines_num;
+} MinesweeperConfiguration;
+
 void enter_minesweeper_loop(Platform *platform,
                             GameCustomization *customization);
+
+void collect_minesweeper_configuration(Platform *p,
+                                       MinesweeperConfiguration *game_config,
+                                       GameCustomization *customization);
 
 class Minesweeper : public GameExecutor
 {
