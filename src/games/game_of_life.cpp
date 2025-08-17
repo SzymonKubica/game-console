@@ -23,7 +23,7 @@
 #ifdef EMULATOR
 #define REWIND_BUF_SIZE 20
 #else
-#define REWIND_BUF_SIZE 10
+#define REWIND_BUF_SIZE 20
 #endif
 
 #define ALIVE true
@@ -372,25 +372,7 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
             prepopulate_grid.available_values)[curr_choice_idx];
         game_config->prepopulate_grid = extract_yes_or_no_option(choice);
 
-#ifndef EMULATOR
-        /* Because of memory constaints, we need to disable the rewind buffer
-         * if the grid is randomly prepopulated. This is because random noise in
-         * the initial grid creates long vectors of diffs that need to be stored
-         * in the rewind buffer. Setting the size of the buffer to 1 effectively
-         * diables the rewind functionality without changing the code.
-         *
-         * TODO: find a way to optimize the EvolutionDiff struct so that it is
-         * possible to store more diffs in the rewind buffer without running out
-         * of memory.
-         */
-        if (game_config->prepopulate_grid) {
-                game_config->rewind_buffer_size = 1;
-        } else {
-                game_config->rewind_buffer_size = REWIND_BUF_SIZE;
-        }
-#else
         game_config->rewind_buffer_size = REWIND_BUF_SIZE;
-#endif
 
         ConfigurationOption simulation_speed = *config->options[1];
         int curr_speed_idx = simulation_speed.currently_selected;

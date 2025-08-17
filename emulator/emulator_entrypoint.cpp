@@ -1,12 +1,13 @@
 #include "emulator_config.h"
 
 #include "../src/common/platform/interface/platform.hpp"
-#include "../src/common/platform/sfml/sfml_display.hpp"
-#include "../src/common/platform/sfml/emulator_delay.cpp"
-#include "../src/common/platform/sfml/sfml_controller.hpp"
-#include "../src/common/platform/sfml/sfml_awsd_controller.hpp"
-#include "../src/common/platform/sfml/sfml_hjkl_controller.hpp"
-#include "../src/common/platform/sfml/sfml_action_controller.hpp"
+#include "../src/common/platform/emulator/sfml_display.hpp"
+#include "../src/common/platform/emulator/emulator_delay.cpp"
+#include "../src/common/platform/emulator/sfml_controller.hpp"
+#include "../src/common/platform/emulator/sfml_awsd_controller.hpp"
+#include "../src/common/platform/emulator/sfml_hjkl_controller.hpp"
+#include "../src/common/platform/emulator/sfml_action_controller.hpp"
+#include "../src/common/platform/emulator/persistent_storage.hpp"
 
 #include "../src/common/logging.hpp"
 
@@ -25,6 +26,7 @@ SfmlInputController controller;
 SfmlAwsdInputController awsd_controller;
 SfmlHjklInputController hjkl_controller;
 SfmlActionInputController action_controller;
+PersistentStorage persistent_storage;
 
 void print_version(char *argv[]);
 int main(int argc, char *argv[])
@@ -57,6 +59,8 @@ int main(int argc, char *argv[])
         hjkl_controller = SfmlHjklInputController{};
         action_controller = SfmlActionInputController{};
 
+        persistent_storage = PersistentStorage{};
+
         std::vector<DirectionalController *> controllers = {
             &controller,
             &awsd_controller,
@@ -67,10 +71,12 @@ int main(int argc, char *argv[])
             &action_controller,
         };
 
+
         Platform platform = {.display = display,
                              .directional_controllers = &controllers,
                              .action_controllers = &action_controllers,
-                             .delay_provider = &delay};
+                             .delay_provider = &delay,
+                             .persistent_storage = &persistent_storage};
 
         while (window.isOpen()) {
                 LOG_DEBUG(TAG, "Entering game loop...");

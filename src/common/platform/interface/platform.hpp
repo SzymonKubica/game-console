@@ -2,15 +2,17 @@
 #include "controller.hpp"
 #include "delay.hpp"
 #include "display.hpp"
+#include "persistent_storage.hpp"
 #include <vector>
 
 /**
  * Structure encapsulating all interfaces that a given implementation of the
  * game console platform needs to provide so that we can run our games on it.
  */
-typedef struct Platform {
+struct Platform {
         Display *display;
         std::vector<DirectionalController*> *directional_controllers;
         std::vector<ActionController*> *action_controllers;
         DelayProvider *delay_provider;
-} Platform;
+        PersistentStorage *persistent_storage;
+};

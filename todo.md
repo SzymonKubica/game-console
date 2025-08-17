@@ -17,9 +17,13 @@
   - you can pause the evolution and plant a seed whenever you want
   - the fewer evolution generations and seeds you use the better
 
+- test whether drawing a single large rectangle is faster than drawing multiple
+  small squares. If that is the case, we can optimize game of life rendering by
+  looking at contiguous regions of blocks that need to be painted black / white
+  and do those using a small number of draw_rectangle commands instead of drawing
+  each square separately.
+
 # TODO
-- [_] further optimise game of life implementation to remove memory issues no matter
-      how complicated the diff
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] add proper customization passing (not just extra parameter for accent color)
@@ -27,10 +31,16 @@
   should be plenty.) Ensure that the config / scores are only written if the user
   explicitly says that the write has to happen. EEPROM has a finite number of write
   cycles so we should not try to write to it in some tight loop.
+- [_] define persistent memory interface (first step with templates and then try to add the concept from cpp 20)
+- [_] implement emulated persistent memory based on local files
+- [_] make the game of life random grid population truly random (currently it looks
+      like the same pattern every time)
 
 # In Progress
 
 # Done
+- [x] further optimise game of life implementation to remove memory issues no matter
+      how complicated the diff
 - [x] fix / find memory leaks in the game of life code / optimize internal representation
       to avoid memory issues. Current hypothesis is that there are no memory leaks.
       The reason is that if we decrease the rewind ring buffer size to 0, the
