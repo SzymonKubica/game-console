@@ -34,7 +34,10 @@
 - [_] define persistent memory interface (first step with templates and then try to add the concept from cpp 20)
 - [_] implement emulated persistent memory based on local files
 - [_] make the game of life random grid population truly random (currently it looks
-      like the same pattern every time)
+      like the same pattern every time) (The idea is to mess with the seed on input and save
+      it in persitent memory)
+- [_] add high score saving to 2048.
+
 
 # In Progress
 

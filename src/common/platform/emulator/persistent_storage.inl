@@ -2,9 +2,6 @@
 #include <fstream>
 #include <iostream>
 
-// #include <nlohmann/json.hpp> // This will be used later for json
-// serialization that can be used for debugging.
-
 template <typename T> T &PersistentStorage::get(int offset, T &t)
 {
         std::ifstream ifs("persistent_storage.bin", std::ios::binary);
@@ -14,7 +11,7 @@ template <typename T> T &PersistentStorage::get(int offset, T &t)
                 return t; // Return the original object if file opening fails
         }
 
-        ifs.seekg(offset);
+        ifs.seekg(offset, std::ios::beg);
         ifs.read(reinterpret_cast<char *>(&t), sizeof(T));
 
         return t;
@@ -29,6 +26,7 @@ template <typename T> const T &PersistentStorage::put(int offset, const T &t)
                 return t; // Return the original object if file opening fails
         }
 
+        ofs.seekp(offset, std::ios::beg);
         ofs.write(reinterpret_cast<const char *>(&t), sizeof(T));
         return t;
 }

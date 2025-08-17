@@ -40,6 +40,26 @@ typedef struct ConfigurationOption {
 } ConfigurationOption;
 
 /**
+ * Given a value that is specifiable by the `ConfigurationOption` it returns the
+ * index of this value in the array of available values. This is needed to map
+ * from the default game configurations to the default indices when loading the
+ * configuration menu.
+ */
+template <typename T>
+int get_config_option_value_index(ConfigurationOption *option, T value)
+{
+        for (int i = 0; i < option->available_values_len; i++) {
+                if (static_cast<T *>(option->available_values)[i] == value) {
+                        return i;
+                }
+        }
+        return -1;
+}
+
+int get_config_option_string_value_index(ConfigurationOption *option,
+                                         const char *value);
+
+/**
  * A generic container for game configuration values. It allows for storing
  * an arbitrary number of configuration values of type int or string. The idea
  * is that for each configuration value, we provide an array of available
@@ -130,6 +150,5 @@ void populate_string_option_values(ConfigurationOption *value,
                                    std::vector<const char *> available_values);
 void populate_color_option_values(ConfigurationOption *value,
                                   std::vector<Color> available_values);
-
 
 void free_configuration(Configuration *config);

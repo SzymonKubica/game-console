@@ -2,10 +2,10 @@
 #include <cstring>
 
 #include "../common/logging.hpp"
-#include "../common/configuration.hpp"
 #include "../common/constants.hpp"
 #include "../common/maths_utils.hpp"
 #include "game_executor.hpp"
+#include "game_of_life.hpp"
 
 #define TAG "game_of_life"
 #define GAME_CELL_WIDTH 8
@@ -18,24 +18,10 @@
 #define EXPLANATION_ABOVE_GRID_OFFEST 0
 #endif
 
-// The number of evolutions that the user can go back in time. Because of memory
-// constaints we allow for a smaller buffer on the target device.
-#ifdef EMULATOR
-#define REWIND_BUF_SIZE 20
-#else
-#define REWIND_BUF_SIZE 20
-#endif
+#define REWIND_BUF_SIZE 50
 
 #define ALIVE true
 #define EMPTY false
-
-typedef struct GameOfLifeConfiguration {
-        bool prepopulate_grid;
-        // Simulation steps taken per second
-        bool use_toroidal_array;
-        int simulation_speed;
-        int rewind_buffer_size;
-} GameOfLifeConfiguration;
 
 /**
  * Stores all information required for rendering the finite grid for game of
@@ -57,6 +43,13 @@ typedef struct GameOfLifeGridDimensions {
         {
         }
 } GameOfLifeGridDimensions;
+
+GameOfLifeConfiguration DEFAULT_CONFIG = {
+    .prepopulate_grid = false,
+    .use_toroidal_array = true,
+    .simulation_speed = 2,
+    .rewind_buffer_size = REWIND_BUF_SIZE,
+};
 
 typedef bool GameOfLifeCell;
 typedef uint8_t *Grid;
@@ -123,10 +116,51 @@ Grid handle_rewind(Direction dir, std::vector<Grid> *rewind_buffer,
                    int latest_state_idx, int *rewind_buf_idx, Grid grid,
                    GameOfLifeGridDimensions *gd, Display *display);
 
+const char *map_boolean_to_yes_or_no(bool value);
+
+GameOfLifeConfiguration *
+load_initial_game_of_life_configuration(PersistentStorage *storage)
+{
+        GameOfLifeConfiguration config = {
+            .prepopulate_grid = false,
+            .use_toroidal_array = false,
+            .simulation_speed = 0,
+            .rewind_buffer_size = 0,
+        };
+
+        storage->get(0, config);
+        LOG_DEBUG(TAG,
+                  "Trying to load the persistent settings from the storage");
+
+        LOG_DEBUG(TAG,
+                  "Loaded game of life configuration: prepopulate_grid=%d, "
+                  "use_toroidal_array=%d, simulation_speed=%d, "
+                  "rewind_buffer_size=%d",
+                  config.prepopulate_grid, config.use_toroidal_array,
+                  config.simulation_speed, config.rewind_buffer_size);
+
+        GameOfLifeConfiguration *output = new GameOfLifeConfiguration();
+
+        if (config.rewind_buffer_size == 0) {
+                LOG_DEBUG(TAG,
+                          "The persistent store does not contain a valid "
+                          "game of life configuration, using default values.");
+                memcpy(output, &DEFAULT_CONFIG,
+                       sizeof(GameOfLifeConfiguration));
+                storage->put(0, DEFAULT_CONFIG);
+
+        } else {
+                LOG_DEBUG(TAG, "Using saved game of life configuration");
+                memcpy(output, &config, sizeof(GameOfLifeConfiguration));
+        }
+
+        return output;
+}
+
 void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
 
-        LOG_DEBUG(TAG, "Entering Minesweeper game loop");
+        LOG_DEBUG(TAG, "Entering Game of Life game loop");
         GameOfLifeConfiguration config;
 
         collect_game_configuration(p, &config, customization);
@@ -179,8 +213,8 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                             grid, gd, config.use_toroidal_array);
 
                         render_state_change(p->display, evolution, gd);
-                        save_grid_state_in_rewind_buffer(
-                            &rewind_buffer, &rewind_buf_idx, grid);
+                        save_grid_state_in_rewind_buffer(&rewind_buffer,
+                                                         &rewind_buf_idx, grid);
                         grid = evolution.second;
                 }
                 Direction dir;
@@ -304,15 +338,19 @@ void collect_game_configuration(Platform *p,
                                 GameOfLifeConfiguration *game_config,
                                 GameCustomization *customization)
 {
-        Configuration *config = assemble_game_of_life_configuration();
+        Configuration *config =
+            assemble_game_of_life_configuration(p->persistent_storage);
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
         free_configuration(config);
 }
 
-Configuration *assemble_game_of_life_configuration()
+Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
 {
+        GameOfLifeConfiguration initial_config =
+            *load_initial_game_of_life_configuration(storage);
+
         Configuration *config = new Configuration();
         config->name = "Game of Life";
 
@@ -321,28 +359,29 @@ Configuration *assemble_game_of_life_configuration()
         spawn_randomly->name = "Spawn randomly";
         std::vector<const char *> yes_or_no = {"Yes", "No"};
         populate_string_option_values(spawn_randomly, yes_or_no);
-        spawn_randomly->currently_selected = 1;
+        // We need to use this elaborate mechanism of getting the index of the
+        // default value because the config value is also saved in persistent
+        // storage so this can change and cannot be hardcoded.
+        spawn_randomly->currently_selected =
+            get_config_option_string_value_index(
+                spawn_randomly,
+                map_boolean_to_yes_or_no(initial_config.prepopulate_grid));
 
         ConfigurationOption *simulation_speed = new ConfigurationOption();
         simulation_speed->name = "Evolutions/second";
         std::vector<int> available_speeds = {1, 2, 4};
         populate_int_option_values(simulation_speed, available_speeds);
-        simulation_speed->currently_selected = 1;
+
+        simulation_speed->currently_selected = get_config_option_value_index(
+            simulation_speed, initial_config.simulation_speed);
 
         ConfigurationOption *toroidal_array = new ConfigurationOption();
         toroidal_array->name = "Toroidal array";
         populate_string_option_values(toroidal_array, yes_or_no);
-        toroidal_array->currently_selected = 0;
-
-        /*
-        TODO: find a way to scroll through the config options as we need more
-        than 3 options to configure the game properly. ConfigurationOption
-        *rewind_buffer_size = new ConfigurationOption();
-        rewind_buffer_size->name = "Evolutions/second";
-        std::vector<int> available_sizes = {1, 2, 4};
-        populate_int_option_values(rewind_buffer_size, available_speeds);
-        rewind_buffer_size->currently_selected = 0;
-        */
+        toroidal_array->currently_selected =
+            get_config_option_string_value_index(
+                toroidal_array,
+                map_boolean_to_yes_or_no(initial_config.use_toroidal_array));
 
         config->options_len = 3;
         config->options = new ConfigurationOption *[config->options_len];
@@ -360,6 +399,14 @@ bool extract_yes_or_no_option(const char *value)
                 return true;
         }
         return false;
+}
+
+const char *map_boolean_to_yes_or_no(bool value)
+{
+        if (value) {
+                return "Yes";
+        }
+        return "No";
 }
 
 void extract_game_config(GameOfLifeConfiguration *game_config,
@@ -481,10 +528,10 @@ void save_grid_state_in_rewind_buffer(std::vector<Grid> *rewind_buffer,
         LOG_DEBUG(TAG, "Adding current state to rewind buffer at index %d",
                   *rewind_buf_idx);
         if ((*rewind_buffer)[idx] != nullptr) {
-                LOG_DEBUG(
-                    TAG,
-                    "Rewind buffer already has saved state at index %d, freeing it",
-                    *rewind_buf_idx);
+                LOG_DEBUG(TAG,
+                          "Rewind buffer already has saved state at index %d, "
+                          "freeing it",
+                          *rewind_buf_idx);
                 delete (*rewind_buffer)[idx];
         }
         (*rewind_buffer)[idx] = grid;

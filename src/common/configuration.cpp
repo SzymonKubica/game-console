@@ -202,6 +202,19 @@ void free_configuration(Configuration *config)
         delete config;
 }
 
+int get_config_option_string_value_index(ConfigurationOption *option,
+                                         const char *value)
+{
+        for (int i = 0; i < option->available_values_len; i++) {
+                if (strcmp(
+                        static_cast<const char **>(option->available_values)[i],
+                        value) == 0) {
+                        return i;
+                }
+        }
+        return -1;
+}
+
 
 
 void enter_configuration_collection_loop(Platform *p, Configuration *config,
