@@ -5,14 +5,16 @@
 #include "settings.hpp"
 #include "game_of_life.hpp"
 
+
 Configuration *assemble_settings_menu_configuration();
 void extract_menu_setting(Game *selected_game, Configuration *config);
 
 void enter_settings_loop(Platform *platform, GameCustomization *customization)
 {
         Configuration *config = assemble_settings_menu_configuration();
-        enter_configuration_collection_loop(platform, config,
-                                            customization->accent_color);
+
+                enter_configuration_collection_loop(
+                    platform, config, customization->accent_color);
 
         Game selected_game;
         extract_menu_setting(&selected_game, config);

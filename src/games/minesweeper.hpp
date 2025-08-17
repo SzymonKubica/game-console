@@ -2,6 +2,7 @@
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
 #include "../common/logging.hpp"
+#include "../common/configuration.hpp"
 
 void enter_minesweeper_loop(Platform *platform,
                             GameCustomization *customization);
@@ -13,7 +14,13 @@ class Minesweeper : public GameExecutor
                              GameCustomization *customization) override
         {
                 while (true) {
-                        enter_minesweeper_loop(p, customization);
+                        try {
+                                enter_minesweeper_loop(p, customization);
+                        } catch (const ConfigurationLoopExitException &e) {
+                                LOG_INFO("minesweeper", "User requested exit in the game "
+                                              "config loop.");
+                                return;
+                        }
                         Direction dir;
                         Action act;
                         pause_until_input(p->directional_controllers,

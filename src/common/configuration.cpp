@@ -60,7 +60,6 @@ void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                   config->curr_selected_option);
 }
 
-
 void shift_current_config_option_value(Configuration *config,
                                        ConfigurationDiff *diff, int steps);
 
@@ -215,10 +214,8 @@ int get_config_option_string_value_index(ConfigurationOption *option,
         return -1;
 }
 
-
-
 void enter_configuration_collection_loop(Platform *p, Configuration *config,
-                                         Color accent_color)
+                                         Color accent_color, bool allow_exit)
 {
 
         ConfigurationDiff *diff = empty_diff();
@@ -253,6 +250,11 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                                             MOVE_REGISTERED_DELAY);
                                         continue;
                                 }
+                        }
+                        if (act == Action::BLUE && allow_exit) {
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
+                                throw ConfigurationLoopExitException();
                         }
                 }
                 if (directional_input_registered(p->directional_controllers,

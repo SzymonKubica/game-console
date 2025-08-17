@@ -8,8 +8,6 @@
 #include "settings.hpp"
 #include "game_of_life.hpp"
 
-#define TAG "game_menu"
-
 Configuration *assemble_menu_selection_configuration()
 {
         Configuration *config = new Configuration();
@@ -60,7 +58,8 @@ void extract_game_config(Game *selected_game, GameCustomization *customization,
 void select_game(Platform *p)
 {
         Configuration *config = assemble_menu_selection_configuration();
-        enter_configuration_collection_loop(p, config);
+
+        enter_configuration_collection_loop(p, config, DarkBlue, false);
 
         Game selected_game;
         GameCustomization customization;

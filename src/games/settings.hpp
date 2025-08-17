@@ -2,6 +2,9 @@
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
 #include "../common/logging.hpp"
+#include "../common/configuration.hpp"
+
+#define TAG "settings"
 
 void enter_settings_loop(Platform *platform, GameCustomization *customization);
 
@@ -21,16 +24,12 @@ class Settings : public GameExecutor
                              GameCustomization *customization) override
         {
                 while (true) {
-                        enter_settings_loop(p, customization);
-                        Direction dir;
-                        Action act;
-                        pause_until_input(p->directional_controllers,
-                                          p->action_controllers, &dir, &act,
-                                          p->delay_provider);
-
-                        if (act == Action::BLUE) {
-                                LOG_DEBUG("settings", "Exiting settings loop.")
-                                break;
+                        try {
+                                enter_settings_loop(p, customization);
+                        } catch (const ConfigurationLoopExitException &e) {
+                                LOG_INFO(TAG, "User requested exit in the game "
+                                              "config loop.");
+                                return;
                         }
                 }
         }

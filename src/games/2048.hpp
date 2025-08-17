@@ -2,9 +2,10 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
+#include "../common/logging.hpp"
+#include "../common/configuration.hpp"
 
 #include "common_transitions.hpp"
-#include "../common/logging.hpp"
 #include "game_executor.hpp"
 
 typedef struct GameConfiguration {
@@ -50,7 +51,15 @@ class Clean2048 : public GameExecutor
                              GameCustomization *customization) override
         {
                 while (true) {
-                        enter_2048_loop(p, customization);
+
+                        try {
+                                enter_2048_loop(p, customization);
+                        } catch (const ConfigurationLoopExitException &e) {
+                                LOG_INFO("minesweeper",
+                                         "User requested exit in the game "
+                                         "config loop.");
+                                return;
+                        }
                         Direction dir;
                         Action act;
                         pause_until_input(p->directional_controllers,
