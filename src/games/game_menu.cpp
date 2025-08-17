@@ -5,18 +5,19 @@
 #include "../common/platform/interface/color.hpp"
 #include "2048.hpp"
 #include "minesweeper.hpp"
+#include "settings.hpp"
 #include "game_of_life.hpp"
 
 #define TAG "game_menu"
 
-Configuration *assemble_game_selection_configuration()
+Configuration *assemble_menu_selection_configuration()
 {
         Configuration *config = new Configuration();
         config->name = "Game Console";
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {"Sweeper", "2048", "Life"};
+        auto available_games = {"Sweeper", "2048", "Life", "Settings"};
         populate_string_option_values(game, available_games);
         game->currently_selected = 2;
 
@@ -41,12 +42,11 @@ Configuration *assemble_game_selection_configuration()
 void extract_game_config(Game *selected_game, GameCustomization *customization,
                          Configuration *config)
 {
-        // Grid size is the first config option in the game struct above.
-        ConfigurationOption grid_size = *config->options[0];
+        ConfigurationOption game_option = *config->options[0];
 
-        int curr_grid_size_idx = grid_size.currently_selected;
+        int curr_option_idx = game_option.currently_selected;
         *selected_game = map_game_from_str(static_cast<const char **>(
-            grid_size.available_values)[curr_grid_size_idx]);
+            game_option.available_values)[curr_option_idx]);
 
         // Game target is the second config option above.
         ConfigurationOption accent_color = *config->options[1];
@@ -59,7 +59,7 @@ void extract_game_config(Game *selected_game, GameCustomization *customization,
 
 void select_game(Platform *p)
 {
-        Configuration *config = assemble_game_selection_configuration();
+        Configuration *config = assemble_menu_selection_configuration();
         enter_configuration_collection_loop(p, config);
 
         Game selected_game;
@@ -81,6 +81,13 @@ void select_game(Platform *p)
         case GameOfLife:
                 (new class GameOfLife())->enter_game_loop(p, &customization);
                 break;
+        case Settings:
+                (new class Settings())->enter_game_loop(p, &customization);
+                break;
+        default:
+                LOG_DEBUG(TAG, "Selected game: %d. Game not implemented yet.",
+                          selected_game);
+                break;
         }
 }
 
@@ -98,7 +105,12 @@ Game map_game_from_str(const char *name)
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::GameOfLife;
+        } else if (strcmp(name, "Main") == 0) {
+                return Game::MainMenu;
+        } else if (strcmp(name, "Settings") == 0) {
+                return Game::Settings;
         }
+
 
         return Game::Unknown;
 }

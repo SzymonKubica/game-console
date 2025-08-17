@@ -15,26 +15,18 @@ typedef struct GameOfLifeConfiguration {
         int rewind_buffer_size;
 } GameOfLifeConfiguration;
 
-/**
- * Assembles the generic configuration struct that can be used to collect user
- * input specifying the game of life configuration.
- *
- * This is exposed publicly so
- * that the default game configuration saving module can call it, get the new
- * default setttings and save them in the persistent storage.
- */
-Configuration *assemble_game_of_life_configuration(PersistentStorage *storage);
 
 /**
- * Extracts the specific game of life config struct after the generic config was
- * collected from the user.
+ * Collects the game of life configuration from the user.
  *
- * This is exposed
- * publicly so that the default game configuration saving module can call it,
- * get the new default setttings and save them in the persistent storage.
+ * This is exposed publicly so that the default game configuration saving module
+ * can call it, get the new default setttings and save them in the persistent
+ * storage.
  */
-void extract_game_config(GameOfLifeConfiguration *game_config,
-                         Configuration *config);
+void collect_game_of_life_configuration(Platform *p,
+                                GameOfLifeConfiguration *game_config,
+                                GameCustomization *customization);
+
 
 class GameOfLife : public GameExecutor
 {

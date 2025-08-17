@@ -72,12 +72,18 @@ typedef enum SimulationMode {
         REWIND = 2,
 } SimulationMode;
 
-static void collect_game_configuration(Platform *p,
-                                       GameOfLifeConfiguration *game_config,
-                                       GameCustomization *customization);
+/**
+ * Assembles the generic configuration struct that can be used to collect user
+ * input specifying the game of life configuration.
+ */
+Configuration *assemble_game_of_life_configuration(PersistentStorage *storage);
+
+/**
+ * Extracts the specific game of life config struct after the generic config
+ * was collected from the user.
+ */
 void extract_game_config(GameOfLifeConfiguration *game_config,
                          Configuration *config);
-Configuration *assemble_game_of_life_configuration();
 
 GameOfLifeGridDimensions *
 calculate_grid_dimensions(int display_width, int display_height,
@@ -119,8 +125,11 @@ Grid handle_rewind(Direction dir, std::vector<Grid> *rewind_buffer,
 const char *map_boolean_to_yes_or_no(bool value);
 
 GameOfLifeConfiguration *
-load_initial_game_of_life_configuration(PersistentStorage *storage)
+load_initial_game_of_life_config(PersistentStorage *storage)
 {
+        // TODO: design an offset resoltuion solution to avoid conflicts.
+        int game_of_life_config_offset = 0;
+
         GameOfLifeConfiguration config = {
             .prepopulate_grid = false,
             .use_toroidal_array = false,
@@ -128,31 +137,31 @@ load_initial_game_of_life_configuration(PersistentStorage *storage)
             .rewind_buffer_size = 0,
         };
 
-        storage->get(0, config);
-        LOG_DEBUG(TAG,
-                  "Trying to load the persistent settings from the storage");
-
-        LOG_DEBUG(TAG,
-                  "Loaded game of life configuration: prepopulate_grid=%d, "
-                  "use_toroidal_array=%d, simulation_speed=%d, "
-                  "rewind_buffer_size=%d",
-                  config.prepopulate_grid, config.use_toroidal_array,
-                  config.simulation_speed, config.rewind_buffer_size);
+        LOG_DEBUG(
+            TAG, "Trying to load initial settings from the persistent storage");
+        storage->get(game_of_life_config_offset, config);
 
         GameOfLifeConfiguration *output = new GameOfLifeConfiguration();
 
         if (config.rewind_buffer_size == 0) {
                 LOG_DEBUG(TAG,
-                          "The persistent store does not contain a valid "
+                          "The storage does not contain a valid "
                           "game of life configuration, using default values.");
                 memcpy(output, &DEFAULT_CONFIG,
                        sizeof(GameOfLifeConfiguration));
-                storage->put(0, DEFAULT_CONFIG);
+                storage->put(game_of_life_config_offset, DEFAULT_CONFIG);
 
         } else {
-                LOG_DEBUG(TAG, "Using saved game of life configuration");
+                LOG_DEBUG(TAG, "Using configuration from persistent storage.");
                 memcpy(output, &config, sizeof(GameOfLifeConfiguration));
         }
+
+        LOG_DEBUG(TAG,
+                  "Loaded game of life configuration: prepopulate_grid=%d, "
+                  "use_toroidal_array=%d, simulation_speed=%d, "
+                  "rewind_buffer_size=%d",
+                  output->prepopulate_grid, output->use_toroidal_array,
+                  output->simulation_speed, output->rewind_buffer_size);
 
         return output;
 }
@@ -163,7 +172,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
         GameOfLifeConfiguration config;
 
-        collect_game_configuration(p, &config, customization);
+        collect_game_of_life_configuration(p, &config, customization);
 
         GameOfLifeGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -334,7 +343,7 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
         }
 }
 
-void collect_game_configuration(Platform *p,
+void collect_game_of_life_configuration(Platform *p,
                                 GameOfLifeConfiguration *game_config,
                                 GameCustomization *customization)
 {
@@ -349,7 +358,7 @@ void collect_game_configuration(Platform *p,
 Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
 {
         GameOfLifeConfiguration initial_config =
-            *load_initial_game_of_life_configuration(storage);
+            *load_initial_game_of_life_config(storage);
 
         Configuration *config = new Configuration();
         config->name = "Game of Life";
