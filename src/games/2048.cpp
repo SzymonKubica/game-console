@@ -90,7 +90,7 @@ Game2048Configuration *load_initial_config(PersistentStorage *storage)
         };
 
         LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage");
+            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
         storage->get(storage_offset, config);
 
         Game2048Configuration *output = new Game2048Configuration();
@@ -98,7 +98,7 @@ Game2048Configuration *load_initial_config(PersistentStorage *storage)
         if (config.target_max_tile == 0) {
                 LOG_DEBUG(TAG,
                           "The storage does not contain a valid "
-                          "game of life configuration, using default values.");
+                          "2048 game configuration, using default values.");
                 memcpy(output, &DEFAULT_2048_GAME_CONFIG,
                        sizeof(Game2048Configuration));
                 storage->put(storage_offset, DEFAULT_2048_GAME_CONFIG);

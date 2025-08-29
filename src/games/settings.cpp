@@ -2,7 +2,6 @@
 #include "game_menu.hpp"
 #include "../common/configuration.hpp"
 #include "../common/logging.hpp"
-#include "../common/platform/interface/color.hpp"
 #include "settings.hpp"
 #include "game_of_life.hpp"
 #include "minesweeper.hpp"
@@ -25,7 +24,8 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
         std::vector<int> offsets = get_settings_storage_offsets();
 
         int offset = offsets[selected_game];
-        LOG_DEBUG(TAG, "Computed configuration storage offset for game %s: %d", map_game_to_str(selected_game), offset)
+        LOG_DEBUG(TAG, "Computed configuration storage offset for game %s: %d",
+                  map_game_to_str(selected_game), offset)
 
         switch (selected_game) {
         case MainMenu: {
@@ -59,9 +59,10 @@ std::vector<int> get_settings_storage_offsets()
 {
         // We add padding to ensure there are no issues with alignment.
         // TODO: figure out what is causing the saved values to become messed
-        // up.
-        int padding = 100;
+        // up. Let's try to space them out into pages to ensure that nothing gets messed up.
+        int padding = 4096;
         std::vector<int> offsets(5);
+        /*
         offsets[MainMenu] = 0;
         offsets[Clean2048] =
             offsets[MainMenu] + sizeof(GameMenuConfiguration) + padding;
@@ -69,6 +70,12 @@ std::vector<int> get_settings_storage_offsets()
             offsets[Clean2048] + sizeof(Game2048Configuration) + padding;
         offsets[GameOfLife] =
             offsets[Minesweeper] + sizeof(MinesweeperConfiguration) + padding;
+        */
+
+        offsets[MainMenu] = 0;
+        offsets[Clean2048] = padding;
+        offsets[Minesweeper] = 2 * padding;
+        offsets[GameOfLife] = 3 * padding;
 
         return offsets;
 }

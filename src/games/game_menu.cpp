@@ -26,7 +26,7 @@ load_initial_menu_configuration(PersistentStorage *storage)
                                                .accent_color = DarkBlue};
 
         LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage");
+            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
         storage->get(storage_offset, configuration);
 
         GameMenuConfiguration *output = new GameMenuConfiguration();
@@ -34,7 +34,7 @@ load_initial_menu_configuration(PersistentStorage *storage)
         if (configuration.game == Unknown) {
                 LOG_DEBUG(TAG,
                           "The storage does not contain a valid "
-                          "game of life configuration, using default values.");
+                          "game menu configuration, using default values.");
                 memcpy(output, &DEFAULT_MENU_CONFIGURATION,
                        sizeof(GameMenuConfiguration));
                 storage->put(storage_offset, DEFAULT_MENU_CONFIGURATION);

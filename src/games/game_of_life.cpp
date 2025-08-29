@@ -139,7 +139,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         };
 
         LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage");
+            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
         storage->get(storage_offset, config);
 
         GameOfLifeConfiguration *output = new GameOfLifeConfiguration();

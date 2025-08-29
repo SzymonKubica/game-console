@@ -482,7 +482,7 @@ load_initial_minesweeper_config(PersistentStorage *storage)
         if (config.mines_num == 0) {
                 LOG_DEBUG(TAG,
                           "The storage does not contain a valid "
-                          "game of life configuration, using default values.");
+                          "minesweeper configuration, using default values.");
                 memcpy(output, &DEFAULT_MINESWEEPER_CONFIG,
                        sizeof(MinesweeperConfiguration));
                 storage->put(storage_offset, DEFAULT_MINESWEEPER_CONFIG);
