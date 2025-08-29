@@ -25,8 +25,10 @@ load_initial_menu_configuration(PersistentStorage *storage)
         GameMenuConfiguration configuration = {.game = Unknown,
                                                .accent_color = DarkBlue};
 
-        LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
+        LOG_DEBUG(TAG,
+                  "Trying to load initial settings from the persistent storage "
+                  "at offset %d",
+                  storage_offset);
         storage->get(storage_offset, configuration);
 
         GameMenuConfiguration *output = new GameMenuConfiguration();
