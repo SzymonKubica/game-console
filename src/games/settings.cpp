@@ -57,26 +57,14 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
 
 std::vector<int> get_settings_storage_offsets()
 {
-        // We add padding to ensure there are no issues with alignment.
-        // TODO: figure out what is causing the saved values to become messed
-        // up. Let's try to space them out into pages to ensure that nothing gets messed up.
-        int padding = 4096;
         std::vector<int> offsets(5);
-        /*
         offsets[MainMenu] = 0;
         offsets[Clean2048] =
-            offsets[MainMenu] + sizeof(GameMenuConfiguration) + padding;
+            offsets[MainMenu] + sizeof(GameMenuConfiguration);
         offsets[Minesweeper] =
-            offsets[Clean2048] + sizeof(Game2048Configuration) + padding;
+            offsets[Clean2048] + sizeof(Game2048Configuration);
         offsets[GameOfLife] =
-            offsets[Minesweeper] + sizeof(MinesweeperConfiguration) + padding;
-        */
-
-        offsets[MainMenu] = 0;
-        offsets[Clean2048] = padding;
-        offsets[Minesweeper] = 2 * padding;
-        offsets[GameOfLife] = 3 * padding;
-
+            offsets[Minesweeper] + sizeof(MinesweeperConfiguration);
         return offsets;
 }
 Configuration *assemble_settings_menu_configuration()

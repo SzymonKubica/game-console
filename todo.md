@@ -24,19 +24,14 @@
   each square separately.
 
 # TODO
-- [x] debug defaults saving for the emulator.
+- [_] fix memory leaks in the main menu
+- [_] test EEPROM saving feature on target device
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
-- [_] add proper customization passing (not just extra parameter for accent color)
-- [_] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
-  should be plenty.) Ensure that the config / scores are only written if the user
-  explicitly says that the write has to happen. EEPROM has a finite number of write
-  cycles so we should not try to write to it in some tight loop.
 - [_] make the game of life random grid population truly random (currently it looks
       like the same pattern every time) (The idea is to mess with the seed on input and save
       it in persitent memory)
 - [_] add high score saving to 2048.
-- [_] fix memory leaks in the main menu
 - [_] design proper consistent UI navigation workflow
 - [_] clean up color enums to ensure consistent names and remove duplicte enum variants
 
@@ -44,6 +39,11 @@
 # In Progress
 
 # Done
+- [x] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
+  should be plenty.) Ensure that the config / scores are only written if the user
+  explicitly says that the write has to happen. EEPROM has a finite number of write
+  cycles so we should not try to write to it in some tight loop.
+- [x] debug defaults saving for the emulator.
 - [x] define persistent memory interface (first step with templates and then try to add the concept from cpp 20)
 - [x] implement emulated persistent memory based on local files
 - [x] further optimise game of life implementation to remove memory issues no matter

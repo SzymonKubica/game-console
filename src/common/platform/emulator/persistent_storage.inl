@@ -28,10 +28,17 @@ template <typename T> T &PersistentStorage::get(int offset, T &t)
 
 template <typename T> const T &PersistentStorage::put(int offset, const T &t)
 {
+        std::fstream ofs;
         // We need to specify both in and out to avoid having the truncate setting
         // clear the file before writing to it.
-        std::fstream ofs("persistent_storage.bin",
+        ofs = std::fstream("persistent_storage.bin",
                          std::ios::in | std::ios::out | std::ios::binary);
+
+        if (!ofs) {
+                std::cerr << "Error opening file for writing in append mode. falling back to write only mode" << std::endl;
+                ofs = std::fstream("persistent_storage.bin",
+                         std::ios::out | std::ios::binary);
+        }
 
         if (!ofs) {
                 std::cerr << "Error opening file for writing." << std::endl;
