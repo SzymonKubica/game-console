@@ -19,11 +19,12 @@
  * input specifying the game of life configuration.
  */
 Configuration *
-assemble_random_seed_picker_configuration(PersistentStorage *storage);
+assemble_random_game_of_life_configuration(PersistentStorage *storage);
 
 RandomSeedPickerConfiguration *
 load_initial_seed_picker_config(PersistentStorage *storage)
 {
+  /*
         int storage_offset = get_settings_storage_offsets()[RandomSeedPicker];
 
         RandomSeedPickerConfiguration config = {
@@ -55,8 +56,11 @@ load_initial_seed_picker_config(PersistentStorage *storage)
         }
 
         return output;
+        */
+  return NULL;
 }
 
+/*
 void enter_random_seed_picker_loop(Platform *p,
                                    GameCustomization *customization)
 {
@@ -67,7 +71,6 @@ void enter_random_seed_picker_loop(Platform *p,
         collect_random_seed_picker_configuration(p, &config, customization);
 
         bool exit_requested = false;
-        SimulationMode mode = PAUSED;
         while (!exit_requested) {
                 if (mode == RUNNING && iteration == evolution_period - 1) {
                         LOG_DEBUG(TAG, "Taking a simulation step");
@@ -186,3 +189,4 @@ void extract_game_config(GameOfLifeConfiguration *game_config,
         game_config->use_toroidal_array =
             extract_yes_or_no_option(toroidal_array_choice);
 }
+*/

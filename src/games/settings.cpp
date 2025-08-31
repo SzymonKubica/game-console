@@ -57,7 +57,7 @@ void enter_settings_loop(Platform *platform, GameCustomization *customization)
 
 std::vector<int> get_settings_storage_offsets()
 {
-        std::vector<int> offsets(5);
+        std::vector<int> offsets(7);
         offsets[MainMenu] = 0;
         offsets[Clean2048] =
             offsets[MainMenu] + sizeof(GameMenuConfiguration);

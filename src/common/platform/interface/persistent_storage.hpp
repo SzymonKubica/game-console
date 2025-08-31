@@ -17,5 +17,5 @@ class PersistentStorage
 #ifdef EMULATOR
 #include "../emulator/persistent_storage.inl"
 #else
-#include "../arduino/persistent_storage.inl"
+#include "../arduino/persistent_storage.hpp"
 #endif
