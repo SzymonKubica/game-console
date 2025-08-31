@@ -24,7 +24,6 @@
   each square separately.
 
 # TODO
-- [_] test EEPROM saving feature on target device
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] make the game of life random grid population truly random (currently it looks
@@ -41,11 +40,15 @@
       config collection loop. What happens now is that pressing blue throws and
       exception that is not handled.
 - [_] ensure that debug logs are only compiled in in the debug build mode.
+- [_] add ability to erase eeprom (probably external sketch)
+- [_] fix exception handling functionality (looks like the exception traps the entire
+      microcontroller and it freezes)
 
 
 # In Progress
 
 # Done
+- [x] test EEPROM saving feature on target device
 - [x] fix memory leaks in the main menu
 - [x] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
   should be plenty.) Ensure that the config / scores are only written if the user
