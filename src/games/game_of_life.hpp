@@ -18,18 +18,6 @@ typedef struct GameOfLifeConfiguration {
          * Controls how many steps the user is allowed to rewind the simulation
          */
         int rewind_buffer_size;
-        /**
-         * Randomness seed that is saved in the persistent storage. This is
-         * needed because each time we run the game, `rand` begins initialized
-         * with the same seed, this leads to the same pattern of cells generated
-         * every time `prepopulate_grid` is used after booting up the console.
-         * In order to avoid this, we 'spin' the randomness seed on each user
-         * input when navigating around the game grid. This is predicated on the
-         * assumption that users' input patterns will be random and ensure that
-         * when we load the seed from the saved storage, the randomly populated
-         * grid does not always look the same.
-         */
-        int randomness_seed;
 } GameOfLifeConfiguration;
 
 /**
