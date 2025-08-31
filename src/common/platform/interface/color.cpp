@@ -10,8 +10,8 @@ const char *map_color(Color color)
                 return "Black";
         case Blue:
                 return "Blue";
-        case BRed:
-                return "BRed";
+        case Magenta:
+                return "Magenta";
         case GRed:
                 return "GRed";
         case Gblue:

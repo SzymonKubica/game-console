@@ -24,7 +24,6 @@
   each square separately.
 
 # TODO
-- [_] fix memory leaks in the main menu
 - [_] test EEPROM saving feature on target device
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
@@ -33,12 +32,20 @@
       it in persitent memory)
 - [_] add high score saving to 2048.
 - [_] design proper consistent UI navigation workflow
+- [_] add username collection screen
 - [_] clean up color enums to ensure consistent names and remove duplicte enum variants
+    - [_] figure out how the LCD display encodes colors to create exactly matchign color
+          configs for the emulator (this requires access to online documentation).
+- [_] fix wait for input after quit in each game (this behaviour is unexpected).
+- [_] tighten up the exit handling when user tries to break out of gmae of life
+      config collection loop. What happens now is that pressing blue throws and
+      exception that is not handled.
 
 
 # In Progress
 
 # Done
+- [x] fix memory leaks in the main menu
 - [x] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
   should be plenty.) Ensure that the config / scores are only written if the user
   explicitly says that the write has to happen. EEPROM has a finite number of write

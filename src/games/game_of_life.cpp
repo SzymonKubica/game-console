@@ -131,15 +131,16 @@ load_initial_game_of_life_config(PersistentStorage *storage)
 {
         int storage_offset = get_settings_storage_offsets()[GameOfLife];
 
-        GameOfLifeConfiguration config = {
-            .prepopulate_grid = false,
-            .use_toroidal_array = false,
-            .simulation_speed = 0,
-            .rewind_buffer_size = 0,
-        };
+        GameOfLifeConfiguration config = {.prepopulate_grid = false,
+                                          .use_toroidal_array = false,
+                                          .simulation_speed = 0,
+                                          .rewind_buffer_size = 0,
+                                          .randomness_seed = 1234};
 
-        LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
+        LOG_DEBUG(TAG,
+                  "Trying to load initial settings from the persistent storage "
+                  "at offset %d",
+                  storage_offset);
         storage->get(storage_offset, config);
 
         GameOfLifeConfiguration *output = new GameOfLifeConfiguration();
