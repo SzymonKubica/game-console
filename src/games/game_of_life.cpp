@@ -78,7 +78,7 @@ typedef enum SimulationMode {
  * Assembles the generic configuration struct that can be used to collect user
  * input specifying the game of life configuration.
  */
-Configuration *assemble_game_of_life_configuration(PersistentStorage *storage);
+Configuration *assemble_random_seed_picker_configuration(PersistentStorage *storage);
 
 /**
  * Extracts the specific game of life config struct after the generic config
@@ -134,8 +134,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         GameOfLifeConfiguration config = {.prepopulate_grid = false,
                                           .use_toroidal_array = false,
                                           .simulation_speed = 0,
-                                          .rewind_buffer_size = 0,
-                                          .randomness_seed = 1234};
+                                          .rewind_buffer_size = 0 };
 
         LOG_DEBUG(TAG,
                   "Trying to load initial settings from the persistent storage "
@@ -168,7 +167,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         return output;
 }
 
-void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
+void enter_random_seed_picker_loop(Platform *p, GameCustomization *customization)
 {
 
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
@@ -350,14 +349,14 @@ void collect_game_of_life_configuration(Platform *p,
                                         GameCustomization *customization)
 {
         Configuration *config =
-            assemble_game_of_life_configuration(p->persistent_storage);
+            assemble_random_seed_picker_configuration(p->persistent_storage);
         enter_configuration_collection_loop(p, config,
                                             customization->accent_color);
         extract_game_config(game_config, config);
         free_configuration(config);
 }
 
-Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
+Configuration *assemble_random_seed_picker_configuration(PersistentStorage *storage)
 {
         GameOfLifeConfiguration *initial_config =
             load_initial_game_of_life_config(storage);
@@ -365,7 +364,8 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         Configuration *config = new Configuration();
         config->name = "Game of Life";
 
-        // Initialize the first config option: game gridsize
+        // Initialize the first config option: if grid will get pre-populated with
+        // cells randomly.
         ConfigurationOption *spawn_randomly = new ConfigurationOption();
         spawn_randomly->name = "Spawn randomly";
         std::vector<const char *> yes_or_no = {"Yes", "No"};

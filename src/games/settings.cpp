@@ -65,6 +65,8 @@ std::vector<int> get_settings_storage_offsets()
             offsets[Clean2048] + sizeof(Game2048Configuration);
         offsets[GameOfLife] =
             offsets[Minesweeper] + sizeof(MinesweeperConfiguration);
+        offsets[RandomSeedPicker] =
+            offsets[GameOfLife] + sizeof(GameOfLifeConfiguration);
         return offsets;
 }
 Configuration *assemble_settings_menu_configuration()

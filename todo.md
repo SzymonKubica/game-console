@@ -40,6 +40,7 @@
 - [_] tighten up the exit handling when user tries to break out of gmae of life
       config collection loop. What happens now is that pressing blue throws and
       exception that is not handled.
+- [_] ensure that debug logs are only compiled in in the debug build mode.
 
 
 # In Progress
