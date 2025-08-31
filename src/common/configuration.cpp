@@ -291,10 +291,10 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
 
                         render_config_menu(p->display, config, diff, true,
                                            accent_color);
-                        free(diff);
 
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                free(diff);
         }
 }

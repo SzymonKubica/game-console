@@ -149,6 +149,7 @@ void collect_game_configuration(Platform *p,
             p, config, initial_config->accent_color, false);
         extract_game_config(configuration, config);
 
+        free_configuration(config);
         free(initial_config);
 }
 
