@@ -24,7 +24,7 @@
   each square separately.
 
 # TODO
-- [_] debug defaults saving for the emulator.
+- [x] debug defaults saving for the emulator.
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] add proper customization passing (not just extra parameter for accent color)
@@ -36,6 +36,9 @@
       like the same pattern every time) (The idea is to mess with the seed on input and save
       it in persitent memory)
 - [_] add high score saving to 2048.
+- [_] fix memory leaks in the main menu
+- [_] design proper consistent UI navigation workflow
+- [_] clean up color enums to ensure consistent names and remove duplicte enum variants
 
 
 # In Progress
