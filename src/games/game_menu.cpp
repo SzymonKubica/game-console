@@ -135,7 +135,7 @@ void select_game(Platform *p)
         }
 }
 
-void collect_game_configuration(Platform *p,
+bool collect_game_configuration(Platform *p,
                                 GameMenuConfiguration *configuration)
 {
 
@@ -145,12 +145,14 @@ void collect_game_configuration(Platform *p,
         Configuration *config =
             assemble_menu_selection_configuration(initial_config);
 
-        enter_configuration_collection_loop(
-            p, config, initial_config->accent_color, false);
+        if (!collect_configuration(p, config, initial_config->accent_color,
+                                   false))
+                return false;
         extract_game_config(configuration, config);
 
         free_configuration(config);
         free(initial_config);
+        return true;
 }
 
 Game map_game_from_str(const char *name)

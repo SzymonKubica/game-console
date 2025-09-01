@@ -214,8 +214,8 @@ int get_config_option_string_value_index(ConfigurationOption *option,
         return -1;
 }
 
-void enter_configuration_collection_loop(Platform *p, Configuration *config,
-                                         Color accent_color, bool allow_exit)
+bool collect_configuration(Platform *p, Configuration *config,
+                           Color accent_color, bool allow_exit)
 {
 
         ConfigurationDiff *diff = empty_diff();
@@ -254,7 +254,7 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                         if (act == Action::BLUE && allow_exit) {
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
-                                throw ConfigurationLoopExitException();
+                                return false;
                         }
                 }
                 if (directional_input_registered(p->directional_controllers,
@@ -297,4 +297,5 @@ void enter_configuration_collection_loop(Platform *p, Configuration *config,
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
                 free(diff);
         }
+        return true;
 }

@@ -78,7 +78,8 @@ typedef enum SimulationMode {
  * Assembles the generic configuration struct that can be used to collect user
  * input specifying the game of life configuration.
  */
-Configuration *assemble_random_game_of_life_configuration(PersistentStorage *storage);
+Configuration *
+assemble_random_game_of_life_configuration(PersistentStorage *storage);
 
 /**
  * Extracts the specific game of life config struct after the generic config
@@ -134,7 +135,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         GameOfLifeConfiguration config = {.prepopulate_grid = false,
                                           .use_toroidal_array = false,
                                           .simulation_speed = 0,
-                                          .rewind_buffer_size = 0 };
+                                          .rewind_buffer_size = 0};
 
         LOG_DEBUG(TAG,
                   "Trying to load initial settings from the persistent storage "
@@ -167,13 +168,14 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         return output;
 }
 
-void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
+bool enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 {
 
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
         GameOfLifeConfiguration config;
 
-        collect_game_of_life_configuration(p, &config, customization);
+        if (!collect_game_of_life_configuration(p, &config, customization))
+                return false;
 
         GameOfLifeGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -342,21 +344,25 @@ void enter_game_of_life_loop(Platform *p, GameCustomization *customization)
                 iteration %= evolution_period;
                 p->delay_provider->delay_ms(GAME_LOOP_DELAY);
         }
+        return true;
 }
 
-void collect_game_of_life_configuration(Platform *p,
+bool collect_game_of_life_configuration(Platform *p,
                                         GameOfLifeConfiguration *game_config,
                                         GameCustomization *customization)
 {
         Configuration *config =
             assemble_random_game_of_life_configuration(p->persistent_storage);
-        enter_configuration_collection_loop(p, config,
-                                            customization->accent_color);
+        if (!collect_configuration(p, config, customization->accent_color))
+                return false;
+
         extract_game_config(game_config, config);
         free_configuration(config);
+        return true;
 }
 
-Configuration *assemble_random_game_of_life_configuration(PersistentStorage *storage)
+Configuration *
+assemble_random_game_of_life_configuration(PersistentStorage *storage)
 {
         GameOfLifeConfiguration *initial_config =
             load_initial_game_of_life_config(storage);
@@ -364,8 +370,8 @@ Configuration *assemble_random_game_of_life_configuration(PersistentStorage *sto
         Configuration *config = new Configuration();
         config->name = "Game of Life";
 
-        // Initialize the first config option: if grid will get pre-populated with
-        // cells randomly.
+        // Initialize the first config option: if grid will get pre-populated
+        // with cells randomly.
         ConfigurationOption *spawn_randomly = new ConfigurationOption();
         spawn_randomly->name = "Spawn randomly";
         std::vector<const char *> yes_or_no = {"Yes", "No"};

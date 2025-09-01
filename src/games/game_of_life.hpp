@@ -2,9 +2,13 @@
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
 #include "../common/logging.hpp"
-#include "../common/configuration.hpp"
 
-void enter_game_of_life_loop(Platform *platform,
+/**
+ * Returns true if the user wants to play again. If they press blue on the
+ * configuration screen it means that they want to exit, in which case this
+ * function would return false.
+ */
+bool enter_game_of_life_loop(Platform *platform,
                              GameCustomization *customization);
 
 typedef struct GameOfLifeConfiguration {
@@ -26,8 +30,13 @@ typedef struct GameOfLifeConfiguration {
  * This is exposed publicly so that the default game configuration saving module
  * can call it, get the new default setttings and save them in the persistent
  * storage.
+ *
+ * Similar to `collect_configuration` from `configuration.hpp`, it returns true
+ * if the configuration was successfully collected. Otherwise, if the user
+ * requested exit by pressing the blue button, it returns false and this needs
+ * to be handled by the main game loop.
  */
-void collect_game_of_life_configuration(Platform *p,
+bool collect_game_of_life_configuration(Platform *p,
                                         GameOfLifeConfiguration *game_config,
                                         GameCustomization *customization);
 
@@ -37,19 +46,9 @@ class GameOfLife : public GameExecutor
         void enter_game_loop(Platform *p,
                              GameCustomization *customization) override
         {
-                while (true) {
-                        enter_game_of_life_loop(p, customization);
-                        Direction dir;
-                        Action act;
-                        pause_until_input(p->directional_controllers,
-                                          p->action_controllers, &dir, &act,
-                                          p->delay_provider);
-
-                        if (act == Action::BLUE) {
-                                LOG_DEBUG("game_of_life",
-                                          "Exiting game of life loop.")
-                                break;
-                        }
+                while (enter_game_of_life_loop(p, customization)) {
+                        LOG_DEBUG("game_of_life",
+                                  "Re-entering game of life loop.")
                 }
         }
 

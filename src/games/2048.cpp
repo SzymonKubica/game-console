@@ -43,10 +43,11 @@ handle_game_finished(Display *display,
 static void draw_game_canvas(Display *display, GameState *state,
                              GameCustomization *customization);
 
-void enter_2048_loop(Platform *p, GameCustomization *customization)
+bool enter_2048_loop(Platform *p, GameCustomization *customization)
 {
         Game2048Configuration config;
-        collect_2048_configuration(p, &config, customization);
+        if (!collect_2048_configuration(p, &config, customization))
+                return false;
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
@@ -78,6 +79,7 @@ void enter_2048_loop(Platform *p, GameCustomization *customization)
 
         pause_until_any_directional_input(p->directional_controllers,
                                           p->delay_provider);
+        return true;
 }
 
 Game2048Configuration *load_initial_config(PersistentStorage *storage)
@@ -89,8 +91,10 @@ Game2048Configuration *load_initial_config(PersistentStorage *storage)
             .target_max_tile = 0,
         };
 
-        LOG_DEBUG(
-            TAG, "Trying to load initial settings from the persistent storage at offset %d", storage_offset);
+        LOG_DEBUG(TAG,
+                  "Trying to load initial settings from the persistent storage "
+                  "at offset %d",
+                  storage_offset);
         storage->get(storage_offset, config);
 
         Game2048Configuration *output = new Game2048Configuration();
@@ -179,14 +183,16 @@ void extract_game_config(Game2048Configuration *game_config,
             static_cast<int *>(game_target.available_values)[curr_target_idx];
 }
 
-void collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
+bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
                                 GameCustomization *customization)
 {
         Configuration *config =
             assemble_2048_configuration(p->persistent_storage);
-        enter_configuration_collection_loop(p, config,
-                                            customization->accent_color);
+        if (!collect_configuration(p, config, customization->accent_color))
+                return false;
+
         extract_game_config(game_config, config);
+        return true;
 }
 
 /* Initialization Code */

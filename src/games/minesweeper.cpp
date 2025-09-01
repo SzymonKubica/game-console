@@ -80,12 +80,13 @@ unflag_grid_cell(Display *display, Point *grid_position,
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                  int bomb_number, Point *caret_position);
-void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
+bool enter_minesweeper_loop(Platform *p, GameCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
 
-        collect_minesweeper_configuration(p, &config, customization);
+        if (!collect_minesweeper_configuration(p, &config, customization))
+                return false;
 
         MinesweeperGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -252,6 +253,7 @@ void enter_minesweeper_loop(Platform *p, GameCustomization *customization)
                 draw_game_won(p->display);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
+        return true;
 }
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
@@ -453,23 +455,26 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-void collect_minesweeper_configuration(Platform *p,
+bool collect_minesweeper_configuration(Platform *p,
                                        MinesweeperConfiguration *game_config,
                                        GameCustomization *customization)
 {
         Configuration *config =
             assemble_minesweeper_configuration(p->persistent_storage);
-        enter_configuration_collection_loop(p, config,
-                                            customization->accent_color);
+        if (!collect_configuration(p, config, customization->accent_color))
+                return false;
+
         extract_game_config(game_config, config);
         free_configuration(config);
+        return true;
 }
 
 MinesweeperConfiguration *
 load_initial_minesweeper_config(PersistentStorage *storage)
 {
         int storage_offset = get_settings_storage_offsets()[Minesweeper];
-        LOG_DEBUG(TAG, "Loading minesweeper saved config from offset %d", storage_offset);
+        LOG_DEBUG(TAG, "Loading minesweeper saved config from offset %d",
+                  storage_offset);
 
         MinesweeperConfiguration config = {.mines_num = 0};
 

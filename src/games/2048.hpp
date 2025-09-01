@@ -32,9 +32,14 @@ class GameState
         }
 };
 
-void collect_2048_configuration(Platform *p,
-                                       Game2048Configuration *game_config,
-                                       GameCustomization *customization);
+/**
+ * Similar to `collect_configuration` from `configuration.hpp`, it returns true
+ * if the configuration was successfully collected. Otherwise, if the user
+ * requested exit by pressing the blue button, it returns false and this needs
+ * to be handled by the main game loop.
+ */
+bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
+                                GameCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
@@ -46,7 +51,12 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-void enter_2048_loop(Platform *platform, GameCustomization *customization);
+/**
+ * Returns true if the user wants to play again. If they press blue on the
+ * configuration screen it means that they want to exit, in which case this
+ * function would return false.
+ */
+bool enter_2048_loop(Platform *platform, GameCustomization *customization);
 
 class Clean2048 : public GameExecutor
 {
@@ -54,16 +64,9 @@ class Clean2048 : public GameExecutor
         void enter_game_loop(Platform *p,
                              GameCustomization *customization) override
         {
-                while (true) {
-
-                        try {
-                                enter_2048_loop(p, customization);
-                        } catch (const ConfigurationLoopExitException &e) {
-                                LOG_INFO("2048",
-                                         "User requested exit in the game "
-                                         "config loop.");
-                                return;
-                        }
+                while (enter_2048_loop(p, customization)) {
+                        LOG_INFO("2048", "Finished the main 2048 game loop, "
+                                         "pausing until input from the user.");
                         Direction dir;
                         Action act;
                         pause_until_input(p->directional_controllers,

@@ -4,8 +4,13 @@
 #include "../common/logging.hpp"
 #include "../common/configuration.hpp"
 
-
-void enter_settings_loop(Platform *platform, GameCustomization *customization);
+/**
+ * Similar to `collect_configuration` from `configuration.hpp`, it returns true
+ * if the configuration was successfully collected. Otherwise, if the user
+ * requested exit by pressing the blue button, it returns false and this needs
+ * to be handled by the main game loop.
+ */
+bool enter_settings_loop(Platform *platform, GameCustomization *customization);
 
 std::vector<int> get_settings_storage_offsets();
 
@@ -24,14 +29,9 @@ class Settings : public GameExecutor
         void enter_game_loop(Platform *p,
                              GameCustomization *customization) override
         {
-                while (true) {
-                        try {
-                                enter_settings_loop(p, customization);
-                        } catch (const ConfigurationLoopExitException &e) {
-                                LOG_INFO("settings", "User requested exit in the game "
-                                              "config loop.");
-                                return;
-                        }
+                while (enter_settings_loop(p, customization)) {
+                        LOG_DEBUG("settings",
+                                  "Re-entering the settings collecting loop.")
                 }
         }
 
