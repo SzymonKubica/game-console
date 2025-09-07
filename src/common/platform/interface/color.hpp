@@ -21,9 +21,9 @@ typedef enum Color: int {
         DarkBlue = 0X01CF,
         LightBlue = 0X7D7C,
         GrayBlue = 0X5458,
-        LightGreen = 0X841F,
+        LightGreen = 0XA651,
         LGray = 0XC618,
-        LGrayBlue = 0XA651,
+        LGrayBlue = 0X841F,
         LBBlue = 0X2B12,
 } Color;
 

@@ -266,11 +266,11 @@ sf::Color map_to_sf_color(Color color)
 
         int original_blue = color & bitmask_5;
         int original_green = (color >> 5) & bitmask_6;
-        int original_red = (color >> 11) & bitmask_5;
+        int original_red = (color >> 11);
 
-        red = (int)(((float)original_red / bitmask_5) * 255);
-        green = (int)(((float)original_green / bitmask_6) * 255);
-        blue = (int)(((float)original_blue / bitmask_5) * 255);
+        red = (int)((float)original_red / bitmask_5 * 255);
+        green = (int)((float)original_green / bitmask_6 * 255);
+        blue = (int)((float)original_blue / bitmask_5 * 255);
 
         return sf::Color(red, green, blue);
 }

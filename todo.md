@@ -32,9 +32,6 @@
 - [_] add high score saving to 2048.
 - [_] design proper consistent UI navigation workflow
 - [_] add username collection screen
-- [_] clean up color enums to ensure consistent names and remove duplicte enum variants
-    - [_] figure out how the LCD display encodes colors to create exactly matchign color
-          configs for the emulator (this requires access to online documentation).
 - [_] fix wait for input after quit in each game (this behaviour is unexpected).
 - [_] tighten up the exit handling when user tries to break out of gmae of life
       config collection loop. What happens now is that pressing blue throws and
@@ -49,6 +46,9 @@
 # In Progress
 
 # Done
+- [x] clean up color enums to ensure consistent names and remove duplicte enum variants
+    - [_] figure out how the LCD display encodes colors to create exactly matchign color
+          configs for the emulator (this requires access to online documentation).
 - [x] fix exception handling functionality (looks like the exception traps the entire
       microcontroller and it freezes)
 - [x] test EEPROM saving feature on target device
