@@ -152,9 +152,10 @@ void render_config_bar_centered(Display *display, int y_start,
                         display->draw_rounded_rectangle(
                             bar_start, bar_width, fh * 2, fh, accent_color);
                         // Draw the actual name of the config bar.
-                        display->draw_string(bar_name_str_start,
-                                             (char *)option_text, Size16,
-                                             accent_color, White);
+                        display->draw_string(
+                            bar_name_str_start, (char *)option_text, Size16,
+                            accent_color,
+                            get_good_contrast_text_color(accent_color));
                 } else {
                         // The only other option supported right now is the
                         // `Minimalistic` rendering mode, we render it below
@@ -265,7 +266,7 @@ void render_text_bar_centered(Display *display, int y_start,
                         // will be centered inside of the large bar.
                         display->draw_string(text_start, (char *)text,
                                              font_size, background_color,
-                                             text_color);
+                                             get_good_contrast_text_color(background_color));
                 } else {
 
 #ifdef EMULATOR

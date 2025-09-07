@@ -28,3 +28,5 @@ typedef enum Color: int {
 } Color;
 
 const char *map_color(Color color);
+
+Color get_good_contrast_text_color(Color color);

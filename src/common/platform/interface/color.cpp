@@ -47,3 +47,18 @@ const char *map_color(Color color)
         };
 }
 
+Color get_good_contrast_text_color(Color color)
+{
+
+        switch (color) {
+        case White:
+        case Gblue:
+        case Green:
+        case Cyan:
+        case Yellow:
+        case LGray:
+                return Black;
+        default:
+                return White;
+        };
+}

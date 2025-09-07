@@ -75,7 +75,7 @@ assemble_menu_selection_configuration(GameMenuConfiguration *initial_config)
         accent_color->name = "Color";
         auto available_accent_colors = {
             Color::Red,        Color::Green, Color::Blue,      Color::DarkBlue,
-            Color::Magenta,    Color::Cyan,  Color::Gblue,     Color::Brown,
+            Color::Magenta,    Color::Cyan,  Color::Gblue,     Color::Brown, Color::Yellow,
             Color::BRRed,      Color::Gray,  Color::LightBlue, Color::GrayBlue,
             Color::LightGreen, Color::LGray, Color::LGrayBlue, Color::LBBlue};
         populate_color_option_values(accent_color, available_accent_colors);
