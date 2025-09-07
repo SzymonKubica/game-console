@@ -78,8 +78,7 @@ typedef enum SimulationMode {
  * Assembles the generic configuration struct that can be used to collect user
  * input specifying the game of life configuration.
  */
-Configuration *
-assemble_random_game_of_life_configuration(PersistentStorage *storage);
+Configuration *assemble_game_of_life_configuration(PersistentStorage *storage);
 
 /**
  * Extracts the specific game of life config struct after the generic config
@@ -352,7 +351,7 @@ bool collect_game_of_life_configuration(Platform *p,
                                         GameCustomization *customization)
 {
         Configuration *config =
-            assemble_random_game_of_life_configuration(p->persistent_storage);
+            assemble_game_of_life_configuration(p->persistent_storage);
         if (!collect_configuration(p, config, customization->accent_color))
                 return false;
 
@@ -361,8 +360,7 @@ bool collect_game_of_life_configuration(Platform *p,
         return true;
 }
 
-Configuration *
-assemble_random_game_of_life_configuration(PersistentStorage *storage)
+Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
 {
         GameOfLifeConfiguration *initial_config =
             load_initial_game_of_life_config(storage);
@@ -422,10 +420,7 @@ bool extract_yes_or_no_option(const char *value)
 
 const char *map_boolean_to_yes_or_no(bool value)
 {
-        if (value) {
-                return "Yes";
-        }
-        return "No";
+        return value ? "Yes" : "No";
 }
 
 void extract_game_config(GameOfLifeConfiguration *game_config,

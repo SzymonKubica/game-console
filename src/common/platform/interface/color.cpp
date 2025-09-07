@@ -12,8 +12,6 @@ const char *map_color(Color color)
                 return "Blue";
         case Magenta:
                 return "Magenta";
-        case GRed:
-                return "GRed";
         case Gblue:
                 return "Gblue";
         case Red:
@@ -22,6 +20,8 @@ const char *map_color(Color color)
                 return "Green";
         case Cyan:
                 return "Cyan";
+        case Yellow:
+                return "Yellow";
         case Brown:
                 return "Brown";
         case BRRed:
@@ -46,3 +46,4 @@ const char *map_color(Color color)
                 return "UNKNOWN";
         };
 }
+

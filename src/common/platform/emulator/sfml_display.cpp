@@ -252,42 +252,26 @@ void SfmlDisplay::refresh()
         window->display();
 };
 
+/**
+ * The Arduino LCD display uses the RGB565 color encoding, whereas SFML uses
+ * RGB888 with the additional opacity channel. This function converts from the
+ * RGB565 color to the RGB888 by scaling each channel and setting opacity to 1.
+ */
 sf::Color map_to_sf_color(Color color)
 {
-        switch (color) {
-        case White:
-                return sf::Color::White;
-        case Black:
-                return sf::Color::Black;
-        case Blue:
-                return sf::Color::Blue;
-        case BRed:
-                return sf::Color::Magenta;
-        case Yellow:
-                return sf::Color::Yellow;
-        case Gblue:
-                return sf::Color::Blue;
-        case Red:
-                return sf::Color::Red;
-        case Green:
-                return sf::Color::Green;
-        case Cyan:
-                return sf::Color::Cyan;
-        case BRRed:
-                return sf::Color::Red;
-        case DarkBlue:
-                return sf::Color::Blue;
-        case LightBlue:
-                return sf::Color::Blue;
-        case GrayBlue:
-                return sf::Color::Blue;
-        case LightGreen:
-                return sf::Color::Green;
-        case LGrayBlue:
-                return sf::Color::Blue;
-        case LBBlue:
-                return sf::Color::Blue;
-        }
-        return sf::Color::White;
+        uint8_t red, green, blue;
+
+        int bitmask_5 = 0b11111;
+        int bitmask_6 = 0b111111;
+
+        int original_blue = color & bitmask_5;
+        int original_green = (color >> 5) & bitmask_6;
+        int original_red = (color >> 11) & bitmask_5;
+
+        red = (int)(((float)original_red / bitmask_5) * 255);
+        green = (int)(((float)original_green / bitmask_6) * 255);
+        blue = (int)(((float)original_blue / bitmask_5) * 255);
+
+        return sf::Color(red, green, blue);
 }
 #endif

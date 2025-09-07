@@ -363,7 +363,7 @@ void uncover_grid_cell(Display *display, Point *grid_position,
                         text_color = Red;
                         break;
                 case 4:
-                        text_color = BRed;
+                        text_color = Magenta;
                         break;
                 }
         }
@@ -517,7 +517,6 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage)
         populate_int_option_values(mines_count, available_values);
         mines_count->currently_selected = get_config_option_value_index(
             mines_count, initial_config->mines_num);
-        ;
 
         config->options_len = 1;
         config->options = new ConfigurationOption *[config->options_len];

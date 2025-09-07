@@ -19,7 +19,7 @@
  * input specifying the game of life configuration.
  */
 Configuration *
-assemble_random_game_of_life_configuration(PersistentStorage *storage);
+assemble_game_of_life_configuration(PersistentStorage *storage);
 
 RandomSeedPickerConfiguration *
 load_initial_seed_picker_config(PersistentStorage *storage)

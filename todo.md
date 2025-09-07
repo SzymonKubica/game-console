@@ -41,13 +41,16 @@
       exception that is not handled.
 - [_] ensure that debug logs are only compiled in in the debug build mode.
 - [_] add ability to erase eeprom (probably external sketch)
-- [_] fix exception handling functionality (looks like the exception traps the entire
-      microcontroller and it freezes)
+- [_] refactor game loops to make adding new games easier
+- [_] add a 'fast-rendering' mode that will skip rendering of the costly UI elements
+      (e.g. filled rounded rectangles can be replaced with their borders only)
 
 
 # In Progress
 
 # Done
+- [x] fix exception handling functionality (looks like the exception traps the entire
+      microcontroller and it freezes)
 - [x] test EEPROM saving feature on target device
 - [x] fix memory leaks in the main menu
 - [x] save high score / default configs in some arduino persistent memory (EEPROM is for that and 8kB
