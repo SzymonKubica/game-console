@@ -13,7 +13,7 @@ typedef struct MinesweeperConfiguration {
  * function would return false.
  */
 bool enter_minesweeper_loop(Platform *platform,
-                            GameCustomization *customization);
+                            UserInterfaceCustomization *customization);
 
 /**
  * Similar to `collect_configuration` from `configuration.hpp`, it returns true
@@ -23,13 +23,13 @@ bool enter_minesweeper_loop(Platform *platform,
  */
 bool collect_minesweeper_configuration(Platform *p,
                                        MinesweeperConfiguration *game_config,
-                                       GameCustomization *customization);
+                                       UserInterfaceCustomization *customization);
 
 class Minesweeper : public GameExecutor
 {
       public:
         void enter_game_loop(Platform *p,
-                             GameCustomization *customization) override
+                             UserInterfaceCustomization *customization) override
         {
                 while (enter_minesweeper_loop(p, customization)) {
                         LOG_DEBUG(

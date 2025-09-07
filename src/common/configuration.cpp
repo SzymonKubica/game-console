@@ -215,11 +215,11 @@ int get_config_option_string_value_index(ConfigurationOption *option,
 }
 
 bool collect_configuration(Platform *p, Configuration *config,
-                           Color accent_color, bool allow_exit)
+                           UserInterfaceCustomization *customization, bool allow_exit)
 {
 
         ConfigurationDiff *diff = empty_diff();
-        render_config_menu(p->display, config, diff, false, accent_color);
+        render_config_menu(p->display, config, diff, false, customization);
         free(diff);
         while (true) {
                 Action act;

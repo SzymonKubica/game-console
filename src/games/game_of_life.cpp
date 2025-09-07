@@ -92,13 +92,13 @@ calculate_grid_dimensions(int display_width, int display_height,
                           int display_rounded_corner_radius);
 
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
-                      GameCustomization *customization);
+                      UserInterfaceCustomization *customization);
 void draw_rewind_mode_indicator(Platform *p,
                                 GameOfLifeGridDimensions *dimensions,
-                                GameCustomization *customization);
+                                UserInterfaceCustomization *customization);
 void clear_rewind_mode_indicator(Platform *p,
                                  GameOfLifeGridDimensions *dimensions,
-                                 GameCustomization *customization);
+                                 UserInterfaceCustomization *customization);
 void draw_caret(Display *display, Point *grid_position,
                 GameOfLifeGridDimensions *dimensions, Color caret_color);
 void erase_caret(Display *display, Point *grid_position,
@@ -167,7 +167,7 @@ load_initial_game_of_life_config(PersistentStorage *storage)
         return output;
 }
 
-bool enter_game_of_life_loop(Platform *p, GameCustomization *customization)
+bool enter_game_of_life_loop(Platform *p, UserInterfaceCustomization *customization)
 {
 
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
@@ -348,7 +348,7 @@ bool enter_game_of_life_loop(Platform *p, GameCustomization *customization)
 
 bool collect_game_of_life_configuration(Platform *p,
                                         GameOfLifeConfiguration *game_config,
-                                        GameCustomization *customization)
+                                        UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_game_of_life_configuration(p->persistent_storage);
@@ -717,7 +717,7 @@ void erase_caret(Display *display, Point *grid_position,
 }
 
 void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
-                      GameCustomization *customization)
+                      UserInterfaceCustomization *customization)
 
 {
         p->display->initialize();
@@ -813,7 +813,7 @@ void draw_game_canvas(Platform *p, GameOfLifeGridDimensions *dimensions,
 
 void draw_rewind_mode_indicator(Platform *p,
                                 GameOfLifeGridDimensions *dimensions,
-                                GameCustomization *customization)
+                                UserInterfaceCustomization *customization)
 {
 
         int x_margin = dimensions->left_horizontal_margin;
@@ -850,7 +850,7 @@ void draw_rewind_mode_indicator(Platform *p,
 
 void clear_rewind_mode_indicator(Platform *p,
                                  GameOfLifeGridDimensions *dimensions,
-                                 GameCustomization *customization)
+                                 UserInterfaceCustomization *customization)
 {
 
         int x_margin = dimensions->left_horizontal_margin;

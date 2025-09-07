@@ -1,13 +1,13 @@
 #pragma once
 #include "../common/platform/interface/platform.hpp"
+#include "../common/user_interface.h"
 
-typedef struct GameCustomization {
-        Color accent_color;
-} GameCustomization;
+
 
 class GameExecutor
 {
       public:
-        virtual void enter_game_loop(Platform *p,
-                                     GameCustomization *customization) = 0;
+        virtual void
+        enter_game_loop(Platform *p,
+                        UserInterfaceCustomization *customization) = 0;
 };

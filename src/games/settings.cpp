@@ -11,7 +11,7 @@
 Configuration *assemble_settings_menu_configuration();
 void extract_menu_setting(Game *selected_game, Configuration *config);
 
-bool enter_settings_loop(Platform *platform, GameCustomization *customization)
+bool enter_settings_loop(Platform *platform, UserInterfaceCustomization *customization)
 {
         Configuration *config = assemble_settings_menu_configuration();
 
@@ -81,8 +81,11 @@ Configuration *assemble_settings_menu_configuration()
         config->name = "Set Defaults";
 
         ConfigurationOption *menu = new ConfigurationOption();
-        menu->name = "Menu";
-        auto available_games = {"Main", "Sweeper", "2048", "Life"};
+        menu->name = "Configure";
+        auto available_games = {map_game_to_str(Game::MainMenu),
+                                map_game_to_str(Game::Minesweeper),
+                                map_game_to_str(Game::Clean2048),
+                                map_game_to_str(Game::GameOfLife)};
         populate_string_option_values(menu, available_games);
         menu->currently_selected = 0;
 

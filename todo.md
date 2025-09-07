@@ -24,23 +24,25 @@
   each square separately.
 
 # TODO
+- [_] add a 'fast-rendering' mode that will skip rendering of the costly UI elements
+      (e.g. filled rounded rectangles can be replaced with their borders only)
+- [_] ensure that debug logs are only compiled in in the debug build mode.
+- [_] design proper consistent UI navigation workflow
+- [_] add a help screen
+
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] make the game of life random grid population truly random (currently it looks
       like the same pattern every time) (The idea is to mess with the seed on input and save
       it in persitent memory)
 - [_] add high score saving to 2048.
-- [_] design proper consistent UI navigation workflow
 - [_] add username collection screen
 - [_] fix wait for input after quit in each game (this behaviour is unexpected).
 - [_] tighten up the exit handling when user tries to break out of gmae of life
       config collection loop. What happens now is that pressing blue throws and
       exception that is not handled.
-- [_] ensure that debug logs are only compiled in in the debug build mode.
 - [_] add ability to erase eeprom (probably external sketch)
 - [_] refactor game loops to make adding new games easier
-- [_] add a 'fast-rendering' mode that will skip rendering of the costly UI elements
-      (e.g. filled rounded rectangles can be replaced with their borders only)
 
 
 # In Progress

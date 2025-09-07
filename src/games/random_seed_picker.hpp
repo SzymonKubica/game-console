@@ -5,7 +5,7 @@
 #include "../common/configuration.hpp"
 
 void enter_random_seed_picker_loop(Platform *platform,
-                                   GameCustomization *customization);
+                                   UserInterfaceCustomization *customization);
 
 typedef struct RandomSeedPickerConfiguration {
         // Starting point of the seed
@@ -24,13 +24,13 @@ typedef struct RandomSeedPickerConfiguration {
  */
 void collect_random_seed_picker_configuration(
     Platform *p, RandomSeedPickerConfiguration *game_config,
-    GameCustomization *customization);
+    UserInterfaceCustomization *customization);
 
 class RandomSeedPicker : public GameExecutor
 {
       public:
         void enter_game_loop(Platform *p,
-                             GameCustomization *customization) override
+                             UserInterfaceCustomization *customization) override
         {
                 while (true) {
                         enter_random_seed_picker_loop(p, customization);

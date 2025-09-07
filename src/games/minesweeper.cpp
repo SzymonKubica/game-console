@@ -48,7 +48,7 @@ static MinesweeperGridDimensions *
 calculate_grid_dimensions(int display_width, int display_height,
                           int display_rounded_corner_radius);
 static void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
-                             GameCustomization *customization);
+                             UserInterfaceCustomization *customization);
 
 static void erase_caret(Display *display, Point *grid_position,
                         MinesweeperGridDimensions *dimensions,
@@ -71,7 +71,7 @@ uncover_grid_cell(Display *display, Point *grid_position,
 static void flag_grid_cell(Display *display, Point *grid_position,
                            MinesweeperGridDimensions *dimensions,
                            std::vector<std::vector<MinesweeperGridCell>> *grid,
-                           GameCustomization *customization);
+                           UserInterfaceCustomization *customization);
 static void
 unflag_grid_cell(Display *display, Point *grid_position,
                  MinesweeperGridDimensions *dimensions,
@@ -80,7 +80,7 @@ unflag_grid_cell(Display *display, Point *grid_position,
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                  int bomb_number, Point *caret_position);
-bool enter_minesweeper_loop(Platform *p, GameCustomization *customization)
+bool enter_minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
@@ -408,7 +408,7 @@ void uncover_grid_cells_starting_from(
 void flag_grid_cell(Display *display, Point *grid_position,
                     MinesweeperGridDimensions *dimensions,
                     std::vector<std::vector<MinesweeperGridCell>> *grid,
-                    GameCustomization *customization)
+                    UserInterfaceCustomization *customization)
 {
 
         (*grid)[grid_position->y][grid_position->x].is_flagged = true;
@@ -457,7 +457,7 @@ void extract_game_config(MinesweeperConfiguration *game_config,
 
 bool collect_minesweeper_configuration(Platform *p,
                                        MinesweeperConfiguration *game_config,
-                                       GameCustomization *customization)
+                                       UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_minesweeper_configuration(p->persistent_storage);
@@ -573,7 +573,7 @@ calculate_grid_dimensions(int display_width, int display_height,
 }
 
 void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
-                      GameCustomization *customization)
+                      UserInterfaceCustomization *customization)
 
 {
         p->display->initialize();

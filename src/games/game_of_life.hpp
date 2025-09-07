@@ -9,7 +9,7 @@
  * function would return false.
  */
 bool enter_game_of_life_loop(Platform *platform,
-                             GameCustomization *customization);
+                             UserInterfaceCustomization *customization);
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -38,13 +38,13 @@ typedef struct GameOfLifeConfiguration {
  */
 bool collect_game_of_life_configuration(Platform *p,
                                         GameOfLifeConfiguration *game_config,
-                                        GameCustomization *customization);
+                                        UserInterfaceCustomization *customization);
 
 class GameOfLife : public GameExecutor
 {
       public:
         void enter_game_loop(Platform *p,
-                             GameCustomization *customization) override
+                             UserInterfaceCustomization *customization) override
         {
                 while (enter_game_of_life_loop(p, customization)) {
                         LOG_DEBUG("game_of_life",

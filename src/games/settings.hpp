@@ -10,7 +10,7 @@
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool enter_settings_loop(Platform *platform, GameCustomization *customization);
+bool enter_settings_loop(Platform *platform, UserInterfaceCustomization *customization);
 
 std::vector<int> get_settings_storage_offsets();
 
@@ -27,7 +27,7 @@ class Settings : public GameExecutor
 {
       public:
         void enter_game_loop(Platform *p,
-                             GameCustomization *customization) override
+                             UserInterfaceCustomization *customization) override
         {
                 while (enter_settings_loop(p, customization)) {
                         LOG_DEBUG("settings",

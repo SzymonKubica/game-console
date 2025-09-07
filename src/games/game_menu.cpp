@@ -63,13 +63,16 @@ assemble_menu_selection_configuration(GameMenuConfiguration *initial_config)
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {"Sweeper", "2048", "Life", "Settings"};
+        auto available_games = {map_game_to_str(Game::Minesweeper),
+                                map_game_to_str(Game::Clean2048),
+                                map_game_to_str(Game::GameOfLife),
+                                map_game_to_str(Game::Settings)};
         populate_string_option_values(game, available_games);
         game->currently_selected = get_config_option_string_value_index(
             game, map_game_to_str(initial_config->game));
 
         ConfigurationOption *accent_color = new ConfigurationOption();
-        accent_color->name = "Accent color";
+        accent_color->name = "Color";
         auto available_accent_colors = {
             Color::Red,        Color::Green, Color::Blue,      Color::DarkBlue,
             Color::Magenta,    Color::Cyan,  Color::Gblue,     Color::Brown,
@@ -114,7 +117,7 @@ void select_game(Platform *p)
 
         collect_game_configuration(p, &configuration);
 
-        GameCustomization customization = {.accent_color =
+        UserInterfaceCustomization customization = {.accent_color =
                                                configuration.accent_color};
 
         switch (configuration.game) {
@@ -162,17 +165,17 @@ Game map_game_from_str(const char *name)
 {
         if (strcmp(name, "2048") == 0) {
                 return Game::Clean2048;
-        } else if (strcmp(name, "Sweeper") == 0) {
+        } else if (strcmp(name, map_game_to_str(Minesweeper)) == 0) {
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::Minesweeper;
-        } else if (strcmp(name, "Life") == 0) {
+        } else if (strcmp(name, map_game_to_str(GameOfLife)) == 0) {
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::GameOfLife;
-        } else if (strcmp(name, "Main") == 0) {
+        } else if (strcmp(name, map_game_to_str(MainMenu)) == 0) {
                 return Game::MainMenu;
-        } else if (strcmp(name, "Settings") == 0) {
+        } else if (strcmp(name, map_game_to_str(Settings)) == 0) {
                 return Game::Settings;
         }
         return Game::Unknown;
@@ -182,13 +185,13 @@ const char *map_game_to_str(Game game)
 {
         switch (game) {
         case MainMenu:
-                return "Menu";
+                return "Main Menu";
         case Clean2048:
                 return "2048";
         case Minesweeper:
-                return "Sweeper";
+                return "Minesweeper";
         case GameOfLife:
-                return "Life";
+                return "Game Of Life";
         case Settings:
                 return "Settings";
         default:

@@ -22,11 +22,12 @@ void render_config_bar_centered(Display *display, int y_start,
                                 const char *option_text, const char *value_text,
                                 bool is_already_rendered,
                                 bool update_value_cell,
-                                Color cell_bg_color = DarkBlue);
+                                UserInterfaceCustomization *customization);
 void render_text_bar_centered(Display *display, int y_start,
                               int option_text_max_len, int value_text_max_len,
                               const char *text, bool is_already_rendered,
-                              Color bg_color = DarkBlue,
+                              UserInterfaceRenderingMode rendering_mode,
+                              Color background_color = Black,
                               Color text_color = White,
                               int font_width = FONT_WIDTH,
                               FontSize font_size = Size16);
@@ -41,129 +42,6 @@ int calculate_section_spacing(int display_height, int config_bar_num,
 int *calculate_config_bar_positions(int y_spacing, FontSize heading_font_size,
                                     int bar_height, int bar_gap_height,
                                     int config_bar_num);
-
-/**
- *  Draws the config menu given the old and new config values
- *  The old config given in `previous_config` is needed to determine which
- *  parts of the UI need to be updated.
- *
- *  The overall layout of the config menu looks as follows:
- *                      ____________________
- *                     |       Heading      |
- *                      --------------------
- *              ___________________________________
- *             |    Config Option 1      | Value | |
- *              -----------------------------------
- *                      ...
- *              ___________________________________
- *             |    Config Option n      | Value | |
- *              -----------------------------------
- *
- *  The function calculates positions of the heading bar and all
- *  configuration bars. The nomenclature in the function variable names is
- *  as follows:
- *  - `config_bar` refers to the entire body of the configuration option bar
- *    refer to the diagram above.
- *  - `option_text` refers to the name of the configuration option on each
- *  bar
- *    e.g. 'Config Option 1' above.
- *  - `value_cell` refers to the cell on each of the config bars that holds
- *  the actual value that is being modified by the configuration bar.
- */
-void render_config_menu_legacy(Display *display, Game2048Configuration *config,
-                               Game2048Configuration *previous_config,
-                               bool already_rendered)
-{
-        if (!already_rendered) {
-                display->initialize();
-                display->clear(Black);
-        }
-        /* Display strings */
-        const char *heading_text = "2048";
-        const char *grid_size_option_text = "Grid size:";
-        const char *target_option_text = "Game target:";
-        const char *start_text = "Start Game";
-
-        int max_game_target_text_len = 4;
-        int option_text_max_len = strlen(target_option_text);
-        int option_value_separator = 2;
-        int text_max_length = option_text_max_len + option_value_separator +
-                              max_game_target_text_len;
-
-        // We exctract the display dimensions and font sizes into shorter
-        // variable names to make the code easier to read.
-        int h = display->get_height();
-        int w = display->get_width();
-        int fw = FONT_WIDTH;
-        int fh = FONT_SIZE;
-        int left_margin = get_centering_margin(w, fw, text_max_length);
-
-        int bar_height = 2 * fh;
-        int config_bar_num = 3;
-        int bar_gap_height = fh;
-        int y_spacing = calculate_section_spacing(h, config_bar_num, bar_height,
-                                                  bar_gap_height, Size24);
-
-        int *bar_positions = calculate_config_bar_positions(
-            y_spacing, Size24, bar_height, bar_gap_height, config_bar_num);
-        int grid_size_bar_y = bar_positions[0];
-        int target_config_bar_y = bar_positions[1];
-        int start_text_bar_y = bar_positions[2];
-        free(bar_positions);
-
-        // We need to create string buffers for the values of the current config
-        // options and pass them into the rendering functions so that they can
-        // be displayed. This is done outside of the rendering function as we
-        // want to have ability to render any config value (even strings) and
-        // so it does not make sense to pass ints into the function and do
-        // `sprintf` there.
-        char grid_size_text[5];
-        sprintf(grid_size_text, "%4d", config->grid_size);
-        char target_text[5];
-        sprintf(target_text, "%4d", config->target_max_tile);
-
-        // Here we render all config/text bars for the 2048 game.
-        render_text_bar_centered(display, y_spacing, option_text_max_len,
-                                 max_game_target_text_len, heading_text,
-                                 already_rendered, Black, White,
-                                 HEADING_FONT_WIDTH, Size24);
-        render_config_bar_centered(
-            display, grid_size_bar_y, option_text_max_len,
-            max_game_target_text_len, grid_size_option_text, grid_size_text,
-            already_rendered, config->grid_size != previous_config->grid_size);
-        render_config_bar_centered(
-            display, target_config_bar_y, option_text_max_len,
-            max_game_target_text_len, target_option_text, target_text,
-            already_rendered,
-            config->target_max_tile != previous_config->target_max_tile);
-        render_text_bar_centered(display, start_text_bar_y, option_text_max_len,
-                                 max_game_target_text_len, start_text,
-                                 already_rendered);
-
-        // Before we render the indicator dot we need to calculate its
-        // positions. Note that the dot needs to appear exactly on the middle
-        // axis of the config bars, because of this we need to add the
-        // horizontal padding to the y positions of the config bars to center
-        // the dot. This is to be considered for refactoring but currently this
-        // pattern is not crystalized enough to abstract it.
-        int padding = 1; // 0.5 fw on either side
-        int bar_width = (text_max_length + padding) * fw;
-        int circle_x = left_margin + bar_width + FONT_WIDTH;
-        int h_padding = fh / 2;
-        int circle_ys[] = {grid_size_bar_y + h_padding,
-                           target_config_bar_y + h_padding,
-                           start_text_bar_y + h_padding};
-        int circle_ys_len = 3;
-        int r = 5;
-
-        // TODO: once fully migrated to the generic config menu rendering,
-        // we need to get rid of this function
-        /*
-        render_circle_selector(display, already_rendered, circle_x, circle_ys,
-                               circle_ys_len, previous_config->config_option,
-                               config->config_option, r);
-                               */
-}
 
 /**
  * Allows for rendering a centered configuration bar. A config bar consists of
@@ -207,12 +85,17 @@ void render_config_menu_legacy(Display *display, Game2048Configuration *config,
  * supposed to render everything or just redraw the value cell.
  * @param `update_value_cell` If set, the function will only redraw the value
  * cell, the entire config bar will not be rerendered
+ * @param `customzation` Controls the look and feel of the UI. If customization
+ * specifies that we should be using the Minimalistic rendering mode, this
+ * will use regular rectangles with no fill instead of the default filled
+ * rounded rectangles.
  */
 void render_config_bar_centered(Display *display, int y_start,
                                 int option_text_max_len, int value_text_max_len,
                                 const char *option_text, const char *value_text,
                                 bool is_already_rendered,
-                                bool update_value_cell, Color cell_bg_color)
+                                bool update_value_cell,
+                                UserInterfaceCustomization *customization)
 {
 
         // For all selector buttons we need to find the one that has the longest
@@ -259,31 +142,58 @@ void render_config_bar_centered(Display *display, int y_start,
         int value_cell_y = y_start - value_cell_v_padding;
         Point value_cell_start = {.x = value_cell_x, .y = value_cell_y};
 
+        Color accent_color = customization->accent_color;
+
         if (!is_already_rendered) {
-                // Draw the background for the two configuration cells.
-                display->draw_rounded_rectangle(bar_start, bar_width, fh * 2,
-                                                fh, cell_bg_color);
-                // Draw the actual name of the config bar.
-                Point grid_size_str_start = {.x = left_margin, .y = y_start};
-                display->draw_string(grid_size_str_start, (char *)option_text,
-                                     Size16, cell_bg_color, White);
+                Point bar_name_str_start = {.x = left_margin, .y = y_start};
+
+                if (customization->rendering_mode == Detailed) {
+                        // Draw the background for the two configuration cells.
+                        display->draw_rounded_rectangle(
+                            bar_start, bar_width, fh * 2, fh, accent_color);
+                        // Draw the actual name of the config bar.
+                        display->draw_string(bar_name_str_start,
+                                             (char *)option_text, Size16,
+                                             accent_color, White);
+                } else {
+                        // The only other option supported right now is the
+                        // `Minimalistic` rendering mode, we render it below
+                        display->draw_rectangle(bar_start, bar_width, fh * 2,
+                                                accent_color, 1, false);
+                        // Draw the actual name of the config bar.
+                        display->draw_string(bar_name_str_start,
+                                             (char *)option_text, Size16, Black,
+                                             White);
+                }
         }
 
         // Draw / update the value of the cell
         if (!is_already_rendered || update_value_cell) {
                 int value_cell_width = value_text_max_len * fw + 2 * h_padding;
                 int value_cell_height = fh + v_padding;
-                // We here we redraw the entire value cell (with the white
+                // Here we redraw the entire value cell (with the white
                 // background so it is quite fast) If we need to render more
                 // text we could make it more optimised to only redraw over the
                 // place where actual characters are printed.
-                display->draw_rounded_rectangle(
-                    value_cell_start, value_cell_width, value_cell_height,
-                    value_cell_height / 2, White);
-                display->draw_string(
-                    {.x = value_cell_start.x + h_padding,
-                     .y = value_cell_start.y + value_cell_v_padding},
-                    (char *)value_text, Size16, White, Black);
+                if (customization->rendering_mode == Detailed) {
+                        display->draw_rounded_rectangle(
+                            value_cell_start, value_cell_width,
+                            value_cell_height, value_cell_height / 2, White);
+                        display->draw_string(
+                            {.x = value_cell_start.x + h_padding,
+                             .y = value_cell_start.y + value_cell_v_padding},
+                            (char *)value_text, Size16, White, Black);
+                } else {
+                        // The only other option supported right now is the
+                        // `Minimalistic` rendering mode, we render it below
+                        display->draw_rectangle(
+                            value_cell_start, value_cell_width,
+                            value_cell_height, accent_color, 1, false);
+                        display->draw_string(
+                            {.x = value_cell_start.x + h_padding,
+                             .y = value_cell_start.y + value_cell_v_padding},
+                            (char *)value_text, Size16, Black, White);
+                }
         }
 }
 /**
@@ -302,8 +212,9 @@ void render_config_bar_centered(Display *display, int y_start,
 void render_text_bar_centered(Display *display, int y_start,
                               int option_text_max_len, int value_text_max_len,
                               const char *text, bool is_already_rendered,
-                              Color bg_color, Color text_color, int font_width,
-                              FontSize font_size)
+                              UserInterfaceRenderingMode rendering_mode,
+                              Color background_color, Color text_color,
+                              int font_width, FontSize font_size)
 {
 
         // We calculate the total width using the same logic as for the config
@@ -336,14 +247,27 @@ void render_text_bar_centered(Display *display, int y_start,
         int bar_width = text_len * fw + 2 * h_padding;
 
         if (!is_already_rendered) {
-                // Draw the background for the two configuration cells.
-                display->draw_rounded_rectangle(bar_start, bar_width, fh * 2,
-                                                fh, bg_color);
-                // Draw the actual text of the text bar. Note that it will be
-                // centered inside of the large bar.
-                Point grid_size_str_start = {.x = text_x, .y = y_start};
-                display->draw_string(grid_size_str_start, (char *)text,
-                                     font_size, bg_color, text_color);
+                Point text_start = {.x = text_x, .y = y_start};
+                if (rendering_mode == Detailed) {
+                        // Draw the background for the two configuration cells.
+                        display->draw_rounded_rectangle(
+                            bar_start, bar_width, fh * 2, fh, background_color);
+                        // Draw the actual text of the text bar. Note that it
+                        // will be centered inside of the large bar.
+                        display->draw_string(text_start, (char *)text,
+                                             font_size, background_color,
+                                             text_color);
+                } else {
+                        // The only other option supported right now is the
+                        // `Minimalistic` rendering mode, we render it below
+                        // Draw the background for the two configuration cells.
+                        display->draw_rectangle(bar_start, bar_width, fh * 2,
+                                                background_color, 1, false);
+                        // Draw the actual text of the text bar. Note that it
+                        // will be centered inside of the large bar.
+                        display->draw_string(text_start, (char *)text,
+                                             font_size, Black, text_color);
+                }
         }
 }
 
@@ -458,7 +382,7 @@ ConfigurationDiff *empty_diff()
  */
 void render_config_menu(Display *display, Configuration *config,
                         ConfigurationDiff *diff, bool text_update_only,
-                        Color accent_color)
+                        UserInterfaceCustomization *customization)
 {
         int max_option_name_length =
             find_max_config_option_name_text_length(config);
@@ -469,10 +393,9 @@ void render_config_menu(Display *display, Configuration *config,
 
         LOG_DEBUG(TAG, "Found max text length across all config bars: %d",
                   text_max_length);
-        int spacing =
-            (display->get_height() - config->options_len * FONT_SIZE -
-             HEADING_FONT_SIZE) /
-            3;
+        int spacing = (display->get_height() - config->options_len * FONT_SIZE -
+                       HEADING_FONT_SIZE) /
+                      3;
 
         if (!text_update_only) {
                 display->initialize();
@@ -491,9 +414,8 @@ void render_config_menu(Display *display, Configuration *config,
 
         int bar_height = 2 * fh;
         int bar_gap_height = fh;
-        int y_spacing =
-            calculate_section_spacing(h, config->options_len + 1,
-                                      bar_height, bar_gap_height, Size24);
+        int y_spacing = calculate_section_spacing(
+            h, config->options_len + 1, bar_height, bar_gap_height, Size24);
 
         /* We need to add one to the number of config bars below because of the
         confirmation button that is rendered at the bottom. */
@@ -503,7 +425,8 @@ void render_config_menu(Display *display, Configuration *config,
 
         // Render the config menu heading.
         render_text_bar_centered(display, y_spacing, text_max_length, 0,
-                                 heading_text, text_update_only, Black, White,
+                                 heading_text, text_update_only,
+                                 customization->rendering_mode, Black, White,
                                  HEADING_FONT_WIDTH, Size24);
 
         LOG_DEBUG(TAG, "Rendering %d config bars", config->options_len);
@@ -548,7 +471,8 @@ void render_config_menu(Display *display, Configuration *config,
                 render_config_bar_centered(
                     display, bar_y, max_option_name_length,
                     max_option_value_length, option_text, option_value,
-                    text_update_only, diff->modified_option_index == i, accent_color);
+                    text_update_only, diff->modified_option_index == i,
+                    customization);
                 LOG_DEBUG(TAG,
                           "Rendered config bar %d with option text '%s' and "
                           "value '%s'",
@@ -559,7 +483,7 @@ void render_config_menu(Display *display, Configuration *config,
         render_text_bar_centered(
             display, confirmation_cell_y, max_option_name_length,
             max_option_value_length, config->confirmation_cell_text,
-            text_update_only, accent_color);
+            text_update_only, customization->rendering_mode, customization->accent_color);
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -582,6 +506,6 @@ void render_config_menu(Display *display, Configuration *config,
         render_circle_selector(display, text_update_only, circle_x, circle_ys,
                                circle_ys_len, diff->previously_edited_option,
                                diff->currently_edited_option, r, Black,
-                               accent_color);
+                               customization->accent_color);
         free(bar_positions);
 }

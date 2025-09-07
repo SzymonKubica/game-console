@@ -41,9 +41,9 @@ handle_game_finished(Display *display,
                      std::vector<DirectionalController *> *controllers,
                      GameState *state);
 static void draw_game_canvas(Display *display, GameState *state,
-                             GameCustomization *customization);
+                             UserInterfaceCustomization *customization);
 
-bool enter_2048_loop(Platform *p, GameCustomization *customization)
+bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
 {
         Game2048Configuration config;
         if (!collect_2048_configuration(p, &config, customization))
@@ -184,7 +184,7 @@ void extract_game_config(Game2048Configuration *game_config,
 }
 
 bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
-                                GameCustomization *customization)
+                                UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_2048_configuration(p->persistent_storage);
@@ -477,7 +477,7 @@ static void copy_grid(int **source, int **destination, int size)
  */
 static void draw_game_grid(Display *display, int grid_size);
 void draw_game_canvas(Display *display, GameState *state,
-                      GameCustomization *customization)
+                      UserInterfaceCustomization *customization)
 {
         display->initialize();
         display->clear(Black);

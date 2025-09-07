@@ -39,7 +39,7 @@ class GameState
  * to be handled by the main game loop.
  */
 bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
-                                GameCustomization *customization);
+                                UserInterfaceCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
@@ -56,13 +56,13 @@ void take_turn(GameState *gs, int direction);
  * configuration screen it means that they want to exit, in which case this
  * function would return false.
  */
-bool enter_2048_loop(Platform *platform, GameCustomization *customization);
+bool enter_2048_loop(Platform *platform, UserInterfaceCustomization *customization);
 
 class Clean2048 : public GameExecutor
 {
       public:
         void enter_game_loop(Platform *p,
-                             GameCustomization *customization) override
+                             UserInterfaceCustomization *customization) override
         {
                 while (enter_2048_loop(p, customization)) {
                         LOG_INFO("2048", "Finished the main 2048 game loop, "
