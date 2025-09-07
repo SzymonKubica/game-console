@@ -246,12 +246,12 @@ bool enter_minesweeper_loop(Platform *p,
 
                 pause_until_any_directional_input(p->directional_controllers,
                                                   p->delay_provider);
-                draw_game_over(p->display);
+                draw_game_over(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         } else {
                 pause_until_any_directional_input(p->directional_controllers,
                                                   p->delay_provider);
-                draw_game_won(p->display);
+                draw_game_won(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
         return true;
@@ -580,7 +580,9 @@ void draw_game_canvas(Platform *p, MinesweeperGridDimensions *dimensions,
 {
         p->display->initialize();
         p->display->clear(Black);
-        p->display->draw_rounded_border(customization->accent_color);
+
+        if (customization->rendering_mode == Detailed)
+                p->display->draw_rounded_border(customization->accent_color);
 
         int x_margin = dimensions->left_horizontal_margin;
         int y_margin = dimensions->top_vertical_margin;

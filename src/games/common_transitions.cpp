@@ -31,9 +31,14 @@ void display_input_clafification(Display *display)
         }
 }
 
-void draw_game_over(Display *display)
+void draw_game_over(Display *display, UserInterfaceCustomization *customization)
 {
-        display->draw_rounded_border(Red);
+        if (customization->rendering_mode == Detailed) {
+                display->draw_rounded_border(Red);
+        } else {
+                // In the minimialistic UI mode we only clear the screen.
+                display->clear(Black);
+        }
 
         const char *msg = "Game Over";
 
@@ -48,9 +53,14 @@ void draw_game_over(Display *display)
         display_input_clafification(display);
 }
 
-void draw_game_won(Display *display)
+void draw_game_won(Display *display, UserInterfaceCustomization *customization)
 {
-        display->draw_rounded_border(Green);
+        if (customization->rendering_mode == Detailed) {
+                display->draw_rounded_border(Green);
+        } else {
+                // In the minimialistic UI mode we only clear the screen.
+                display->clear(Black);
+        }
 
         const char *msg = "You Won!";
 

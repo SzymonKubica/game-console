@@ -71,10 +71,10 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
         }
 
         if (is_game_over(state)) {
-                draw_game_over(p->display);
+                draw_game_over(p->display, customization);
         }
         if (is_game_finished(state)) {
-                draw_game_won(p->display);
+                draw_game_won(p->display, customization);
         }
 
         pause_until_any_directional_input(p->directional_controllers,
@@ -481,7 +481,10 @@ void draw_game_canvas(Display *display, GameState *state,
 {
         display->initialize();
         display->clear(Black);
-        display->draw_rounded_border(customization->accent_color);
+
+        if (customization->rendering_mode == Detailed)
+                display->draw_rounded_border(customization->accent_color);
+
         draw_game_grid(display, state->grid_size);
 }
 
