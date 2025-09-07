@@ -1,5 +1,5 @@
 #include "../common/platform/interface/platform.hpp"
-#include "game_executor.hpp"
+#include "../common/user_interface.hpp"
 
 typedef enum Game
     : int { Unknown = 0,
@@ -14,6 +14,7 @@ typedef enum Game
 typedef struct GameMenuConfiguration {
         Game game;
         Color accent_color;
+        UserInterfaceRenderingMode rendering_mode;
 } GameMenuConfiguration;
 
 extern Game map_game_from_str(const char *name);

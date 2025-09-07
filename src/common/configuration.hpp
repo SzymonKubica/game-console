@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/interface/platform.hpp"
+#include "user_interface_customization.hpp"
 
 typedef enum ConfigurationOptionType {
         INT,
@@ -145,7 +146,7 @@ int find_max_config_option_value_text_length(Configuration *config);
  * requested to go back, it returns false.
  */
 bool collect_configuration(Platform *p, Configuration *config,
-                           Color accent_color = DarkBlue,
+                           UserInterfaceCustomization *customization,
                            bool allow_exit = true);
 
 void populate_int_option_values(ConfigurationOption *value,

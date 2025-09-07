@@ -80,7 +80,8 @@ unflag_grid_cell(Display *display, Point *grid_position,
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                  int bomb_number, Point *caret_position);
-bool enter_minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
+bool enter_minesweeper_loop(Platform *p,
+                            UserInterfaceCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
@@ -455,13 +456,14 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-bool collect_minesweeper_configuration(Platform *p,
-                                       MinesweeperConfiguration *game_config,
-                                       UserInterfaceCustomization *customization)
+bool collect_minesweeper_configuration(
+    Platform *p, MinesweeperConfiguration *game_config,
+    UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_minesweeper_configuration(p->persistent_storage);
-        if (!collect_configuration(p, config, customization->accent_color))
+
+        if (!collect_configuration(p, config, customization))
                 return false;
 
         extract_game_config(game_config, config);

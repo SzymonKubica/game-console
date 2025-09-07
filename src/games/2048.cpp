@@ -188,7 +188,7 @@ bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
 {
         Configuration *config =
             assemble_2048_configuration(p->persistent_storage);
-        if (!collect_configuration(p, config, customization->accent_color))
+        if (!collect_configuration(p, config, customization))
                 return false;
 
         extract_game_config(game_config, config);

@@ -6,7 +6,7 @@
 #include "maths_utils.hpp"
 #include "constants.hpp"
 #include "logging.hpp"
-#include "user_interface.h"
+#include "user_interface.hpp"
 #include "platform/interface/controller.hpp"
 #include "platform/interface/color.hpp"
 
@@ -215,7 +215,8 @@ int get_config_option_string_value_index(ConfigurationOption *option,
 }
 
 bool collect_configuration(Platform *p, Configuration *config,
-                           UserInterfaceCustomization *customization, bool allow_exit)
+                           UserInterfaceCustomization *customization,
+                           bool allow_exit)
 {
 
         ConfigurationDiff *diff = empty_diff();
@@ -244,7 +245,7 @@ bool collect_configuration(Platform *p, Configuration *config,
                                                                        diff);
                                         render_config_menu(p->display, config,
                                                            diff, true,
-                                                           accent_color);
+                                                           customization);
                                         free(diff);
                                         p->delay_provider->delay_ms(
                                             MOVE_REGISTERED_DELAY);
@@ -290,7 +291,7 @@ bool collect_configuration(Platform *p, Configuration *config,
                         }
 
                         render_config_menu(p->display, config, diff, true,
-                                           accent_color);
+                                           customization);
 
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }

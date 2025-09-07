@@ -11,12 +11,12 @@
 Configuration *assemble_settings_menu_configuration();
 void extract_menu_setting(Game *selected_game, Configuration *config);
 
-bool enter_settings_loop(Platform *platform, UserInterfaceCustomization *customization)
+bool enter_settings_loop(Platform *platform,
+                         UserInterfaceCustomization *customization)
 {
         Configuration *config = assemble_settings_menu_configuration();
 
-        if (!collect_configuration(platform, config,
-                                   customization->accent_color))
+        if (!collect_configuration(platform, config, customization))
                 return false;
 
         Game selected_game;
@@ -81,7 +81,7 @@ Configuration *assemble_settings_menu_configuration()
         config->name = "Set Defaults";
 
         ConfigurationOption *menu = new ConfigurationOption();
-        menu->name = "Configure";
+        menu->name = "Modify";
         auto available_games = {map_game_to_str(Game::MainMenu),
                                 map_game_to_str(Game::Minesweeper),
                                 map_game_to_str(Game::Clean2048),

@@ -1,9 +1,5 @@
-#ifndef USER_INTERFACE_H
-#define USER_INTERFACE_H
-
-#include <stdlib.h>
-#include "configuration.hpp"
-#include "platform/interface/display.hpp"
+#pragma once
+#include "platform/interface/color.hpp"
 
 enum UserInterfaceRenderingMode {
         /**
@@ -26,6 +22,9 @@ enum UserInterfaceRenderingMode {
         Detailed = 1,
 };
 
+const char *rendering_mode_to_str(UserInterfaceRenderingMode mode);
+UserInterfaceRenderingMode rendering_mode_from_str(const char *mode_str);
+
 typedef struct UserInterfaceCustomization {
         /**
          * Accent color of the UI elements. This applies to the menu selectors,
@@ -34,11 +33,3 @@ typedef struct UserInterfaceCustomization {
         Color accent_color;
         UserInterfaceRenderingMode rendering_mode;
 } UserInterfaceCustomization;
-
-void setup_display();
-
-void render_config_menu(Display *display, Configuration *config,
-                                ConfigurationDiff *diff, bool updateDetected, Color accent_color = DarkBlue);
-
-ConfigurationDiff *empty_diff();
-#endif

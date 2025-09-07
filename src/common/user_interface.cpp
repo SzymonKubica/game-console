@@ -1,4 +1,4 @@
-#include "user_interface.h"
+#include "user_interface.hpp"
 #include "configuration.hpp"
 #include "platform/interface/color.hpp"
 #include "platform/interface/display.hpp"
@@ -483,7 +483,8 @@ void render_config_menu(Display *display, Configuration *config,
         render_text_bar_centered(
             display, confirmation_cell_y, max_option_name_length,
             max_option_value_length, config->confirmation_cell_text,
-            text_update_only, customization->rendering_mode, customization->accent_color);
+            text_update_only, customization->rendering_mode,
+            customization->accent_color);
 
         // Before we render the indicator dot we need to calculate its
         // positions. Note that the dot needs to appear exactly on the middle
@@ -509,3 +510,6 @@ void render_config_menu(Display *display, Configuration *config,
                                customization->accent_color);
         free(bar_positions);
 }
+
+
+

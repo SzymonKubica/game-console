@@ -352,7 +352,7 @@ bool collect_game_of_life_configuration(Platform *p,
 {
         Configuration *config =
             assemble_game_of_life_configuration(p->persistent_storage);
-        if (!collect_configuration(p, config, customization->accent_color))
+        if (!collect_configuration(p, config, customization))
                 return false;
 
         extract_game_config(game_config, config);

@@ -78,16 +78,27 @@ assemble_menu_selection_configuration(GameMenuConfiguration *initial_config)
             Color::Magenta,    Color::Cyan,  Color::Gblue,     Color::Brown,
             Color::BRRed,      Color::Gray,  Color::LightBlue, Color::GrayBlue,
             Color::LightGreen, Color::LGray, Color::LGrayBlue, Color::LBBlue};
-
         populate_color_option_values(accent_color, available_accent_colors);
         accent_color->currently_selected = get_config_option_value_index(
             accent_color, initial_config->accent_color);
 
-        int options_num = 2;
+        ConfigurationOption *rendering_mode = new ConfigurationOption();
+        rendering_mode->name = "UI";
+        auto available_modes = {
+            rendering_mode_to_str(UserInterfaceRenderingMode::Minimalistic),
+            rendering_mode_to_str(UserInterfaceRenderingMode::Detailed)};
+
+        populate_string_option_values(rendering_mode, available_modes);
+        rendering_mode->currently_selected = get_config_option_value_index(
+            rendering_mode,
+            rendering_mode_to_str(initial_config->rendering_mode));
+
+        int options_num = 3;
         config->options_len = options_num;
         config->options = new ConfigurationOption *[options_num];
         config->options[0] = game;
         config->options[1] = accent_color;
+        config->options[2] = rendering_mode;
         config->curr_selected_option = 0;
         config->confirmation_cell_text = "Next";
         return config;
@@ -102,13 +113,19 @@ void extract_game_config(GameMenuConfiguration *menu_configuration,
         menu_configuration->game = map_game_from_str(static_cast<const char **>(
             game_option.available_values)[curr_option_idx]);
 
-        // Game target is the second config option above.
         ConfigurationOption accent_color = *config->options[1];
 
         int curr_accent_color_idx = accent_color.currently_selected;
         Color color = static_cast<Color *>(
             accent_color.available_values)[curr_accent_color_idx];
         menu_configuration->accent_color = color;
+
+        ConfigurationOption rendering_mode = *config->options[2];
+
+        int curr_mode_idx = rendering_mode.currently_selected;
+        const char *mode_str = static_cast<const char **>(
+            rendering_mode.available_values)[curr_mode_idx];
+        menu_configuration->rendering_mode = rendering_mode_from_str(mode_str);
 }
 
 void select_game(Platform *p)
@@ -117,8 +134,10 @@ void select_game(Platform *p)
 
         collect_game_configuration(p, &configuration);
 
-        UserInterfaceCustomization customization = {.accent_color =
-                                               configuration.accent_color};
+        UserInterfaceCustomization customization = {
+            .accent_color = configuration.accent_color,
+            .rendering_mode = configuration.rendering_mode,
+        };
 
         switch (configuration.game) {
         case Unknown:
@@ -151,9 +170,13 @@ bool collect_game_configuration(Platform *p,
         Configuration *config =
             assemble_menu_selection_configuration(initial_config);
 
-        if (!collect_configuration(p, config, initial_config->accent_color,
-                                   false))
+        UserInterfaceCustomization customization = {
+            .accent_color = initial_config->accent_color,
+            .rendering_mode = initial_config->rendering_mode};
+
+        if (!collect_configuration(p, config, &customization, false))
                 return false;
+
         extract_game_config(configuration, config);
 
         free_configuration(config);
