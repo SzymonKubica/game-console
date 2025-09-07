@@ -208,16 +208,6 @@ void SfmlDisplay::draw_string(Point start, char *string_buffer,
         const sf::Font font = get_emulator_font();
         sf::Text text(font, string_buffer, font_size);
 
-        // For letters with tails e.g. 'j' or 'g' we need to make the rectangle
-        // slightly larger than font size.
-        int letter_tail_length = 4;
-        int max_font_height = font_size + letter_tail_length;
-        // We need to draw the background of the text to replicate the behaiour
-        // of the LCD display. That one draws a rectangle of background color
-        // that is sufficiently large to store all drawn text and then draws
-        // the text on top of it in the specified color.
-        draw_rectangle(start, strlen(string_buffer) * FONT_WIDTH,
-                       max_font_height, bg_color, 0, true);
         text.setFillColor(map_to_sf_color(fg_color));
         text.setPosition({(float)start.x, (float)start.y});
         texture->draw(text);

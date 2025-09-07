@@ -186,6 +186,15 @@ void render_config_bar_centered(Display *display, int y_start,
                 } else {
                         // The only other option supported right now is the
                         // `Minimalistic` rendering mode, we render it below
+#ifdef EMULATOR
+                        // We need to clear the background in black so that it
+                        // is the previous text is erased. Note that this is
+                        // only required on the emulator as the actual LCD
+                        // display always clears the background of the text.
+                        display->draw_rectangle(
+                            value_cell_start, value_cell_width,
+                            value_cell_height, Black, 0, true);
+#endif
                         display->draw_rectangle(
                             value_cell_start, value_cell_width,
                             value_cell_height, accent_color, 1, false);
@@ -258,11 +267,23 @@ void render_text_bar_centered(Display *display, int y_start,
                                              font_size, background_color,
                                              text_color);
                 } else {
+
+#ifdef EMULATOR
+                        // We need to clear the background in black so that it
+                        // is the previous text is erased. Note that this is
+                        // only required on the emulator as the actual LCD
+                        // display always clears the background of the text.
+                        display->clear_region(
+                            bar_start,
+                            {bar_start.x + bar_width, bar_start.y + fh * 2},
+                            Black);
+#endif
                         // The only other option supported right now is the
                         // `Minimalistic` rendering mode, we render it below
                         // Draw the background for the two configuration cells.
                         display->draw_rectangle(bar_start, bar_width, fh * 2,
                                                 background_color, 1, false);
+
                         // Draw the actual text of the text bar. Note that it
                         // will be centered inside of the large bar.
                         display->draw_string(text_start, (char *)text,
@@ -510,6 +531,3 @@ void render_config_menu(Display *display, Configuration *config,
                                customization->accent_color);
         free(bar_positions);
 }
-
-
-
