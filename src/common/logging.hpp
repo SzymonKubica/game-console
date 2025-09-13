@@ -13,10 +13,10 @@ enum {
 };
 
 #ifndef LOG_BUILD_LEVEL
-#ifdef NDEBUG
-#define LOG_BUILD_LEVEL LVL_LOG
-#else
+#ifdef DEBUG_BUILD
 #define LOG_BUILD_LEVEL LOG_LVL_DEBUG
+#else
+#define LOG_BUILD_LEVEL LOG_LVL_INFO
 #endif
 #endif
 

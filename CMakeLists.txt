@@ -23,6 +23,10 @@ file(GLOB GAME_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/games/*.cpp)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_BUILD)
+endif()
+
 add_executable(game-console-emulator
   ${SFML_PLATFORM_SOURCES}
   ${PLATFORM_DEFS}

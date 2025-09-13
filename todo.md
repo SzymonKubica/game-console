@@ -24,9 +24,7 @@
   each square separately.
 
 # TODO
-- [_] ensure that debug logs are only compiled in in the debug build mode.
 - [_] design proper consistent UI navigation workflow
-
 - [_] add a help screen
 - [_] design a proper minimalistic UI for 2048.
 - [_] add ability to scroll through the config menu for games that require more
@@ -47,6 +45,7 @@
 # In Progress
 
 # Done
+- [x] ensure that debug logs are only compiled in in the debug build mode.
 - [x] add smart white/black text switching based on the background.
 - [x] add a 'fast-rendering' mode that will skip rendering of the costly UI elements
       (e.g. filled rounded rectangles can be replaced with their borders only)
