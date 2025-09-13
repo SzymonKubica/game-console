@@ -21,14 +21,14 @@ bool enter_minesweeper_loop(Platform *platform,
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_minesweeper_configuration(Platform *p,
+bool collect_minesweeper_config(Platform *p,
                                        MinesweeperConfiguration *game_config,
                                        UserInterfaceCustomization *customization);
 
 class Minesweeper : public GameExecutor
 {
       public:
-        void enter_game_loop(Platform *p,
+        void game_loop(Platform *p,
                              UserInterfaceCustomization *customization) override
         {
                 while (enter_minesweeper_loop(p, customization)) {

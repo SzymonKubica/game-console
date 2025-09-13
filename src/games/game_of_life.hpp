@@ -36,14 +36,14 @@ typedef struct GameOfLifeConfiguration {
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_game_of_life_configuration(Platform *p,
+bool collect_game_of_life_config(Platform *p,
                                         GameOfLifeConfiguration *game_config,
                                         UserInterfaceCustomization *customization);
 
 class GameOfLife : public GameExecutor
 {
       public:
-        void enter_game_loop(Platform *p,
+        void game_loop(Platform *p,
                              UserInterfaceCustomization *customization) override
         {
                 while (enter_game_of_life_loop(p, customization)) {

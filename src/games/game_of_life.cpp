@@ -173,7 +173,7 @@ bool enter_game_of_life_loop(Platform *p, UserInterfaceCustomization *customizat
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
         GameOfLifeConfiguration config;
 
-        if (!collect_game_of_life_configuration(p, &config, customization))
+        if (!collect_game_of_life_config(p, &config, customization))
                 return false;
 
         GameOfLifeGridDimensions *gd = calculate_grid_dimensions(
@@ -346,7 +346,7 @@ bool enter_game_of_life_loop(Platform *p, UserInterfaceCustomization *customizat
         return true;
 }
 
-bool collect_game_of_life_configuration(Platform *p,
+bool collect_game_of_life_config(Platform *p,
                                         GameOfLifeConfiguration *game_config,
                                         UserInterfaceCustomization *customization)
 {

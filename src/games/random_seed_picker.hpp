@@ -29,7 +29,7 @@ void collect_random_seed_picker_configuration(
 class RandomSeedPicker : public GameExecutor
 {
       public:
-        void enter_game_loop(Platform *p,
+        void game_loop(Platform *p,
                              UserInterfaceCustomization *customization) override
         {
                 while (true) {

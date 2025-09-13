@@ -46,7 +46,7 @@ static void draw_game_canvas(Display *display, GameState *state,
 bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
 {
         Game2048Configuration config;
-        if (!collect_2048_configuration(p, &config, customization))
+        if (!collect_2048_config(p, &config, customization))
                 return false;
 
         GameState *state =
@@ -183,7 +183,7 @@ void extract_game_config(Game2048Configuration *game_config,
             static_cast<int *>(game_target.available_values)[curr_target_idx];
 }
 
-bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
+bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
                                 UserInterfaceCustomization *customization)
 {
         Configuration *config =

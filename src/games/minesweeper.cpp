@@ -86,7 +86,7 @@ bool enter_minesweeper_loop(Platform *p,
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
 
-        if (!collect_minesweeper_configuration(p, &config, customization))
+        if (!collect_minesweeper_config(p, &config, customization))
                 return false;
 
         MinesweeperGridDimensions *gd = calculate_grid_dimensions(
@@ -456,7 +456,7 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-bool collect_minesweeper_configuration(
+bool collect_minesweeper_config(
     Platform *p, MinesweeperConfiguration *game_config,
     UserInterfaceCustomization *customization)
 {

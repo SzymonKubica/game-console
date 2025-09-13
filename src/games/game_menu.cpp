@@ -132,7 +132,7 @@ void select_game(Platform *p)
 {
         GameMenuConfiguration configuration;
 
-        collect_game_configuration(p, &configuration);
+        collect_game_menu_config(p, &configuration);
 
         UserInterfaceCustomization customization = {
             .accent_color = configuration.accent_color,
@@ -142,16 +142,16 @@ void select_game(Platform *p)
         switch (configuration.game) {
         case Unknown:
         case Clean2048:
-                (new class Clean2048())->enter_game_loop(p, &customization);
+                (new class Clean2048())->game_loop(p, &customization);
                 break;
         case Minesweeper:
-                (new class Minesweeper())->enter_game_loop(p, &customization);
+                (new class Minesweeper())->game_loop(p, &customization);
                 break;
         case GameOfLife:
-                (new class GameOfLife())->enter_game_loop(p, &customization);
+                (new class GameOfLife())->game_loop(p, &customization);
                 break;
         case Settings:
-                (new class Settings())->enter_game_loop(p, &customization);
+                (new class Settings())->game_loop(p, &customization);
                 break;
         default:
                 LOG_DEBUG(TAG, "Selected game: %d. Game not implemented yet.",
@@ -160,7 +160,7 @@ void select_game(Platform *p)
         }
 }
 
-bool collect_game_configuration(Platform *p,
+bool collect_game_menu_config(Platform *p,
                                 GameMenuConfiguration *configuration)
 {
 

@@ -38,7 +38,7 @@ class GameState
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_2048_configuration(Platform *p, Game2048Configuration *game_config,
+bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
                                 UserInterfaceCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
@@ -61,7 +61,7 @@ bool enter_2048_loop(Platform *platform, UserInterfaceCustomization *customizati
 class Clean2048 : public GameExecutor
 {
       public:
-        void enter_game_loop(Platform *p,
+        void game_loop(Platform *p,
                              UserInterfaceCustomization *customization) override
         {
                 while (enter_2048_loop(p, customization)) {

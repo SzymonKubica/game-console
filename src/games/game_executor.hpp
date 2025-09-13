@@ -1,13 +1,11 @@
 #pragma once
 #include "../common/platform/interface/platform.hpp"
-#include "../common/user_interface.hpp"
-
-
+#include "../common/user_interface_customization.hpp"
 
 class GameExecutor
 {
       public:
         virtual void
-        enter_game_loop(Platform *p,
+        game_loop(Platform *p,
                         UserInterfaceCustomization *customization) = 0;
 };

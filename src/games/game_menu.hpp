@@ -29,5 +29,5 @@ void select_game(Platform *p);
  * exit by pressing the blue button, it returns false and this needs to be
  * handled by the main game loop.
  */
-bool collect_game_configuration(Platform *p,
+bool collect_game_menu_config(Platform *p,
                                 GameMenuConfiguration *configuration);

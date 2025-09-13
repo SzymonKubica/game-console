@@ -264,9 +264,10 @@ void render_text_bar_centered(Display *display, int y_start,
                             bar_start, bar_width, fh * 2, fh, background_color);
                         // Draw the actual text of the text bar. Note that it
                         // will be centered inside of the large bar.
-                        display->draw_string(text_start, (char *)text,
-                                             font_size, background_color,
-                                             get_good_contrast_text_color(background_color));
+                        display->draw_string(
+                            text_start, (char *)text, font_size,
+                            background_color,
+                            get_good_contrast_text_color(background_color));
                 } else {
 
 #ifdef EMULATOR

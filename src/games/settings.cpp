@@ -11,55 +11,55 @@
 Configuration *assemble_settings_menu_configuration();
 void extract_menu_setting(Game *selected_game, Configuration *config);
 
-bool enter_settings_loop(Platform *platform,
-                         UserInterfaceCustomization *customization)
+void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
 {
-        Configuration *config = assemble_settings_menu_configuration();
+        // We loop until the user presses the blue button on any of the
+        // configuration screens.
+        while (true) {
+                Configuration *config = assemble_settings_menu_configuration();
+                if (!collect_configuration(p, config, custom))
+                        return;
 
-        if (!collect_configuration(platform, config, customization))
-                return false;
+                Game selected_game;
+                extract_menu_setting(&selected_game, config);
 
-        Game selected_game;
-        extract_menu_setting(&selected_game, config);
+                std::vector<int> offsets = get_settings_storage_offsets();
+                int offset = offsets[selected_game];
+                LOG_DEBUG(
+                    TAG,
+                    "Computed configuration storage offset for game %s: %d",
+                    map_game_to_str(selected_game), offset)
 
-        std::vector<int> offsets = get_settings_storage_offsets();
-
-        int offset = offsets[selected_game];
-        LOG_DEBUG(TAG, "Computed configuration storage offset for game %s: %d",
-                  map_game_to_str(selected_game), offset)
-
-        switch (selected_game) {
-        case MainMenu: {
-                GameMenuConfiguration config;
-                if (!collect_game_configuration(platform, &config))
-                        return false;
-                platform->persistent_storage->put(offset, config);
-        } break;
-        case Clean2048: {
-                Game2048Configuration config;
-                if (!collect_2048_configuration(platform, &config,
-                                                customization))
-                        return false;
-                platform->persistent_storage->put(offset, config);
-        } break;
-        case Minesweeper: {
-                MinesweeperConfiguration config;
-                if (!collect_minesweeper_configuration(platform, &config,
-                                                       customization))
-                        return false;
-                platform->persistent_storage->put(offset, config);
-        } break;
-        case GameOfLife: {
-                GameOfLifeConfiguration config;
-                if (!collect_game_of_life_configuration(platform, &config,
-                                                        customization))
-                        return false;
-                platform->persistent_storage->put(offset, config);
-        } break;
-        default:
-                break;
+                switch (selected_game) {
+                case MainMenu: {
+                        GameMenuConfiguration config;
+                        if (!collect_game_menu_config(p, &config))
+                                return;
+                        p->persistent_storage->put(offset, config);
+                } break;
+                case Clean2048: {
+                        Game2048Configuration config;
+                        if (!collect_2048_config(p, &config, custom))
+                                return;
+                        p->persistent_storage->put(offset, config);
+                } break;
+                case Minesweeper: {
+                        MinesweeperConfiguration config;
+                        if (!collect_minesweeper_config(p, &config, custom))
+                                return;
+                        p->persistent_storage->put(offset, config);
+                } break;
+                case GameOfLife: {
+                        GameOfLifeConfiguration config;
+                        if (!collect_game_of_life_config(p, &config, custom))
+                                return;
+                        p->persistent_storage->put(offset, config);
+                } break;
+                default:
+                        return;
+                }
+                LOG_DEBUG(TAG, "Re-entering the settings collecting loop.")
         }
-        return true;
 }
 
 std::vector<int> get_settings_storage_offsets()
