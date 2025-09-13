@@ -28,7 +28,7 @@ void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
                 LOG_DEBUG(
                     TAG,
                     "Computed configuration storage offset for game %s: %d",
-                    map_game_to_str(selected_game), offset)
+                    game_to_string(selected_game), offset)
 
                 switch (selected_game) {
                 case MainMenu: {
@@ -82,10 +82,10 @@ Configuration *assemble_settings_menu_configuration()
 
         ConfigurationOption *menu = new ConfigurationOption();
         menu->name = "Modify";
-        auto available_games = {map_game_to_str(Game::MainMenu),
-                                map_game_to_str(Game::Minesweeper),
-                                map_game_to_str(Game::Clean2048),
-                                map_game_to_str(Game::GameOfLife)};
+        auto available_games = {game_to_string(Game::MainMenu),
+                                game_to_string(Game::Minesweeper),
+                                game_to_string(Game::Clean2048),
+                                game_to_string(Game::GameOfLife)};
         populate_string_option_values(menu, available_games);
         menu->currently_selected = 0;
 
@@ -103,6 +103,6 @@ void extract_menu_setting(Game *selected_menu, Configuration *config)
         ConfigurationOption menu_option = *config->options[0];
 
         int curr_idx = menu_option.currently_selected;
-        *selected_menu = map_game_from_str(
+        *selected_menu = game_from_string(
             static_cast<const char **>(menu_option.available_values)[curr_idx]);
 }

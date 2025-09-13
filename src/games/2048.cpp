@@ -43,6 +43,33 @@ handle_game_finished(Display *display,
 static void draw_game_canvas(Display *display, GameState *state,
                              UserInterfaceCustomization *customization);
 
+/**
+ * Returns true if the user wants to play again. If they press blue on the
+ * configuration screen it means that they want to exit, in which case this
+ * function would return false.
+ */
+bool enter_2048_loop(Platform *platform,
+                     UserInterfaceCustomization *customization);
+
+void Clean2048::game_loop(Platform *p,
+                          UserInterfaceCustomization *customization)
+{
+        while (enter_2048_loop(p, customization)) {
+                LOG_INFO("2048", "Finished the main 2048 game loop, "
+                                 "pausing until input from the user.");
+                Direction dir;
+                Action act;
+                pause_until_input(p->directional_controllers,
+                                  p->action_controllers, &dir, &act,
+                                  p->delay_provider);
+
+                if (act == Action::BLUE) {
+                        LOG_DEBUG("2048", "Exiting 2048 game loop.")
+                        break;
+                }
+        }
+}
+
 bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
 {
         Game2048Configuration config;
@@ -71,10 +98,10 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
         }
 
         if (is_game_over(state)) {
-                draw_game_over(p->display, customization);
+                display_game_over(p->display, customization);
         }
         if (is_game_finished(state)) {
-                draw_game_won(p->display, customization);
+                display_game_won(p->display, customization);
         }
 
         pause_until_any_directional_input(p->directional_controllers,
@@ -184,7 +211,7 @@ void extract_game_config(Game2048Configuration *game_config,
 }
 
 bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
-                                UserInterfaceCustomization *customization)
+                         UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_2048_configuration(p->persistent_storage);

@@ -51,34 +51,12 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-/**
- * Returns true if the user wants to play again. If they press blue on the
- * configuration screen it means that they want to exit, in which case this
- * function would return false.
- */
-bool enter_2048_loop(Platform *platform, UserInterfaceCustomization *customization);
 
 class Clean2048 : public GameExecutor
 {
       public:
-        void game_loop(Platform *p,
-                             UserInterfaceCustomization *customization) override
-        {
-                while (enter_2048_loop(p, customization)) {
-                        LOG_INFO("2048", "Finished the main 2048 game loop, "
-                                         "pausing until input from the user.");
-                        Direction dir;
-                        Action act;
-                        pause_until_input(p->directional_controllers,
-                                          p->action_controllers, &dir, &act,
-                                          p->delay_provider);
-
-                        if (act == Action::BLUE) {
-                                LOG_DEBUG("2048", "Exiting 2048 game loop.")
-                                break;
-                        }
-                }
-        }
+        virtual void game_loop(Platform *p,
+                             UserInterfaceCustomization *customization) override;
 
         Clean2048() {}
 };

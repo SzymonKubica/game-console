@@ -80,8 +80,35 @@ unflag_grid_cell(Display *display, Point *grid_position,
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
                  int bomb_number, Point *caret_position);
-bool enter_minesweeper_loop(Platform *p,
+
+/**
+ * Returns true if the user wants to play again. If they press blue on the
+ * configuration screen it means that they want to exit, in which case this
+ * function returns false.
+ */
+bool minesweeper_loop(Platform *platform,
+                      UserInterfaceCustomization *customization);
+
+void Minesweeper::game_loop(Platform *p,
                             UserInterfaceCustomization *customization)
+{
+
+        while (minesweeper_loop(p, customization)) {
+                LOG_DEBUG(TAG,
+                          "Minesweeper game loop finished. Pausing for input "
+                          "to allow the user to view the finished grid.")
+                Direction dir;
+                Action act;
+                pause_until_input(p->directional_controllers,
+                                  p->action_controllers, &dir, &act,
+                                  p->delay_provider);
+
+                if (act == Action::BLUE) {
+                        break;
+                }
+        }
+}
+bool minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
@@ -246,12 +273,12 @@ bool enter_minesweeper_loop(Platform *p,
 
                 pause_until_any_directional_input(p->directional_controllers,
                                                   p->delay_provider);
-                draw_game_over(p->display, customization);
+                display_game_over(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         } else {
                 pause_until_any_directional_input(p->directional_controllers,
                                                   p->delay_provider);
-                draw_game_won(p->display, customization);
+                display_game_won(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
         return true;
@@ -456,9 +483,9 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-bool collect_minesweeper_config(
-    Platform *p, MinesweeperConfiguration *game_config,
-    UserInterfaceCustomization *customization)
+bool collect_minesweeper_config(Platform *p,
+                                MinesweeperConfiguration *game_config,
+                                UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_minesweeper_configuration(p->persistent_storage);

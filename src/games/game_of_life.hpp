@@ -1,15 +1,6 @@
 #pragma once
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
-#include "../common/logging.hpp"
-
-/**
- * Returns true if the user wants to play again. If they press blue on the
- * configuration screen it means that they want to exit, in which case this
- * function would return false.
- */
-bool enter_game_of_life_loop(Platform *platform,
-                             UserInterfaceCustomization *customization);
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -37,20 +28,15 @@ typedef struct GameOfLifeConfiguration {
  * to be handled by the main game loop.
  */
 bool collect_game_of_life_config(Platform *p,
-                                        GameOfLifeConfiguration *game_config,
-                                        UserInterfaceCustomization *customization);
+                                 GameOfLifeConfiguration *game_config,
+                                 UserInterfaceCustomization *customization);
 
 class GameOfLife : public GameExecutor
 {
       public:
-        void game_loop(Platform *p,
-                             UserInterfaceCustomization *customization) override
-        {
-                while (enter_game_of_life_loop(p, customization)) {
-                        LOG_DEBUG("game_of_life",
-                                  "Re-entering game of life loop.")
-                }
-        }
+        virtual void
+        game_loop(Platform *p,
+                  UserInterfaceCustomization *customization) override;
 
         GameOfLife() {}
 };

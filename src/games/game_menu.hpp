@@ -17,9 +17,9 @@ typedef struct GameMenuConfiguration {
         UserInterfaceRenderingMode rendering_mode;
 } GameMenuConfiguration;
 
-extern Game map_game_from_str(const char *name);
+extern Game game_from_string(const char *name);
 
-extern const char *map_game_to_str(Game game);
+extern const char *game_to_string(Game game);
 
 void select_game(Platform *p);
 

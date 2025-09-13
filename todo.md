@@ -24,7 +24,9 @@
   each square separately.
 
 # TODO
+- [_] refactor game loops to make adding new games easier
 - [_] design proper consistent UI navigation workflow
+
 - [_] add a help screen
 - [_] design a proper minimalistic UI for 2048.
 - [_] add ability to scroll through the config menu for games that require more
@@ -39,7 +41,6 @@
       config collection loop. What happens now is that pressing blue throws and
       exception that is not handled.
 - [_] add ability to erase eeprom (probably external sketch)
-- [_] refactor game loops to make adding new games easier
 
 
 # In Progress

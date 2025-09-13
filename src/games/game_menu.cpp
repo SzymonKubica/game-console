@@ -14,7 +14,7 @@
 GameMenuConfiguration DEFAULT_MENU_CONFIGURATION = {.game = GameOfLife,
                                                     .accent_color = DarkBlue};
 
-const char *map_game_to_str(Game game);
+const char *game_to_string(Game game);
 
 GameMenuConfiguration *
 load_initial_menu_configuration(PersistentStorage *storage)
@@ -63,21 +63,21 @@ assemble_menu_selection_configuration(GameMenuConfiguration *initial_config)
 
         ConfigurationOption *game = new ConfigurationOption();
         game->name = "Game";
-        auto available_games = {map_game_to_str(Game::Minesweeper),
-                                map_game_to_str(Game::Clean2048),
-                                map_game_to_str(Game::GameOfLife),
-                                map_game_to_str(Game::Settings)};
+        auto available_games = {
+            game_to_string(Game::Minesweeper), game_to_string(Game::Clean2048),
+            game_to_string(Game::GameOfLife), game_to_string(Game::Settings)};
         populate_string_option_values(game, available_games);
         game->currently_selected = get_config_option_string_value_index(
-            game, map_game_to_str(initial_config->game));
+            game, game_to_string(initial_config->game));
 
         ConfigurationOption *accent_color = new ConfigurationOption();
         accent_color->name = "Color";
         auto available_accent_colors = {
-            Color::Red,        Color::Green, Color::Blue,      Color::DarkBlue,
-            Color::Magenta,    Color::Cyan,  Color::Gblue,     Color::Brown, Color::Yellow,
-            Color::BRRed,      Color::Gray,  Color::LightBlue, Color::GrayBlue,
-            Color::LightGreen, Color::LGray, Color::LGrayBlue, Color::LBBlue};
+            Color::Red,      Color::Green,      Color::Blue,  Color::DarkBlue,
+            Color::Magenta,  Color::Cyan,       Color::Gblue, Color::Brown,
+            Color::Yellow,   Color::BRRed,      Color::Gray,  Color::LightBlue,
+            Color::GrayBlue, Color::LightGreen, Color::LGray, Color::LGrayBlue,
+            Color::LBBlue};
         populate_color_option_values(accent_color, available_accent_colors);
         accent_color->currently_selected = get_config_option_value_index(
             accent_color, initial_config->accent_color);
@@ -110,7 +110,7 @@ void extract_game_config(GameMenuConfiguration *menu_configuration,
         ConfigurationOption game_option = *config->options[0];
 
         int curr_option_idx = game_option.currently_selected;
-        menu_configuration->game = map_game_from_str(static_cast<const char **>(
+        menu_configuration->game = game_from_string(static_cast<const char **>(
             game_option.available_values)[curr_option_idx]);
 
         ConfigurationOption accent_color = *config->options[1];
@@ -130,38 +130,43 @@ void extract_game_config(GameMenuConfiguration *menu_configuration,
 
 void select_game(Platform *p)
 {
-        GameMenuConfiguration configuration;
+        GameMenuConfiguration config;
 
-        collect_game_menu_config(p, &configuration);
+        collect_game_menu_config(p, &config);
 
         UserInterfaceCustomization customization = {
-            .accent_color = configuration.accent_color,
-            .rendering_mode = configuration.rendering_mode,
+            config.accent_color,
+            config.rendering_mode,
         };
 
-        switch (configuration.game) {
-        case Unknown:
-        case Clean2048:
-                (new class Clean2048())->game_loop(p, &customization);
-                break;
-        case Minesweeper:
-                (new class Minesweeper())->game_loop(p, &customization);
-                break;
-        case GameOfLife:
-                (new class GameOfLife())->game_loop(p, &customization);
-                break;
-        case Settings:
-                (new class Settings())->game_loop(p, &customization);
-                break;
-        default:
+        LOG_INFO(TAG, "User selected game: %s.", game_to_string(config.game));
+
+        GameExecutor *executor = [&]() -> GameExecutor * {
+                switch (config.game) {
+                case Unknown:
+                case Clean2048:
+                        return new class Clean2048();
+                case Minesweeper:
+                        return new class Minesweeper();
+                case GameOfLife:
+                        return new class GameOfLife();
+                case Settings:
+                        return new class Settings();
+                default:
+                        return NULL;
+                }
+        }();
+
+        if (!executor) {
                 LOG_DEBUG(TAG, "Selected game: %d. Game not implemented yet.",
-                          configuration.game);
-                break;
+                          config.game);
+                return;
         }
+
+        executor->game_loop(p, &customization);
 }
 
-bool collect_game_menu_config(Platform *p,
-                                GameMenuConfiguration *configuration)
+bool collect_game_menu_config(Platform *p, GameMenuConfiguration *configuration)
 {
 
         GameMenuConfiguration *initial_config =
@@ -184,27 +189,27 @@ bool collect_game_menu_config(Platform *p,
         return true;
 }
 
-Game map_game_from_str(const char *name)
+Game game_from_string(const char *name)
 {
         if (strcmp(name, "2048") == 0) {
                 return Game::Clean2048;
-        } else if (strcmp(name, map_game_to_str(Minesweeper)) == 0) {
+        } else if (strcmp(name, game_to_string(Minesweeper)) == 0) {
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::Minesweeper;
-        } else if (strcmp(name, map_game_to_str(GameOfLife)) == 0) {
+        } else if (strcmp(name, game_to_string(GameOfLife)) == 0) {
                 // We need to use a shorter name here because of rendering
                 // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::GameOfLife;
-        } else if (strcmp(name, map_game_to_str(MainMenu)) == 0) {
+        } else if (strcmp(name, game_to_string(MainMenu)) == 0) {
                 return Game::MainMenu;
-        } else if (strcmp(name, map_game_to_str(Settings)) == 0) {
+        } else if (strcmp(name, game_to_string(Settings)) == 0) {
                 return Game::Settings;
         }
         return Game::Unknown;
 }
 
-const char *map_game_to_str(Game game)
+const char *game_to_string(Game game)
 {
         switch (game) {
         case MainMenu:
