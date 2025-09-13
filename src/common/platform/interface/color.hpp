@@ -27,6 +27,6 @@ typedef enum Color: int {
         LBBlue = 0X2B12,
 } Color;
 
-const char *map_color(Color color);
+const char *color_to_string(Color color);
 
 Color get_good_contrast_text_color(Color color);

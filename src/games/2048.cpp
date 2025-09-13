@@ -163,34 +163,20 @@ Configuration *assemble_2048_configuration(PersistentStorage *storage)
 {
 
         Game2048Configuration *initial_config = load_initial_config(storage);
-        Configuration *config = new Configuration();
-        config->name = "2048";
 
         // Initialize the first config option: game gridsize
-        ConfigurationOption *grid_size = new ConfigurationOption();
-        grid_size->name = "Grid size";
-        auto available_grid_sizes = {3, 4, 5};
-        populate_int_option_values(grid_size, available_grid_sizes);
-        grid_size->currently_selected =
-            get_config_option_value_index(grid_size, initial_config->grid_size);
+        auto *grid_size = ConfigurationOption::of_integers(
+            "Grid size", {3, 4, 5}, initial_config->grid_size);
 
-        ConfigurationOption *game_target = new ConfigurationOption();
-        game_target->name = "Game target";
-        auto available_game_targets = {128, 256, 512, 1024, 2048, 4096};
-        populate_int_option_values(game_target, available_game_targets);
-        game_target->currently_selected = get_config_option_value_index(
-            game_target, initial_config->target_max_tile);
+        auto *game_target = ConfigurationOption::of_integers(
+            "Game target", {128, 256, 512, 1024, 2048, 4096},
+            initial_config->target_max_tile);
 
-        int options_len = 2;
-        config->options_len = options_len;
-        config->options = new ConfigurationOption *[options_len];
-        config->options[0] = grid_size;
-        config->options[1] = game_target;
-        config->curr_selected_option = 0;
-
-        config->confirmation_cell_text = "Start Game";
         free(initial_config);
-        return config;
+
+        auto options = {grid_size, game_target};
+
+        return new Configuration("2048", options, "Start Game");
 }
 void extract_game_config(Game2048Configuration *game_config,
                          Configuration *config)

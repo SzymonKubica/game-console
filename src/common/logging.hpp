@@ -7,11 +7,11 @@
 #include <stdlib.h>
 
 enum class LogLevel : uint8_t {
-        LOG_LVL_NONE,  // 0
-        LOG_LVL_ERROR, // 1
-        LOG_LVL_INFO,  // 2
-        LOG_LVL_DEBUG, // 3
-        LOG_LVL_TRACE, // 4
+        LOG_LVL_NONE = 0,
+        LOG_LVL_ERROR = 1,
+        LOG_LVL_INFO = 2,
+        LOG_LVL_DEBUG = 3,
+        LOG_LVL_TRACE = 4,
 };
 
 #ifndef LOG_BUILD_LEVEL

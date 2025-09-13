@@ -166,7 +166,6 @@ load_initial_game_of_life_config(PersistentStorage *storage)
 
         return output;
 }
-
 /**
  * Returns true if the user wants to play again. If they press blue on the
  * configuration screen it means that they want to exit, in which case this
@@ -382,49 +381,24 @@ Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)
         GameOfLifeConfiguration *initial_config =
             load_initial_game_of_life_config(storage);
 
-        Configuration *config = new Configuration();
-        config->name = "Game of Life";
+        // Controls if grid will get pre-populated with cells randomly.
+        auto *spawn_randomly = ConfigurationOption::of_strings(
+            "Spawn randomly", {"Yes", "No"},
+            map_boolean_to_yes_or_no(initial_config->prepopulate_grid));
 
-        // Initialize the first config option: if grid will get pre-populated
-        // with cells randomly.
-        ConfigurationOption *spawn_randomly = new ConfigurationOption();
-        spawn_randomly->name = "Spawn randomly";
-        std::vector<const char *> yes_or_no = {"Yes", "No"};
-        populate_string_option_values(spawn_randomly, yes_or_no);
-        // We need to use this elaborate mechanism of getting the index of the
-        // default value because the config value is also saved in persistent
-        // storage so this can change and cannot be hardcoded.
-        spawn_randomly->currently_selected =
-            get_config_option_string_value_index(
-                spawn_randomly,
-                map_boolean_to_yes_or_no(initial_config->prepopulate_grid));
+        auto *simulation_speed = ConfigurationOption::of_integers(
+            "Evolutions/second", {1, 2, 4}, initial_config->simulation_speed);
 
-        ConfigurationOption *simulation_speed = new ConfigurationOption();
-        simulation_speed->name = "Evolutions/second";
-        std::vector<int> available_speeds = {1, 2, 4};
-        populate_int_option_values(simulation_speed, available_speeds);
-
-        simulation_speed->currently_selected = get_config_option_value_index(
-            simulation_speed, initial_config->simulation_speed);
-
-        ConfigurationOption *toroidal_array = new ConfigurationOption();
-        toroidal_array->name = "Toroidal array";
-        populate_string_option_values(toroidal_array, yes_or_no);
-        toroidal_array->currently_selected =
-            get_config_option_string_value_index(
-                toroidal_array,
-                map_boolean_to_yes_or_no(initial_config->use_toroidal_array));
-
-        config->options_len = 3;
-        config->options = new ConfigurationOption *[config->options_len];
-        config->options[0] = spawn_randomly;
-        config->options[1] = simulation_speed;
-        config->options[2] = toroidal_array;
-        config->curr_selected_option = 0;
-        config->confirmation_cell_text = "Start Game";
+        // Controls if the grid is toroidal i.e. the edges wrap around.
+        auto *toroidal_array = ConfigurationOption::of_strings(
+            "Toroidal array", {"Yes", "No"},
+            map_boolean_to_yes_or_no(initial_config->use_toroidal_array));
 
         free(initial_config);
-        return config;
+
+        auto options = {spawn_randomly, simulation_speed, toroidal_array};
+
+        return new Configuration("Game of Life", options, "Start Game");
 }
 
 bool extract_yes_or_no_option(const char *value)
@@ -481,8 +455,8 @@ StateEvolution take_simulation_step(Grid grid,
                         GameOfLifeCell current_state =
                             get_cell(x, y, cols, grid);
                         LOG_TRACE(TAG,
-                                    "Processing cell at (%d, %d) with state %d",
-                                    x, y, current_state);
+                                  "Processing cell at (%d, %d) with state %d",
+                                  x, y, current_state);
                         int alive_nb = 0;
                         Point curr = {.x = x, .y = y};
 

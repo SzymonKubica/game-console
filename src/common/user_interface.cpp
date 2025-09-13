@@ -487,7 +487,7 @@ void render_config_menu(Display *display, Configuration *config,
                         sprintf(format_string, "%%%ds",
                                 max_option_value_length);
                         sprintf(option_value, format_string,
-                                map_color(selected_value));
+                                color_to_string(selected_value));
                         break;
                 }
                 }

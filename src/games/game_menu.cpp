@@ -58,50 +58,33 @@ Configuration *
 assemble_menu_selection_configuration(GameMenuConfiguration *initial_config)
 {
 
-        Configuration *config = new Configuration();
-        config->name = "Game Console";
+        auto *game = ConfigurationOption::of_strings(
+            "Game",
+            {game_to_string(Game::Minesweeper), game_to_string(Game::Clean2048),
+             game_to_string(Game::GameOfLife), game_to_string(Game::Settings)},
+            game_to_string(initial_config->game));
 
-        ConfigurationOption *game = new ConfigurationOption();
-        game->name = "Game";
-        auto available_games = {
-            game_to_string(Game::Minesweeper), game_to_string(Game::Clean2048),
-            game_to_string(Game::GameOfLife), game_to_string(Game::Settings)};
-        populate_string_option_values(game, available_games);
-        game->currently_selected = get_config_option_string_value_index(
-            game, game_to_string(initial_config->game));
-
-        ConfigurationOption *accent_color = new ConfigurationOption();
-        accent_color->name = "Color";
-        auto available_accent_colors = {
+        auto available_colors = {
             Color::Red,      Color::Green,      Color::Blue,  Color::DarkBlue,
             Color::Magenta,  Color::Cyan,       Color::Gblue, Color::Brown,
             Color::Yellow,   Color::BRRed,      Color::Gray,  Color::LightBlue,
             Color::GrayBlue, Color::LightGreen, Color::LGray, Color::LGrayBlue,
             Color::LBBlue};
-        populate_color_option_values(accent_color, available_accent_colors);
-        accent_color->currently_selected = get_config_option_value_index(
-            accent_color, initial_config->accent_color);
 
-        ConfigurationOption *rendering_mode = new ConfigurationOption();
-        rendering_mode->name = "UI";
+        auto *accent_color = ConfigurationOption::of_colors(
+            "Color", available_colors, initial_config->accent_color);
+
         auto available_modes = {
             rendering_mode_to_str(UserInterfaceRenderingMode::Minimalistic),
             rendering_mode_to_str(UserInterfaceRenderingMode::Detailed)};
 
-        populate_string_option_values(rendering_mode, available_modes);
-        rendering_mode->currently_selected = get_config_option_value_index(
-            rendering_mode,
+        auto *rendering_mode = ConfigurationOption::of_strings(
+            "UI", available_modes,
             rendering_mode_to_str(initial_config->rendering_mode));
 
-        int options_num = 3;
-        config->options_len = options_num;
-        config->options = new ConfigurationOption *[options_num];
-        config->options[0] = game;
-        config->options[1] = accent_color;
-        config->options[2] = rendering_mode;
-        config->curr_selected_option = 0;
-        config->confirmation_cell_text = "Next";
-        return config;
+        auto options = {game, accent_color, rendering_mode};
+
+        return new Configuration("Game Console", options, "Select game");
 }
 
 void extract_game_config(GameMenuConfiguration *menu_configuration,

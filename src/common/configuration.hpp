@@ -38,6 +38,17 @@ typedef struct ConfigurationOption {
         {
         }
 
+      public:
+        static ConfigurationOption *of_integers(const char *name,
+                                                std::vector<int> values,
+                                                int initial_value);
+        static ConfigurationOption *of_strings(const char *name,
+                                               std::vector<const char *> values,
+                                               const char *initial_value);
+        static ConfigurationOption *of_colors(const char *name,
+                                              std::vector<Color> values,
+                                              Color initial_value);
+
 } ConfigurationOption;
 
 /**
@@ -59,6 +70,11 @@ int get_config_option_value_index(ConfigurationOption *option, T value)
 
 int get_config_option_string_value_index(ConfigurationOption *option,
                                          const char *value);
+
+struct Configuration;
+void populate_options(Configuration *config,
+                      std::vector<ConfigurationOption *> options,
+                      int currently_selected);
 
 /**
  * A generic container for game configuration values. It allows for storing
@@ -94,6 +110,17 @@ struct Configuration {
             : name(nullptr), options(nullptr), options_len(0),
               curr_selected_option(0), confirmation_cell_text(nullptr)
         {
+        }
+
+        Configuration(const char *name,
+                      std::vector<ConfigurationOption *> options,
+                      const char *confirmation_cell_text)
+            : name(name), options(nullptr), options_len(options.size()),
+              curr_selected_option(0),
+              confirmation_cell_text(confirmation_cell_text)
+        {
+                this->options = new ConfigurationOption *[this->options_len];
+                populate_options(this, options, 0);
         }
 };
 
@@ -155,5 +182,9 @@ void populate_string_option_values(ConfigurationOption *value,
                                    std::vector<const char *> available_values);
 void populate_color_option_values(ConfigurationOption *value,
                                   std::vector<Color> available_values);
+
+void populate_options(Configuration *config,
+                      std::vector<ConfigurationOption *> options,
+                      int currently_selected);
 
 void free_configuration(Configuration *config);

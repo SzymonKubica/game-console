@@ -1,6 +1,6 @@
 #include "color.hpp"
 
-const char *map_color(Color color)
+const char *color_to_string(Color color)
 {
         switch (color) {
 

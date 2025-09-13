@@ -12,6 +12,50 @@
 
 #define TAG "configuration"
 
+ConfigurationOption *ConfigurationOption::of_integers(const char *name,
+                                                      std::vector<int> values,
+                                                      int initial_value)
+{
+        ConfigurationOption *option = new ConfigurationOption();
+        option->name = name;
+        populate_int_option_values(option, values);
+        option->currently_selected =
+            get_config_option_value_index(option, initial_value);
+        return option;
+}
+ConfigurationOption *
+ConfigurationOption::of_strings(const char *name,
+                                std::vector<const char *> values,
+                                const char *initial_value)
+{
+        ConfigurationOption *option = new ConfigurationOption();
+        option->name = name;
+        populate_string_option_values(option, values);
+        // We need to use this elaborate mechanism of getting the index of the
+        // initial value because the config value is also saved in persistent
+        // storage without its index. Hence we need to map from the actual value
+        // to its index in the options array.
+        option->currently_selected =
+            get_config_option_string_value_index(option, initial_value);
+        return option;
+}
+
+ConfigurationOption *ConfigurationOption::of_colors(const char *name,
+                                                    std::vector<Color> values,
+                                                    Color initial_value)
+{
+        ConfigurationOption *option = new ConfigurationOption();
+        option->name = name;
+        populate_color_option_values(option, values);
+        // We need to use this elaborate mechanism of getting the index of the
+        // initial value because the config value is also saved in persistent
+        // storage without its index. Hence we need to map from the actual value
+        // to its index in the options array.
+        option->currently_selected =
+            get_config_option_value_index(option, initial_value);
+        return option;
+}
+
 void shift_edited_config_option(Configuration *config, ConfigurationDiff *diff,
                                 int steps);
 
@@ -122,6 +166,12 @@ int find_max_config_option_name_text_length(Configuration *config)
 }
 
 int find_max_number_length(std::vector<int> numbers);
+
+/**
+ * Given a vector of available integer values for a configuration option,
+ * it encodes the type information and the maximum number string representation
+ * length that is required for rendering in the UI.
+ */
 void populate_int_option_values(ConfigurationOption *value,
                                 std::vector<int> available_values)
 {
@@ -164,6 +214,19 @@ void populate_color_option_values(ConfigurationOption *value,
             find_max_color_str_length(available_values);
 }
 
+void populate_options(Configuration *config,
+                      std::vector<ConfigurationOption *> options,
+                      int currently_selected)
+{
+        config->options_len = options.size();
+        config->options = new ConfigurationOption *[config->options_len];
+
+        for (int i = 0; i < options.size(); i++) {
+                config->options[i] = options[i];
+        }
+        config->curr_selected_option = currently_selected;
+}
+
 int find_max_number_length(std::vector<int> numbers)
 {
         int max_len = 0;
@@ -186,7 +249,7 @@ int find_max_color_str_length(std::vector<Color> colors)
 {
         int max_len = 0;
         for (Color value : colors) {
-                max_len = max(max_len, strlen(map_color(value)));
+                max_len = max(max_len, strlen(color_to_string(value)));
         }
         return max_len;
 }
@@ -218,7 +281,6 @@ bool collect_configuration(Platform *p, Configuration *config,
                            UserInterfaceCustomization *customization,
                            bool allow_exit)
 {
-
         ConfigurationDiff *diff = empty_diff();
         render_config_menu(p->display, config, diff, false, customization);
         free(diff);

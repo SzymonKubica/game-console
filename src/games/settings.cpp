@@ -77,25 +77,15 @@ std::vector<int> get_settings_storage_offsets()
 }
 Configuration *assemble_settings_menu_configuration()
 {
-        Configuration *config = new Configuration();
-        config->name = "Set Defaults";
 
-        ConfigurationOption *menu = new ConfigurationOption();
-        menu->name = "Modify";
-        auto available_games = {game_to_string(Game::MainMenu),
-                                game_to_string(Game::Minesweeper),
-                                game_to_string(Game::Clean2048),
-                                game_to_string(Game::GameOfLife)};
-        populate_string_option_values(menu, available_games);
-        menu->currently_selected = 0;
+        auto available_games = {
+            game_to_string(Game::MainMenu), game_to_string(Game::Minesweeper),
+            game_to_string(Game::Clean2048), game_to_string(Game::GameOfLife)};
 
-        int options_num = 1;
-        config->options_len = options_num;
-        config->options = new ConfigurationOption *[options_num];
-        config->options[0] = menu;
-        config->curr_selected_option = 0;
-        config->confirmation_cell_text = "Next";
-        return config;
+        auto *menu = ConfigurationOption::of_strings(
+            "Modify", available_games, game_to_string(Game::MainMenu));
+
+        return new Configuration("Set Defaults", {menu}, "Next");
 }
 
 void extract_menu_setting(Game *selected_menu, Configuration *config)

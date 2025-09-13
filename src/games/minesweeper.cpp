@@ -536,23 +536,13 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage)
 {
         MinesweeperConfiguration *initial_config =
             load_initial_minesweeper_config(storage);
-        Configuration *config = new Configuration();
-        config->name = "Minesweeper";
 
-        // Initialize the first config option: game gridsize
-        ConfigurationOption *mines_count = new ConfigurationOption();
-        mines_count->name = "Number of mines";
-        std::vector<int> available_values = {10, 15, 25, 30, 35};
-        populate_int_option_values(mines_count, available_values);
-        mines_count->currently_selected = get_config_option_value_index(
-            mines_count, initial_config->mines_num);
+        ConfigurationOption *mines_count = ConfigurationOption::of_integers(
+            "Number of mines", {10, 15, 25, 30, 35}, initial_config->mines_num);
 
-        config->options_len = 1;
-        config->options = new ConfigurationOption *[config->options_len];
-        config->options[0] = mines_count;
-        config->curr_selected_option = 0;
-        config->confirmation_cell_text = "Start Game";
-        return config;
+        std::vector<ConfigurationOption *> options = {mines_count};
+
+        return new Configuration("Minesweeper", options, "Start Game");
 }
 
 void extract_game_config(MinesweeperConfiguration *game_config,
