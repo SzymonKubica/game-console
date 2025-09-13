@@ -177,12 +177,8 @@ Game game_from_string(const char *name)
         if (strcmp(name, "2048") == 0) {
                 return Game::Clean2048;
         } else if (strcmp(name, game_to_string(Minesweeper)) == 0) {
-                // We need to use a shorter name here because of rendering
-                // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::Minesweeper;
         } else if (strcmp(name, game_to_string(GameOfLife)) == 0) {
-                // We need to use a shorter name here because of rendering
-                // constraints (arduino font is wider and doesn't fit nicely)
                 return Game::GameOfLife;
         } else if (strcmp(name, game_to_string(MainMenu)) == 0) {
                 return Game::MainMenu;

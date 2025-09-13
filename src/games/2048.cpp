@@ -43,6 +43,7 @@ handle_game_finished(Display *display,
 static void draw_game_canvas(Display *display, GameState *state,
                              UserInterfaceCustomization *customization);
 
+void free_game_state(GameState *gs);
 /**
  * Returns true if the user wants to play again. If they press blue on the
  * configuration screen it means that they want to exit, in which case this
@@ -55,18 +56,7 @@ void Clean2048::game_loop(Platform *p,
                           UserInterfaceCustomization *customization)
 {
         while (enter_2048_loop(p, customization)) {
-                LOG_INFO("2048", "Finished the main 2048 game loop, "
-                                 "pausing until input from the user.");
-                Direction dir;
-                Action act;
-                pause_until_input(p->directional_controllers,
-                                  p->action_controllers, &dir, &act,
-                                  p->delay_provider);
-
-                if (act == Action::BLUE) {
-                        LOG_DEBUG("2048", "Exiting 2048 game loop.");
-                        break;
-                }
+                LOG_INFO("2048", "Re-entering the main 2048 game loop.");
         }
 }
 
@@ -85,6 +75,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
 
         while (!(is_game_over(state) || is_game_finished(state))) {
                 Direction dir;
+                Action act;
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
@@ -92,6 +83,15 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
                         take_turn(state, (int)dir);
                         update_game_grid(p->display, state);
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                } else if (action_input_registered(p->action_controllers,
+                                                   &act)) {
+                        if (act == Action::BLUE) {
+                                LOG_DEBUG(TAG, "User requested to exit game.");
+                                free_game_state(state);
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
+                                return true;
+                        }
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
                 p->display->refresh();

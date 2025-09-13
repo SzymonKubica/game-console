@@ -24,11 +24,11 @@
   each square separately.
 
 # TODO
-- [_] refactor game loops to make adding new games easier
+- [_] add ability to exit out of 2048.
 - [_] design proper consistent UI navigation workflow
+- [_] design a proper minimalistic UI for 2048.
 
 - [_] add a help screen
-- [_] design a proper minimalistic UI for 2048.
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] make the game of life random grid population truly random (currently it looks
@@ -46,6 +46,8 @@
 # In Progress
 
 # Done
+- [x] refactor game loops to make adding new games easier
+- [x] refactor configuration assembling functions to make adding new games easier
 - [x] ensure that debug logs are only compiled in in the debug build mode.
 - [x] add smart white/black text switching based on the background.
 - [x] add a 'fast-rendering' mode that will skip rendering of the costly UI elements
