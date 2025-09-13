@@ -105,7 +105,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
         }
 
         pause_until_any_directional_input(p->directional_controllers,
-                                          p->delay_provider);
+                                          p->delay_provider, p->display);
         return true;
 }
 

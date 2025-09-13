@@ -358,6 +358,7 @@ bool enter_game_of_life_loop(Platform *p,
                 iteration += 1;
                 iteration %= evolution_period;
                 p->delay_provider->delay_ms(GAME_LOOP_DELAY);
+                p->display->refresh();
         }
         return true;
 }

@@ -50,16 +50,16 @@ inline void log_message(const char *tag, LogLevel level,
         // This passes the varargs into sprintf so that the format string can be
         // formatted properly.
         vsnprintf(buffer, sizeof(buffer), fmt, args);
-        va_end(args);
-
 #ifdef EMULATOR
         printf("%s: [%s] %s:%d: %s\n", tag, log_level_strings[(int)level],
                function_name, line, buffer);
 #else
-        Serial.printf("%s: [%s] %s:%d: %s\n", tag,
-                      log_level_strings[(int)level], function_name, line,
-                      buffer);
+        char log_with_metadata[400];
+        sprintf(log_with_metadata, "%s: [%s] %s:%d: %s", tag,
+                log_level_strings[(int)level], function_name, line, buffer);
+        Serial.println(log_with_metadata);
 #endif
+        va_end(args);
 }
 
 // We use the __func__ to extract the name of the function from where the log

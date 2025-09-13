@@ -8,8 +8,8 @@ void display_game_won(Display *display, UserInterfaceCustomization *customizatio
 
 void pause_until_any_directional_input(
     std::vector<DirectionalController *> *controllers,
-    DelayProvider *delay_provider);
+    DelayProvider *delay_provider, Display *display);
 void pause_until_input(std::vector<DirectionalController *> *controllers,
                        std::vector<ActionController *> *action_controllers,
                        Direction *direction, Action *action,
-                       DelayProvider *delay_provider);
+                       DelayProvider *delay_provider, Display *display);

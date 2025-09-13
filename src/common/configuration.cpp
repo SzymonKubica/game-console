@@ -358,6 +358,7 @@ bool collect_configuration(Platform *p, Configuration *config,
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->display->refresh();
                 free(diff);
         }
         return true;

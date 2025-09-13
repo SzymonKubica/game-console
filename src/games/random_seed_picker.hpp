@@ -38,7 +38,7 @@ class RandomSeedPicker : public GameExecutor
                         Action act;
                         pause_until_input(p->directional_controllers,
                                           p->action_controllers, &dir, &act,
-                                          p->delay_provider);
+                                          p->delay_provider, p->display);
 
                         if (act == Action::BLUE) {
                                 LOG_DEBUG("random_seed_picker",

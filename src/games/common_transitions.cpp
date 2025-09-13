@@ -77,21 +77,31 @@ void display_game_won(Display *display, UserInterfaceCustomization *customizatio
 
 void pause_until_any_directional_input(
     std::vector<DirectionalController *> *controllers,
-    DelayProvider *delay_provider)
+    DelayProvider *delay_provider, Display *display)
 {
         Direction dir;
         while (!directional_input_registered(controllers, &dir)) {
                 delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                // On the target device this is a no-op, but on the SFML display
+                // this ensures that we poll for events while waiting for input
+                // and so if the user tries to close the window, it will get
+                // closed properly.
+                display->refresh();
         };
 }
 
 void pause_until_input(std::vector<DirectionalController *> *controllers,
                        std::vector<ActionController *> *action_controllers,
                        Direction *direction, Action *action,
-                       DelayProvider *delay_provider)
+                       DelayProvider *delay_provider, Display *display)
 {
         while (!directional_input_registered(controllers, direction) &&
                !action_input_registered(action_controllers, action)) {
                 delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                // On the target device this is a no-op, but on the SFML display
+                // this ensures that we poll for events while waiting for input
+                // and so if the user tries to close the window, it will get
+                // closed properly.
+                display->refresh();
         };
 }

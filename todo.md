@@ -24,8 +24,6 @@
   each square separately.
 
 # TODO
-- [_] add ability to exit out of 2048.
-- [_] design proper consistent UI navigation workflow
 - [_] design a proper minimalistic UI for 2048.
 
 - [_] add a help screen
@@ -36,16 +34,19 @@
       it in persitent memory)
 - [_] add high score saving to 2048.
 - [_] add username collection screen
-- [_] fix wait for input after quit in each game (this behaviour is unexpected).
-- [_] tighten up the exit handling when user tries to break out of gmae of life
-      config collection loop. What happens now is that pressing blue throws and
-      exception that is not handled.
 - [_] add ability to erase eeprom (probably external sketch)
 
 
 # In Progress
 
 # Done
+- [x] fix wait for input after quit in each game (this behaviour is unexpected).
+- [x] tighten up the exit handling when user tries to break out of gmae of life
+      config collection loop. What happens now is that pressing blue throws and
+      exception that is not handled.
+- [x] add debug logging for arduino (and fix logging code)
+- [x] add ability to exit out of 2048.
+- [x] design proper consistent UI navigation workflow
 - [x] refactor game loops to make adding new games easier
 - [x] refactor configuration assembling functions to make adding new games easier
 - [x] ensure that debug logs are only compiled in in the debug build mode.

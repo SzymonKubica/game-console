@@ -101,7 +101,7 @@ void Minesweeper::game_loop(Platform *p,
                 Action act;
                 pause_until_input(p->directional_controllers,
                                   p->action_controllers, &dir, &act,
-                                  p->delay_provider);
+                                  p->delay_provider, p->display);
 
                 if (act == Action::BLUE) {
                         break;
@@ -271,16 +271,17 @@ bool minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
                         }
                 }
 
-                pause_until_any_directional_input(p->directional_controllers,
-                                                  p->delay_provider);
+                pause_until_any_directional_input(
+                    p->directional_controllers, p->delay_provider, p->display);
                 display_game_over(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         } else {
-                pause_until_any_directional_input(p->directional_controllers,
-                                                  p->delay_provider);
+                pause_until_any_directional_input(
+                    p->directional_controllers, p->delay_provider, p->display);
                 display_game_won(p->display, customization);
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
+        p->display->refresh();
         return true;
 }
 
