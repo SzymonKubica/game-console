@@ -64,7 +64,7 @@ void Clean2048::game_loop(Platform *p,
                                   p->delay_provider);
 
                 if (act == Action::BLUE) {
-                        LOG_DEBUG("2048", "Exiting 2048 game loop.")
+                        LOG_DEBUG("2048", "Exiting 2048 game loop.");
                         break;
                 }
         }
@@ -88,7 +88,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
                 if (directional_input_registered(p->directional_controllers,
                                                  &dir)) {
                         LOG_DEBUG(TAG, "Input received: %s",
-                                  direction_to_str(dir))
+                                  direction_to_str(dir));
                         take_turn(state, (int)dir);
                         update_game_grid(p->display, state);
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);

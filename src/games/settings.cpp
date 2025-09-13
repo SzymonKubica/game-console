@@ -28,7 +28,7 @@ void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
                 LOG_DEBUG(
                     TAG,
                     "Computed configuration storage offset for game %s: %d",
-                    game_to_string(selected_game), offset)
+                    game_to_string(selected_game), offset);
 
                 switch (selected_game) {
                 case MainMenu: {
@@ -58,7 +58,7 @@ void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
                 default:
                         return;
                 }
-                LOG_DEBUG(TAG, "Re-entering the settings collecting loop.")
+                LOG_DEBUG(TAG, "Re-entering the settings collecting loop.");
         }
 }
 

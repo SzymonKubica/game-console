@@ -96,7 +96,7 @@ void Minesweeper::game_loop(Platform *p,
         while (minesweeper_loop(p, customization)) {
                 LOG_DEBUG(TAG,
                           "Minesweeper game loop finished. Pausing for input "
-                          "to allow the user to view the finished grid.")
+                          "to allow the user to view the finished grid.");
                 Direction dir;
                 Action act;
                 pause_until_input(p->directional_controllers,

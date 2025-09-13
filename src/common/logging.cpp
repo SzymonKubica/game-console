@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: MIT
 #include "logging.hpp"
 
-unsigned char log_run_level = LOG_LVL_DEBUG;
+LogLevel log_run_level = LogLevel::LOG_LVL_DEBUG;
 
 const char *log_level_strings[] = {
-    [LOG_LVL_NONE] = "NONE",       [LOG_LVL_ERROR] = "ERROR",
-    [LOG_LVL_INFO] = "INFO",       [LOG_LVL_DEBUG] = "DEBUG",
-    [LOG_LVL_VERBOSE] = "VERBOSE",
+    [(uint8_t)LogLevel::LOG_LVL_NONE] = "NONE",
+    [(uint8_t)LogLevel::LOG_LVL_ERROR] = "ERROR",
+    [(uint8_t)LogLevel::LOG_LVL_INFO] = "INFO",
+    [(uint8_t)LogLevel::LOG_LVL_DEBUG] = "DEBUG",
+    [(uint8_t)LogLevel::LOG_LVL_TRACE] = "TRACE",
 };
-

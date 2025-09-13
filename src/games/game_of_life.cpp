@@ -179,7 +179,7 @@ void GameOfLife::game_loop(Platform *p,
                            UserInterfaceCustomization *customization)
 {
         while (enter_game_of_life_loop(p, customization)) {
-                LOG_DEBUG("game_of_life", "Re-entering game of life loop.")
+                LOG_DEBUG("game_of_life", "Re-entering game of life loop.");
         }
 }
 
@@ -480,7 +480,7 @@ StateEvolution take_simulation_step(Grid grid,
                 for (int x = 0; x < cols; x++) {
                         GameOfLifeCell current_state =
                             get_cell(x, y, cols, grid);
-                        LOG_VERBOSE(TAG,
+                        LOG_TRACE(TAG,
                                     "Processing cell at (%d, %d) with state %d",
                                     x, y, current_state);
                         int alive_nb = 0;

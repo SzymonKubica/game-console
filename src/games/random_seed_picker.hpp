@@ -42,7 +42,7 @@ class RandomSeedPicker : public GameExecutor
 
                         if (act == Action::BLUE) {
                                 LOG_DEBUG("random_seed_picker",
-                                          "Exiting random seed picker loop.")
+                                          "Exiting random seed picker loop.");
                                 break;
                         }
                 }
