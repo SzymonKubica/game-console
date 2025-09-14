@@ -74,16 +74,14 @@ void Clean2048::game_loop(Platform *p,
         while (!exit_requested) {
                 switch (enter_2048_loop(p, customization)) {
                 case UserAction::PlayAgain:
-                        LOG_INFO(TAG,
-                                 "Re-entering the main 2048 game loop.");
+                        LOG_INFO(TAG, "Re-entering the main 2048 game loop.");
                         continue;
                 case UserAction::Exit:
                         exit_requested = true;
                         break;
                 case UserAction::ShowHelp:
                         // TODO: add help handler here.
-                        LOG_INFO(TAG,
-                                 "User requsted help screen for 2048.");
+                        LOG_INFO(TAG, "User requsted help screen for 2048.");
                         break;
                 }
         }

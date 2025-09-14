@@ -17,7 +17,7 @@ void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
         // configuration screens.
         while (true) {
                 Configuration *config = assemble_settings_menu_configuration();
-                if (!collect_configuration(p, config, custom))
+                if (collect_configuration(p, config, custom))
                         return;
 
                 Game selected_game;

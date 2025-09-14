@@ -162,7 +162,7 @@ bool collect_game_menu_config(Platform *p, GameMenuConfiguration *configuration)
             .accent_color = initial_config->accent_color,
             .rendering_mode = initial_config->rendering_mode};
 
-        if (!collect_configuration(p, config, &customization, false))
+        if (collect_configuration(p, config, &customization, false))
                 return false;
 
         extract_game_config(configuration, config);
