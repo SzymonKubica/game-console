@@ -436,7 +436,7 @@ void render_config_menu(Display *display, Configuration *config,
         int left_margin = get_centering_margin(w, fw, text_max_length);
 
         int bar_height = 2 * fh;
-        int bar_gap_height = fh;
+        int bar_gap_height = fh * 3 / 4;
         int y_spacing = calculate_section_spacing(
             h, config->options_len + 1, bar_height, bar_gap_height, Size24);
 
@@ -519,17 +519,42 @@ void render_config_menu(Display *display, Configuration *config,
         int bar_width = (text_max_length + padding) * fw;
         int right_margin = display->get_width() - (left_margin + bar_width);
         int circle_x = left_margin + bar_width + right_margin / 2;
-        int h_padding = fh / 2;
+        int v_padding = fh / 2;
         int circle_ys_len = config->options_len + 1;
         int r = 5;
         int circle_ys[circle_ys_len];
         for (int i = 0; i < circle_ys_len; i++) {
-                circle_ys[i] = bar_positions[i] + h_padding;
+                circle_ys[i] = bar_positions[i] + v_padding;
         }
 
         render_circle_selector(display, text_update_only, circle_x, circle_ys,
                                circle_ys_len, diff->previously_edited_option,
                                diff->currently_edited_option, r, Black,
                                customization->accent_color);
+
+        int confirmation_cell_end_y = confirmation_cell_y + fh + fh / 2;
+
+        // Below above the grid we always render the guide indicator that yellow
+        // button will show you the help screen.
+        if (!text_update_only) {
+                const char *help = "Help";
+                int help_text_len = strlen(help);
+
+                int help_text_x = fw;
+                int help_text_y = fh / 2;
+                display->draw_string({.x = help_text_x, .y = help_text_y},
+                                     (char *)help, FontSize::Size16, Black,
+                                     White);
+
+                int help_yellow_circle_x =
+                    help_text_x + (help_text_len / 2) * fw;
+                int help_yellow_circle_y = help_text_y + fh * 3 / 2;
+
+                int radius = FONT_SIZE / 4;
+                int d = 2 * radius;
+                display->draw_circle(
+                    {.x = help_yellow_circle_x, .y = help_yellow_circle_y}, r,
+                    Yellow, 0, true);
+        }
         free(bar_positions);
 }
