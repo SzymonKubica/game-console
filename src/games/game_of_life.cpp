@@ -177,7 +177,7 @@ UserAction game_of_life_loop(Platform *platform,
 void GameOfLife::game_loop(Platform *p,
                            UserInterfaceCustomization *customization)
 {
-        bool exit_requested;
+        bool exit_requested = false;
         while (!exit_requested) {
                 switch (game_of_life_loop(p, customization)) {
                 case UserAction::PlayAgain:

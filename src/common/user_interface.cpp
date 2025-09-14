@@ -540,15 +540,23 @@ void render_config_menu(Display *display, Configuration *config,
                 const char *help = "Help";
                 int help_text_len = strlen(help);
 
-                int help_text_x = fw;
-                int help_text_y = fh / 2;
+                int help_text_x = 2 * fw;
+                int help_text_y = h - 3 * fh / 2;
+
+                int help_yellow_circle_x =
+                    help_text_x + (help_text_len + 1) * fw;
+                int help_yellow_circle_y = help_text_y + 3 * fh / 4;
+
+                // The font on the emulator differs slightly from the target
+                // LCD display font, so we need to apply this vertical alignment
+                // override.
+#ifndef EMULATOR
+                help_text_y += fh / 4;
+#endif
+
                 display->draw_string({.x = help_text_x, .y = help_text_y},
                                      (char *)help, FontSize::Size16, Black,
                                      White);
-
-                int help_yellow_circle_x =
-                    help_text_x + (help_text_len / 2) * fw;
-                int help_yellow_circle_y = help_text_y + fh * 3 / 2;
 
                 int radius = FONT_SIZE / 4;
                 int d = 2 * radius;
