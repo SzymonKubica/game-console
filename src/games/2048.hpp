@@ -2,8 +2,6 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
-#include "../common/logging.hpp"
-#include "../common/configuration.hpp"
 
 #include "common_transitions.hpp"
 #include "game_executor.hpp"
@@ -44,7 +42,8 @@ bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
 void draw(Display *display, GameState *state);
-void update_game_grid(Display *display, GameState *gs);
+void update_game_grid(Display *display, GameState *gs,
+                      UserInterfaceCustomization *customization);
 
 void initialize_randomness_seed(int seed);
 bool is_game_over(GameState *gs);

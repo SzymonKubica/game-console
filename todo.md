@@ -24,9 +24,7 @@
   each square separately.
 
 # TODO
-- [_] design a proper minimalistic UI for 2048.
 - [_] add a help screen
-
 - [_] add ability to scroll through the config menu for games that require more
       than 3 config options
 - [_] make the game of life random grid population truly random (currently it looks
@@ -42,6 +40,10 @@
 # In Progress
 
 # Done
+- [x] make the minimalistic 2048 rendering snappy again
+- [x] check if it is possible to add colour-coded number rendering for 2048
+      (rendering speed needs to be evaluated). -> not possible, even white on black is not snappy enough.
+- [x] design a proper minimalistic UI for 2048.
 - [x] fix wait for input after quit in each game (this behaviour is unexpected).
 - [x] tighten up the exit handling when user tries to break out of gmae of life
       config collection loop. What happens now is that pressing blue throws and

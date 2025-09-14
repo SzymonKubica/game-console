@@ -21,7 +21,22 @@
 #define DOWN 2
 #define LEFT 3
 
-#define GRID_BG_COLOR White
+/**
+ *  We always render white on black. This is because of the rendering
+ *  speed constraints. 2048 required a lot of re-rendering and the UI
+ *  needs to be snappy for the proper experience (we don't want the numbers
+ *  slowly trickling in when the grid shifts). After testing empirically,
+ *  rendering black on white is by far the fastest.
+ */
+const Color GRID_BG_COLOR = White;
+/**
+ *  We always render white on black. This is because of the rendering
+ *  speed constraints. 2048 required a lot of re-rendering and the UI
+ *  needs to be snappy for the proper experience (we don't want the numbers
+ *  slowly trickling in when the grid shifts). After testing empirically,
+ *  rendering black on white is by far the fastest.
+ */
+const Color TEXT_COLOR = Black;
 
 Game2048Configuration DEFAULT_2048_GAME_CONFIG = {
     .grid_size = 4,
@@ -70,7 +85,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
             initialize_game_state(config.grid_size, config.target_max_tile);
 
         draw_game_canvas(p->display, state, customization);
-        update_game_grid(p->display, state);
+        update_game_grid(p->display, state, customization);
         p->display->refresh();
 
         while (!(is_game_over(state) || is_game_finished(state))) {
@@ -81,7 +96,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
                         LOG_DEBUG(TAG, "Input received: %s",
                                   direction_to_str(dir));
                         take_turn(state, (int)dir);
-                        update_game_grid(p->display, state);
+                        update_game_grid(p->display, state, customization);
                         p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
                 } else if (action_input_registered(p->action_controllers,
                                                    &act)) {
@@ -488,7 +503,9 @@ static void copy_grid(int **source, int **destination, int size)
  * that `update_game_grid` should be called to update the contents of the grid
  * slots with the numbers.
  */
-static void draw_game_grid(Display *display, int grid_size);
+static void draw_game_grid(Display *display, int grid_size,
+                           UserInterfaceCustomization *customization);
+
 void draw_game_canvas(Display *display, GameState *state,
                       UserInterfaceCustomization *customization)
 {
@@ -498,7 +515,7 @@ void draw_game_canvas(Display *display, GameState *state,
         if (customization->rendering_mode == Detailed)
                 display->draw_rounded_border(customization->accent_color);
 
-        draw_game_grid(display, state->grid_size);
+        draw_game_grid(display, state->grid_size, customization);
 }
 
 /**
@@ -594,26 +611,39 @@ GridDimensions *calculate_grid_dimensions(Display *display, int grid_size)
                                   score_start.y, score_title_x, score_title_y);
 }
 
-static void draw_game_grid(Display *display, int grid_size)
+static void draw_game_grid(Display *display, int grid_size,
+                           UserInterfaceCustomization *customization)
 {
 
         GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
         LOG_DEBUG(TAG, "Calculated grid dimensions.");
 
+        // We need this lambda to have a reusable way of rendering game cells
+        // depending on the UI rendering mode.
+        auto cell_renderer = [&](Point start, int width, int height) {
+                if (customization->rendering_mode == Minimalistic) {
+                        display->draw_rectangle(start, width, height,
+                                                GRID_BG_COLOR, 1, true);
+                        display->draw_rectangle(start, width, height,
+                                                customization->accent_color, 2,
+                                                false);
+                } else {
+                        display->draw_rounded_rectangle(
+                            start, width, height, height / 2, GRID_BG_COLOR);
+                }
+        };
+
         Point score_start = {.x = gd->score_start_x, .y = gd->score_start_y};
-        display->draw_rounded_rectangle(
-            score_start, gd->score_cell_width, gd->score_cell_height,
-            gd->score_cell_height / 2, GRID_BG_COLOR);
+        cell_renderer(score_start, gd->score_cell_width, gd->score_cell_height);
 
         const char *buffer = "Score:";
 
         Point score_title = {.x = gd->score_title_x, .y = gd->score_title_y};
         display->draw_string(score_title, (char *)buffer, Size16, GRID_BG_COLOR,
-                             Black);
+                             TEXT_COLOR);
 
         int cell_width_and_spacing = gd->cell_width + gd->cell_x_spacing;
         int cell_height_and_spacing = gd->cell_height + gd->cell_y_spacing;
-        int cell_radius = gd->cell_height / 2;
 
         for (int i = 0; i < grid_size; i++) {
                 for (int j = 0; j < grid_size; j++) {
@@ -622,9 +652,7 @@ static void draw_game_grid(Display *display, int grid_size)
                             .y =
                                 gd->grid_start_y + i * cell_height_and_spacing};
 
-                        display->draw_rounded_rectangle(
-                            start, gd->cell_width, gd->cell_height, cell_radius,
-                            GRID_BG_COLOR);
+                        cell_renderer(start, gd->cell_width, gd->cell_height);
                 }
         }
 }
@@ -632,7 +660,8 @@ static void draw_game_grid(Display *display, int grid_size)
 static void str_replace(char *str, const char *oldWord, const char *newWord);
 static int number_string_length(int number);
 
-void update_game_grid(Display *display, GameState *gs)
+void update_game_grid(Display *display, GameState *gs,
+                      UserInterfaceCustomization *customization)
 {
         int grid_size = gs->grid_size;
         GridDimensions *gd = calculate_grid_dimensions(display, grid_size);
@@ -657,7 +686,7 @@ void update_game_grid(Display *display, GameState *gs)
                              .y = gd->score_title_y};
 
         display->draw_string(score_start, score_buffer, Size16, GRID_BG_COLOR,
-                             Black);
+                             TEXT_COLOR);
 
         // The maximum tile number in this version of 2048 is 4096, because of
         // this the maximum width of the cell text area is given below.
@@ -711,7 +740,7 @@ void update_game_grid(Display *display, GameState *gs)
                                     .y = start.y + y_margin};
                                 display->draw_string(start_with_margin, buffer,
                                                      Size16, GRID_BG_COLOR,
-                                                     Black);
+                                                     TEXT_COLOR);
                                 gs->old_grid[i][j] = gs->grid[i][j];
                         }
                 }
