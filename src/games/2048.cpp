@@ -59,13 +59,17 @@ static void draw_game_canvas(Display *display, GameState *state,
                              UserInterfaceCustomization *customization);
 
 void free_game_state(GameState *gs);
+
 /**
- * Returns true if the user wants to play again. If they press blue on the
- * configuration screen it means that they want to exit, in which case this
- * function would return false.
+ * Returns the action that the user wants to take after the game loop is
+ * complete. This can either be 'PlayAgain' or they can request to exit or show
+ * the help screen. This needs to be appropriately handled by the caller.
  */
 UserAction enter_2048_loop(Platform *platform,
                            UserInterfaceCustomization *customization);
+
+void simple_help_loop(Platform *p, UserInterfaceCustomization *customization,
+                      const char *help_text);
 
 void Clean2048::game_loop(Platform *p,
                           UserInterfaceCustomization *customization)
@@ -80,10 +84,77 @@ void Clean2048::game_loop(Platform *p,
                         exit_requested = true;
                         break;
                 case UserAction::ShowHelp:
-                        // TODO: add help handler here.
                         LOG_INFO(TAG, "User requsted help screen for 2048.");
+                        simple_help_loop(p, customization, "It's 2048 innit");
                         break;
                 }
+        }
+}
+
+/**
+ * Renders a single block of text and exits when user presses green.
+ */
+void simple_help_loop(Platform *p, UserInterfaceCustomization *customization,
+                      const char *help_text)
+{
+
+        p->display->clear(Black);
+
+        // We exctract the display dimensions and font sizes into shorter
+        // variable names to make the code easier to read.
+        int h = p->display->get_height();
+        int w = p->display->get_width();
+        int fw = FONT_WIDTH;
+        int fh = FONT_SIZE;
+
+        // TODO: properly split the input text into lines.
+        int help_text_len = strlen(help_text);
+        int help_text_x = (w - help_text_len * fw) / 2;
+        // TODO: calculate dynamically
+        int help_text_y = 4 * fh;
+        p->display->draw_string({.x = help_text_x, .y = help_text_y},
+                                (char *)help_text, FontSize::Size16, Black,
+                                White);
+
+        // We render the part saying that ok closes the help screen
+        const char *ok = "OK";
+        int ok_text_len = strlen(ok);
+
+        int ok_text_x = w - fw * (ok_text_len + 3);
+        int ok_text_y = h - 2 * fh;
+
+        int ok_green_circle_x = ok_text_x + (ok_text_len + 1) * fw;
+        int ok_green_circle_y = ok_text_y + 3 * fh / 4;
+
+        // The font on the emulator differs slightly from the target
+        // LCD display font, so we need to apply this vertical alignment
+        // override.
+#ifndef EMULATOR
+        ok_text_y += fh / 4;
+#endif
+
+        p->display->draw_string({.x = ok_text_x, .y = ok_text_y}, (char *)ok,
+                                FontSize::Size16, Black, White);
+
+        // This might need simplification in the future
+        int radius = FONT_SIZE / 4;
+        int d = 2 * radius;
+        int circle_radius = 5;
+        p->display->draw_circle(
+            {.x = ok_green_circle_x, .y = ok_green_circle_y}, circle_radius,
+            Green, 0, true);
+        while (true) {
+                Action act;
+                if (action_input_registered(p->action_controllers, &act)) {
+                        if (act == Action::GREEN) {
+                                LOG_DEBUG(TAG, "User confirmed 'OK'");
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
+                                return;
+                        }
+                }
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->display->refresh();
         }
 }
 
