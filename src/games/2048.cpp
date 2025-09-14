@@ -64,22 +64,40 @@ void free_game_state(GameState *gs);
  * configuration screen it means that they want to exit, in which case this
  * function would return false.
  */
-bool enter_2048_loop(Platform *platform,
-                     UserInterfaceCustomization *customization);
+UserAction enter_2048_loop(Platform *platform,
+                           UserInterfaceCustomization *customization);
 
 void Clean2048::game_loop(Platform *p,
                           UserInterfaceCustomization *customization)
 {
-        while (enter_2048_loop(p, customization)) {
-                LOG_INFO("2048", "Re-entering the main 2048 game loop.");
+        bool exit_requested;
+        while (!exit_requested) {
+                switch (enter_2048_loop(p, customization)) {
+                case UserAction::PlayAgain:
+                        LOG_INFO(TAG,
+                                 "Re-entering the main 2048 game loop.");
+                        continue;
+                case UserAction::Exit:
+                        exit_requested = true;
+                        break;
+                case UserAction::ShowHelp:
+                        // TODO: add help handler here.
+                        LOG_INFO(TAG,
+                                 "User requsted help screen for 2048.");
+                        break;
+                }
         }
 }
 
-bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
+UserAction enter_2048_loop(Platform *p,
+                           UserInterfaceCustomization *customization)
 {
         Game2048Configuration config;
-        if (!collect_2048_config(p, &config, customization))
-                return false;
+
+        auto maybe_action = collect_2048_config(p, &config, customization);
+        if (maybe_action) {
+                return maybe_action.value();
+        }
 
         GameState *state =
             initialize_game_state(config.grid_size, config.target_max_tile);
@@ -105,7 +123,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
                                 free_game_state(state);
                                 p->delay_provider->delay_ms(
                                     MOVE_REGISTERED_DELAY);
-                                return true;
+                                return UserAction::Exit;
                         }
                 }
                 p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
@@ -121,7 +139,7 @@ bool enter_2048_loop(Platform *p, UserInterfaceCustomization *customization)
 
         pause_until_any_directional_input(p->directional_controllers,
                                           p->delay_provider, p->display);
-        return true;
+        return UserAction::PlayAgain;
 }
 
 Game2048Configuration *load_initial_config(PersistentStorage *storage)
@@ -211,16 +229,21 @@ void extract_game_config(Game2048Configuration *game_config,
             static_cast<int *>(game_target.available_values)[curr_target_idx];
 }
 
-bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
-                         UserInterfaceCustomization *customization)
+std::optional<UserAction>
+collect_2048_config(Platform *p, Game2048Configuration *game_config,
+                    UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_2048_configuration(p->persistent_storage);
-        if (!collect_configuration(p, config, customization))
-                return false;
+
+        auto maybe_interrupt_action =
+            collect_configuration(p, config, customization);
+        if (maybe_interrupt_action) {
+                return maybe_interrupt_action;
+        }
 
         extract_game_config(game_config, config);
-        return true;
+        return std::nullopt;
 }
 
 /* Initialization Code */

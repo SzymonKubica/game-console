@@ -2,6 +2,7 @@
 
 #include "../common/platform/interface/display.hpp"
 #include "../common/platform/interface/platform.hpp"
+#include "../common/configuration.hpp"
 
 #include "common_transitions.hpp"
 #include "game_executor.hpp"
@@ -36,8 +37,9 @@ class GameState
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
-                         UserInterfaceCustomization *customization);
+std::optional<UserAction>
+collect_2048_config(Platform *p, Game2048Configuration *game_config,
+                    UserInterfaceCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 

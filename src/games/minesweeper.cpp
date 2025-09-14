@@ -321,7 +321,8 @@ void erase_caret(Display *display, Point *grid_position,
 {
         // We need to ensure that the caret is rendered INSIDE the text
         // cell and its border doesn't overlap the neighbouring cells.
-        // Otherwise, we'll get weird rendering artifacts.
+        // Otherwise, we'll get weird rendering artifacts where the border get
+        // clipped.
         int border_offset = 1;
         Point actual_position = {
             .x = dimensions->left_horizontal_margin +

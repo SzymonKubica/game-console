@@ -1,4 +1,5 @@
 #include <cassert>
+#include <optional>
 #include <string>
 #include <stdlib.h>
 
@@ -277,9 +278,10 @@ int get_config_option_string_value_index(ConfigurationOption *option,
         return -1;
 }
 
-bool collect_configuration(Platform *p, Configuration *config,
-                           UserInterfaceCustomization *customization,
-                           bool allow_exit)
+std::optional<UserAction>
+collect_configuration(Platform *p, Configuration *config,
+                      UserInterfaceCustomization *customization,
+                      bool allow_exit)
 {
         ConfigurationDiff *diff = empty_diff();
         render_config_menu(p->display, config, diff, false, customization);
@@ -292,6 +294,12 @@ bool collect_configuration(Platform *p, Configuration *config,
                 ConfigurationDiff *diff = empty_diff();
                 bool confirmation_bar_selected =
                     config->curr_selected_option == config->options_len;
+
+                // Abstract out the repeatable delay functionality.
+                auto move_registered_delay = [&] {
+                        p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
+                };
+
                 if (action_input_registered(p->action_controllers, &act)) {
                         /* To make the UI more intuitive, we also allow users to
                         cycle configuration options and confirm final selection
@@ -299,8 +307,7 @@ bool collect_configuration(Platform *p, Configuration *config,
                         initial play testing by Tomek. */
                         if (act == Action::GREEN) {
                                 if (confirmation_bar_selected) {
-                                        p->delay_provider->delay_ms(
-                                            MOVE_REGISTERED_DELAY);
+                                        move_registered_delay();
                                         break;
                                 } else {
                                         increment_current_option_value(config,
@@ -309,15 +316,16 @@ bool collect_configuration(Platform *p, Configuration *config,
                                                            diff, true,
                                                            customization);
                                         free(diff);
-                                        p->delay_provider->delay_ms(
-                                            MOVE_REGISTERED_DELAY);
                                         continue;
                                 }
                         }
                         if (act == Action::BLUE && allow_exit) {
-                                p->delay_provider->delay_ms(
-                                    MOVE_REGISTERED_DELAY);
-                                return false;
+                                move_registered_delay();
+                                return UserAction::Exit;
+                        }
+                        if (act == Action::YELLOW) {
+                                move_registered_delay();
+                                return UserAction::ShowHelp;
                         }
                 }
                 if (directional_input_registered(p->directional_controllers,
@@ -361,5 +369,5 @@ bool collect_configuration(Platform *p, Configuration *config,
                 p->display->refresh();
                 free(diff);
         }
-        return true;
+        return std::nullopt;
 }

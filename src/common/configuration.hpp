@@ -2,12 +2,19 @@
 
 #include "platform/interface/platform.hpp"
 #include "user_interface_customization.hpp"
+#include <optional>
 
 typedef enum ConfigurationOptionType {
         INT,
         STRING,
         COLOR,
 } ConfigurationOptionType;
+
+enum class UserAction {
+        PlayAgain,
+        Exit,
+        ShowHelp,
+};
 
 typedef struct ConfigurationOption {
         /**
@@ -171,10 +178,19 @@ int find_max_config_option_value_text_length(Configuration *config);
  *
  * It returns true if the configuration was successfully collected. If the user
  * requested to go back, it returns false.
+ *
+ * While the configuration is being collected, the user has ability to abort the
+ * process by either requesting exit or asking for help screen (and possibly
+ * more actions in the future). This is controlled by the return parameter. If
+ * the return is `std::nullopt`, it means that the configuration was collected
+ * and no interrupt action was registered. Otherwise, the function returns
+ * some `UserInterruptAction` that needs to be handled by the game loop that
+ * started collecting the configuration.
  */
-bool collect_configuration(Platform *p, Configuration *config,
-                           UserInterfaceCustomization *customization,
-                           bool allow_exit = true);
+std::optional<UserAction>
+collect_configuration(Platform *p, Configuration *config,
+                      UserInterfaceCustomization *customization,
+                      bool allow_exit = true);
 
 void populate_int_option_values(ConfigurationOption *value,
                                 std::vector<int> available_values);
