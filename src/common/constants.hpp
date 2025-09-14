@@ -1,4 +1,5 @@
-/* Definitions of platform-specific constants that are commonly used by the games.*/
+/* Definitions of platform-specific constants that are commonly used by the
+ * games.*/
 #pragma once
 
 #define FONT_SIZE 16
@@ -36,5 +37,3 @@
 #ifndef EMULATOR
 #define MOVE_REGISTERED_DELAY 150
 #endif
-
-

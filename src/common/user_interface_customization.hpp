@@ -4,15 +4,15 @@
 enum UserInterfaceRenderingMode {
         /**
          * Minimalistic UI rendering mode. It leverages normal rectangles with
-         * no fill instead of filled rounded ones. It also skips rendering of the
-         * rounded screen borders.
+         * no fill instead of filled rounded ones. It also skips rendering of
+         * the rounded screen borders.
          *
          * This is useful to make the UX more responsive on the actual LCD
-         * display on the target device. The display is quite slow (it is limited
-         * by the clock rate of the Arduino SPI interface), and redrawing large
-         * blobs of UI elements is slow and can get annoying if users decide
-         * to traverse many UI screens. If this rendering mode is enabled, the
-         * experience will be much more snappy.
+         * display on the target device. The display is quite slow (it is
+         * limited by the clock rate of the Arduino SPI interface), and
+         * redrawing large blobs of UI elements is slow and can get annoying if
+         * users decide to traverse many UI screens. If this rendering mode is
+         * enabled, the experience will be much more snappy.
          */
         Minimalistic = 0,
         /**

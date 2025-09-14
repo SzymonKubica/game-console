@@ -5,7 +5,6 @@
 #include "configuration.hpp"
 #include "platform/interface/display.hpp"
 
-
 void setup_display();
 
 void render_config_menu(Display *display, Configuration *config,
@@ -13,5 +12,3 @@ void render_config_menu(Display *display, Configuration *config,
                         UserInterfaceCustomization *customization);
 
 ConfigurationDiff *empty_diff();
-
-

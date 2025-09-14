@@ -18,46 +18,46 @@
  * Assembles the generic configuration struct that can be used to collect user
  * input specifying the game of life configuration.
  */
-Configuration *
-assemble_game_of_life_configuration(PersistentStorage *storage);
+Configuration *assemble_game_of_life_configuration(PersistentStorage *storage);
 
 RandomSeedPickerConfiguration *
 load_initial_seed_picker_config(PersistentStorage *storage)
 {
-  /*
-        int storage_offset = get_settings_storage_offsets()[RandomSeedPicker];
+        /*
+              int storage_offset =
+           get_settings_storage_offsets()[RandomSeedPicker];
 
-        RandomSeedPickerConfiguration config = {
-            .base_seed = 0,
-            .reseed_iterations = 1,
-        };
+              RandomSeedPickerConfiguration config = {
+                  .base_seed = 0,
+                  .reseed_iterations = 1,
+              };
 
-        LOG_DEBUG(TAG,
-                  "Trying to load initial settings from the persistent storage "
-                  "at offset %d",
-                  storage_offset);
-        storage->get(storage_offset, config);
+              LOG_DEBUG(TAG,
+                        "Trying to load initial settings from the persistent
+           storage " "at offset %d", storage_offset);
+              storage->get(storage_offset, config);
 
-        RandomSeedPickerConfiguration *output =
-            new RandomSeedPickerConfiguration();
+              RandomSeedPickerConfiguration *output =
+                  new RandomSeedPickerConfiguration();
 
-        if (config.reseed_iterations == 0) {
-                LOG_DEBUG(
-                    TAG,
-                    "The storage does not contain a valid "
-                    "random seed picker configuration, using default values.");
-                memcpy(output, &DEFAULT_GAME_OF_LIFE_CONFIG,
-                       sizeof(GameOfLifeConfiguration));
-                storage->put(storage_offset, DEFAULT_GAME_OF_LIFE_CONFIG);
+              if (config.reseed_iterations == 0) {
+                      LOG_DEBUG(
+                          TAG,
+                          "The storage does not contain a valid "
+                          "random seed picker configuration, using default
+           values."); memcpy(output, &DEFAULT_GAME_OF_LIFE_CONFIG,
+                             sizeof(GameOfLifeConfiguration));
+                      storage->put(storage_offset, DEFAULT_GAME_OF_LIFE_CONFIG);
 
-        } else {
-                LOG_DEBUG(TAG, "Using configuration from persistent storage.");
-                memcpy(output, &config, sizeof(RandomSeedPickerConfiguration));
-        }
+              } else {
+                      LOG_DEBUG(TAG, "Using configuration from persistent
+           storage."); memcpy(output, &config,
+           sizeof(RandomSeedPickerConfiguration));
+              }
 
-        return output;
-        */
-  return NULL;
+              return output;
+              */
+        return NULL;
 }
 
 /*

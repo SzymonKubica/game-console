@@ -31,7 +31,8 @@ void display_input_clafification(Display *display)
         }
 }
 
-void display_game_over(Display *display, UserInterfaceCustomization *customization)
+void display_game_over(Display *display,
+                       UserInterfaceCustomization *customization)
 {
         if (customization->rendering_mode == Detailed) {
                 display->draw_rounded_border(Red);
@@ -53,7 +54,8 @@ void display_game_over(Display *display, UserInterfaceCustomization *customizati
         display_input_clafification(display);
 }
 
-void display_game_won(Display *display, UserInterfaceCustomization *customization)
+void display_game_won(Display *display,
+                      UserInterfaceCustomization *customization)
 {
         if (customization->rendering_mode == Detailed) {
                 display->draw_rounded_border(Green);

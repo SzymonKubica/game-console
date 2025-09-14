@@ -5,7 +5,6 @@
 class GameExecutor
 {
       public:
-        virtual void
-        game_loop(Platform *p,
-                        UserInterfaceCustomization *customization) = 0;
+        virtual void game_loop(Platform *p,
+                               UserInterfaceCustomization *customization) = 0;
 };

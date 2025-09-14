@@ -101,7 +101,7 @@ std::vector<Point> get_neighbours_inside_grid(Point *point, int rows, int cols)
 }
 
 std::vector<Point> get_neighbours_toroidal_array(Point *point, int rows,
-                                                  int cols)
+                                                 int cols)
 {
         std::vector<Point> neighbours;
         // Dereference for readability;
@@ -116,13 +116,13 @@ std::vector<Point> get_neighbours_toroidal_array(Point *point, int rows,
         neighbours.push_back(
             {.x = mathematical_modulo(p.x + 1, cols), .y = p.y});
         neighbours.push_back({.x = mathematical_modulo(p.x - 1, cols),
-                               .y = mathematical_modulo(p.y - 1, rows)});
+                              .y = mathematical_modulo(p.y - 1, rows)});
         neighbours.push_back({.x = mathematical_modulo(p.x + 1, cols),
-                               .y = mathematical_modulo(p.y + 1, rows)});
+                              .y = mathematical_modulo(p.y + 1, rows)});
         neighbours.push_back({.x = mathematical_modulo(p.x - 1, cols),
-                               .y = mathematical_modulo(p.y + 1, rows)});
+                              .y = mathematical_modulo(p.y + 1, rows)});
         neighbours.push_back({.x = mathematical_modulo(p.x + 1, cols),
-                               .y = mathematical_modulo(p.y - 1, rows)});
+                              .y = mathematical_modulo(p.y - 1, rows)});
         return neighbours;
 }
 

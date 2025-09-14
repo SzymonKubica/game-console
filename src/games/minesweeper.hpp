@@ -6,7 +6,6 @@ typedef struct MinesweeperConfiguration {
         int mines_num;
 } MinesweeperConfiguration;
 
-
 /**
  * Similar to `collect_configuration` from `configuration.hpp`, it returns true
  * if the configuration was successfully collected. Otherwise, if the user

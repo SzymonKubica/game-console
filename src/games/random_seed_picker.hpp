@@ -30,7 +30,7 @@ class RandomSeedPicker : public GameExecutor
 {
       public:
         void game_loop(Platform *p,
-                             UserInterfaceCustomization *customization) override
+                       UserInterfaceCustomization *customization) override
         {
                 while (true) {
                         enter_random_seed_picker_loop(p, customization);

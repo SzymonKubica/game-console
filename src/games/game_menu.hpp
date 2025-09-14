@@ -25,9 +25,9 @@ void select_game(Platform *p);
 
 /**
  * Similar to `collect_configuration` from `configuration.hpp`, it returns true
- * if the configuration was successfully collected. Otherwise, if the user requested
- * exit by pressing the blue button, it returns false and this needs to be
- * handled by the main game loop.
+ * if the configuration was successfully collected. Otherwise, if the user
+ * requested exit by pressing the blue button, it returns false and this needs
+ * to be handled by the main game loop.
  */
 bool collect_game_menu_config(Platform *p,
-                                GameMenuConfiguration *configuration);
+                              GameMenuConfiguration *configuration);

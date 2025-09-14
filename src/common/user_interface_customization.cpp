@@ -11,9 +11,10 @@ const char *rendering_mode_to_str(UserInterfaceRenderingMode mode)
         return "UNKNOWN";
 }
 
-UserInterfaceRenderingMode rendering_mode_from_str(const char *mode_str) {
-  if (strcmp(mode_str, rendering_mode_to_str(Minimalistic)) == 0) {
-    return UserInterfaceRenderingMode::Minimalistic;
-  }
-  return UserInterfaceRenderingMode::Detailed;
+UserInterfaceRenderingMode rendering_mode_from_str(const char *mode_str)
+{
+        if (strcmp(mode_str, rendering_mode_to_str(Minimalistic)) == 0) {
+                return UserInterfaceRenderingMode::Minimalistic;
+        }
+        return UserInterfaceRenderingMode::Detailed;
 }

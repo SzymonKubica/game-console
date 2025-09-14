@@ -39,7 +39,7 @@ class GameState
  * to be handled by the main game loop.
  */
 bool collect_2048_config(Platform *p, Game2048Configuration *game_config,
-                                UserInterfaceCustomization *customization);
+                         UserInterfaceCustomization *customization);
 
 GameState *initialize_game_state(int gridSize, int target_max_tile);
 
@@ -51,12 +51,12 @@ bool is_game_over(GameState *gs);
 bool is_game_finished(GameState *gs);
 void take_turn(GameState *gs, int direction);
 
-
 class Clean2048 : public GameExecutor
 {
       public:
-        virtual void game_loop(Platform *p,
-                             UserInterfaceCustomization *customization) override;
+        virtual void
+        game_loop(Platform *p,
+                  UserInterfaceCustomization *customization) override;
 
         Clean2048() {}
 };
