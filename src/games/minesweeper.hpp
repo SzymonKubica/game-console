@@ -1,6 +1,8 @@
 #pragma once
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
+#include "../common/configuration.hpp"
+#include <optional>
 
 typedef struct MinesweeperConfiguration {
         int mines_num;
@@ -12,9 +14,9 @@ typedef struct MinesweeperConfiguration {
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_minesweeper_config(Platform *p,
-                                MinesweeperConfiguration *game_config,
-                                UserInterfaceCustomization *customization);
+std::optional<UserAction>
+collect_minesweeper_config(Platform *p, MinesweeperConfiguration *game_config,
+                           UserInterfaceCustomization *customization);
 
 class Minesweeper : public GameExecutor
 {

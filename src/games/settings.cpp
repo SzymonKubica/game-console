@@ -30,30 +30,42 @@ void Settings::game_loop(Platform *p, UserInterfaceCustomization *custom)
                     "Computed configuration storage offset for game %s: %d",
                     game_to_string(selected_game), offset);
 
+                PersistentStorage storage = *(p->persistent_storage);
+
                 switch (selected_game) {
                 case MainMenu: {
                         GameMenuConfiguration config;
-                        if (!collect_game_menu_config(p, &config))
+                        auto action = collect_game_menu_config(p, &config);
+                        if (action && action.value() == UserAction::Exit) {
                                 return;
-                        p->persistent_storage->put(offset, config);
+                        }
+                        storage.put(offset, config);
                 } break;
                 case Clean2048: {
                         Game2048Configuration config;
-                        if (!collect_2048_config(p, &config, custom))
+                        auto action = collect_2048_config(p, &config, custom);
+                        if (action && action.value() == UserAction::Exit) {
                                 return;
-                        p->persistent_storage->put(offset, config);
+                        }
+                        storage.put(offset, config);
                 } break;
                 case Minesweeper: {
                         MinesweeperConfiguration config;
-                        if (!collect_minesweeper_config(p, &config, custom))
+                        auto action =
+                            collect_minesweeper_config(p, &config, custom);
+                        if (action && action.value() == UserAction::Exit) {
                                 return;
-                        p->persistent_storage->put(offset, config);
+                        }
+                        storage.put(offset, config);
                 } break;
                 case GameOfLife: {
                         GameOfLifeConfiguration config;
-                        if (!collect_game_of_life_config(p, &config, custom))
+                        auto action =
+                            collect_game_of_life_config(p, &config, custom);
+                        if (action && action.value() == UserAction::Exit) {
                                 return;
-                        p->persistent_storage->put(offset, config);
+                        }
+                        storage.put(offset, config);
                 } break;
                 default:
                         return;

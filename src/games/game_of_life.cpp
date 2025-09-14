@@ -171,26 +171,41 @@ load_initial_game_of_life_config(PersistentStorage *storage)
  * configuration screen it means that they want to exit, in which case this
  * function would return false.
  */
-bool enter_game_of_life_loop(Platform *platform,
+UserAction game_of_life_loop(Platform *platform,
                              UserInterfaceCustomization *customization);
 
 void GameOfLife::game_loop(Platform *p,
                            UserInterfaceCustomization *customization)
 {
-        while (enter_game_of_life_loop(p, customization)) {
-                LOG_DEBUG("game_of_life", "Re-entering game of life loop.");
+        bool exit_requested;
+        while (!exit_requested) {
+                switch (game_of_life_loop(p, customization)) {
+                case UserAction::PlayAgain:
+                        LOG_DEBUG(TAG, "Re-entering game of life loop.");
+                        break;
+                case UserAction::Exit:
+                        exit_requested = true;
+                        break;
+                case UserAction::ShowHelp:
+                        LOG_DEBUG(TAG,
+                                  "User requested game of life help screen.");
+                        break;
+                }
         }
 }
 
-bool enter_game_of_life_loop(Platform *p,
+UserAction game_of_life_loop(Platform *p,
                              UserInterfaceCustomization *customization)
 {
 
         LOG_DEBUG(TAG, "Entering Game of Life game loop");
         GameOfLifeConfiguration config;
 
-        if (!collect_game_of_life_config(p, &config, customization))
-                return false;
+        auto maybe_interrupt =
+            collect_game_of_life_config(p, &config, customization);
+        if (maybe_interrupt) {
+                return maybe_interrupt.value();
+        }
 
         GameOfLifeGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -360,21 +375,23 @@ bool enter_game_of_life_loop(Platform *p,
                 p->delay_provider->delay_ms(GAME_LOOP_DELAY);
                 p->display->refresh();
         }
-        return true;
+        return UserAction::PlayAgain;
 }
 
-bool collect_game_of_life_config(Platform *p,
-                                 GameOfLifeConfiguration *game_config,
-                                 UserInterfaceCustomization *customization)
+std::optional<UserAction>
+collect_game_of_life_config(Platform *p, GameOfLifeConfiguration *game_config,
+                            UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_game_of_life_configuration(p->persistent_storage);
-        if (collect_configuration(p, config, customization))
-                return false;
+        auto maybe_interrupt = collect_configuration(p, config, customization);
+        if (maybe_interrupt) {
+                return maybe_interrupt;
+        }
 
         extract_game_config(game_config, config);
         free_configuration(config);
-        return true;
+        return std::nullopt;
 }
 
 Configuration *assemble_game_of_life_configuration(PersistentStorage *storage)

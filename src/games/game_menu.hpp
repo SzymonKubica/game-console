@@ -1,5 +1,6 @@
 #include "../common/platform/interface/platform.hpp"
 #include "../common/user_interface.hpp"
+#include <optional>
 
 typedef enum Game
     : int { Unknown = 0,
@@ -29,5 +30,5 @@ void select_game(Platform *p);
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_game_menu_config(Platform *p,
+std::optional<UserAction> collect_game_menu_config(Platform *p,
                               GameMenuConfiguration *configuration);

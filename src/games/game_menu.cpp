@@ -1,3 +1,4 @@
+#include <optional>
 #include <stdlib.h>
 #include "game_menu.hpp"
 #include "../common/configuration.hpp"
@@ -115,7 +116,14 @@ void select_game(Platform *p)
 {
         GameMenuConfiguration config;
 
-        collect_game_menu_config(p, &config);
+        auto maybe_interrupt = collect_game_menu_config(p, &config);
+
+        if (maybe_interrupt.has_value() &&
+            maybe_interrupt.value() == UserAction::ShowHelp) {
+                // Show main menu help here, return for another go at
+                // configuring the menu.
+                return;
+        }
 
         UserInterfaceCustomization customization = {
             config.accent_color,
@@ -149,7 +157,8 @@ void select_game(Platform *p)
         executor->game_loop(p, &customization);
 }
 
-bool collect_game_menu_config(Platform *p, GameMenuConfiguration *configuration)
+std::optional<UserAction>
+collect_game_menu_config(Platform *p, GameMenuConfiguration *configuration)
 {
 
         GameMenuConfiguration *initial_config =
@@ -162,14 +171,17 @@ bool collect_game_menu_config(Platform *p, GameMenuConfiguration *configuration)
             .accent_color = initial_config->accent_color,
             .rendering_mode = initial_config->rendering_mode};
 
-        if (collect_configuration(p, config, &customization, false))
-                return false;
+        auto maybe_interrupt =
+            collect_configuration(p, config, &customization, false);
+        if (maybe_interrupt) {
+                return maybe_interrupt;
+        }
 
         extract_game_config(configuration, config);
 
         free_configuration(config);
         free(initial_config);
-        return true;
+        return std::nullopt;
 }
 
 Game game_from_string(const char *name)

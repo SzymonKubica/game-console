@@ -1,6 +1,8 @@
 #pragma once
 #include "game_executor.hpp"
 #include "common_transitions.hpp"
+#include "../common/configuration.hpp"
+#include <optional>
 
 typedef struct GameOfLifeConfiguration {
         bool prepopulate_grid;
@@ -27,9 +29,9 @@ typedef struct GameOfLifeConfiguration {
  * requested exit by pressing the blue button, it returns false and this needs
  * to be handled by the main game loop.
  */
-bool collect_game_of_life_config(Platform *p,
-                                 GameOfLifeConfiguration *game_config,
-                                 UserInterfaceCustomization *customization);
+std::optional<UserAction>
+collect_game_of_life_config(Platform *p, GameOfLifeConfiguration *game_config,
+                            UserInterfaceCustomization *customization);
 
 class GameOfLife : public GameExecutor
 {

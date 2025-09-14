@@ -8,6 +8,7 @@
 
 #include "common_transitions.hpp"
 #include "settings.hpp"
+#include <optional>
 #include "minesweeper.hpp"
 
 #define TAG "minesweeper"
@@ -86,35 +87,52 @@ void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
  * configuration screen it means that they want to exit, in which case this
  * function returns false.
  */
-bool minesweeper_loop(Platform *platform,
-                      UserInterfaceCustomization *customization);
+UserAction minesweeper_loop(Platform *platform,
+                            UserInterfaceCustomization *customization);
 
 void Minesweeper::game_loop(Platform *p,
                             UserInterfaceCustomization *customization)
 {
 
-        while (minesweeper_loop(p, customization)) {
-                LOG_DEBUG(TAG,
-                          "Minesweeper game loop finished. Pausing for input "
-                          "to allow the user to view the finished grid.");
-                Direction dir;
-                Action act;
-                pause_until_input(p->directional_controllers,
-                                  p->action_controllers, &dir, &act,
-                                  p->delay_provider, p->display);
+        bool exit_requested = false;
+        while (!exit_requested) {
+                switch (minesweeper_loop(p, customization)) {
+                case UserAction::PlayAgain:
+                        LOG_DEBUG(TAG, "Minesweeper game loop finished. "
+                                       "Pausing for input ");
+                        Direction dir;
+                        Action act;
+                        pause_until_input(p->directional_controllers,
+                                          p->action_controllers, &dir, &act,
+                                          p->delay_provider, p->display);
 
-                if (act == Action::BLUE) {
+                        if (act == Action::BLUE) {
+                                exit_requested = true;
+                        }
+                        break;
+                case UserAction::Exit:
+                        exit_requested = true;
+                        break;
+                case UserAction::ShowHelp:
+                        // show help here
+                        LOG_DEBUG(TAG,
+                                  "User requested minesweeper help screen");
                         break;
                 }
         }
 }
-bool minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
+UserAction minesweeper_loop(Platform *p,
+                            UserInterfaceCustomization *customization)
 {
         LOG_DEBUG(TAG, "Entering Minesweeper game loop");
         MinesweeperConfiguration config;
 
-        if (!collect_minesweeper_config(p, &config, customization))
-                return false;
+        auto maybe_interrupt =
+            collect_minesweeper_config(p, &config, customization);
+
+        if (maybe_interrupt) {
+                return maybe_interrupt.value();
+        }
 
         MinesweeperGridDimensions *gd = calculate_grid_dimensions(
             p->display->get_width(), p->display->get_height(),
@@ -282,7 +300,7 @@ bool minesweeper_loop(Platform *p, UserInterfaceCustomization *customization)
                 p->delay_provider->delay_ms(MOVE_REGISTERED_DELAY);
         }
         p->display->refresh();
-        return true;
+        return UserAction::PlayAgain;
 }
 
 void place_bombs(std::vector<std::vector<MinesweeperGridCell>> *grid,
@@ -485,19 +503,21 @@ Configuration *assemble_minesweeper_configuration(PersistentStorage *storage);
 void extract_game_config(MinesweeperConfiguration *game_config,
                          Configuration *config);
 
-bool collect_minesweeper_config(Platform *p,
-                                MinesweeperConfiguration *game_config,
-                                UserInterfaceCustomization *customization)
+std::optional<UserAction>
+collect_minesweeper_config(Platform *p, MinesweeperConfiguration *game_config,
+                           UserInterfaceCustomization *customization)
 {
         Configuration *config =
             assemble_minesweeper_configuration(p->persistent_storage);
 
-        if (!collect_configuration(p, config, customization))
-                return false;
+        auto maybe_interrupt = collect_configuration(p, config, customization);
+        if (maybe_interrupt) {
+                return maybe_interrupt;
+        }
 
         extract_game_config(game_config, config);
         free_configuration(config);
-        return true;
+        return std::nullopt;
 }
 
 MinesweeperConfiguration *
