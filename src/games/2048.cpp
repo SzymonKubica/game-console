@@ -1,3 +1,4 @@
+#include <sstream>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -74,6 +75,11 @@ void simple_help_loop(Platform *p, UserInterfaceCustomization *customization,
 void Clean2048::game_loop(Platform *p,
                           UserInterfaceCustomization *customization)
 {
+        const char *help_text =
+            "Use the joystick to shift the tiles around the grid. The "
+            "objective is to merge tiles of the same value to reach the 2048 "
+            "tile. At any point in the game press blue to exit.";
+
         bool exit_requested = false;
         while (!exit_requested) {
                 switch (enter_2048_loop(p, customization)) {
@@ -85,7 +91,7 @@ void Clean2048::game_loop(Platform *p,
                         break;
                 case UserAction::ShowHelp:
                         LOG_INFO(TAG, "User requsted help screen for 2048.");
-                        simple_help_loop(p, customization, "It's 2048 innit");
+                        simple_help_loop(p, customization, help_text);
                         break;
                 }
         }
@@ -104,17 +110,54 @@ void simple_help_loop(Platform *p, UserInterfaceCustomization *customization,
         // variable names to make the code easier to read.
         int h = p->display->get_height();
         int w = p->display->get_width();
+        int margin = p->display->get_display_corner_radius();
         int fw = FONT_WIDTH;
         int fh = FONT_SIZE;
 
+        int maximum_line_chars = (w - 2 * margin) / fw;
+
         // TODO: properly split the input text into lines.
         int help_text_len = strlen(help_text);
-        int help_text_x = (w - help_text_len * fw) / 2;
+        int help_text_x = margin;
         // TODO: calculate dynamically
-        int help_text_y = 4 * fh;
-        p->display->draw_string({.x = help_text_x, .y = help_text_y},
-                                (char *)help_text, FontSize::Size16, Black,
-                                White);
+        int help_text_start_y = 2 * fh;
+
+        std::string text_string(help_text);
+        std::istringstream iss(text_string);
+        std::vector<std::string> words;
+
+        std::string word;
+        while (iss >> word) {
+                words.push_back(word);
+        }
+
+        int lines_drawn = 0;
+        std::string current_line = "";
+        for (auto &w : words) {
+                if (current_line.size() + w.size() + 1 <= maximum_line_chars) {
+                        if (current_line != "") {
+                                current_line = current_line + " " + w;
+                        } else {
+                                current_line = w;
+                        }
+                } else {
+                        p->display->draw_string(
+                            {.x = help_text_x,
+                             .y = help_text_start_y + fh * lines_drawn},
+                            (char *)current_line.c_str(), FontSize::Size16,
+                            Black, White);
+                        lines_drawn++;
+                        current_line = w;
+                }
+        }
+
+        if (current_line != "") {
+                p->display->draw_string(
+                    {.x = help_text_x,
+                     .y = help_text_start_y + fh * lines_drawn},
+                    (char *)current_line.c_str(), FontSize::Size16, Black,
+                    White);
+        }
 
         // We render the part saying that ok closes the help screen
         const char *ok = "OK";
