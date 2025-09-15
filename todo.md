@@ -24,7 +24,9 @@
   each square separately.
 
 # TODO
-- [_] create help screens
+- [_] move simple help text rendering function somewhere where it can be reused.
+- [_] optimize simple help text rendering function to wrap text without relying
+      on heavy c++ utils.
 - [_] make the game of life random grid population truly random (currently it looks
       like the same pattern every time) (The idea is to mess with the seed on input and save
       it in persitent memory)
@@ -40,6 +42,7 @@
 # In Progress
 
 # Done
+- [x] add ability to create help screens.
 - [x] add ability to show help screens
 - [x] make the minimalistic 2048 rendering snappy again
 - [x] check if it is possible to add colour-coded number rendering for 2048
