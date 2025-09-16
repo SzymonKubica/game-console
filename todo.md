@@ -24,7 +24,6 @@
   each square separately.
 
 # TODO
-- [_] move simple help text rendering function somewhere where it can be reused.
 - [_] optimize simple help text rendering function to wrap text without relying
       on heavy c++ utils.
 - [_] make the game of life random grid population truly random (currently it looks
@@ -42,6 +41,8 @@
 # In Progress
 
 # Done
+- [x] move simple help text rendering function somewhere where it can be reused.
+- [x] write help text that fits on the screen
 - [x] add ability to create help screens.
 - [x] add ability to show help screens
 - [x] make the minimalistic 2048 rendering snappy again
