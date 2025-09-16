@@ -1,3 +1,4 @@
+#include <sstream>
 #include "user_interface.hpp"
 #include "configuration.hpp"
 #include "platform/interface/color.hpp"
@@ -565,4 +566,116 @@ void render_config_menu(Display *display, Configuration *config,
                     Yellow, 0, true);
         }
         free(bar_positions);
+}
+
+/**
+ * Renders a single block of wrapped text and a guide indicator saying that
+ * pressing green will dismiss the help text.
+ */
+void render_wrapped_help_text(Platform *p,
+                              UserInterfaceCustomization *customization,
+                              const char *help_text)
+{
+
+        p->display->clear(Black);
+
+        // We exctract the display dimensions and font sizes into shorter
+        // variable names to make the code easier to read.
+        int h = p->display->get_height();
+        int w = p->display->get_width();
+        int margin = p->display->get_display_corner_radius();
+        int fw = FONT_WIDTH;
+        int fh = FONT_SIZE;
+
+        // We allow the text to go into 1/2 of the width of the display corner
+        // radius
+        int maximum_line_chars = (w - margin) / fw;
+
+        // TODO: properly split the input text into lines.
+        int help_text_len = strlen(help_text);
+        int help_text_x = margin / 2;
+        // TODO: calculate dynamically
+        int help_text_start_y = 2 * fh;
+
+        std::string text_string(help_text);
+        std::istringstream iss(text_string);
+        std::vector<std::string> words;
+
+        std::string word;
+        while (iss >> word) {
+                words.push_back(word);
+        }
+
+        int lines_drawn = 0;
+        std::string current_line = "";
+        for (auto &w : words) {
+                if (current_line.size() + w.size() + 1 <= maximum_line_chars) {
+                        if (current_line != "") {
+                                current_line = current_line + " " + w;
+                        } else {
+                                current_line = w;
+                        }
+                } else {
+                        p->display->draw_string(
+                            {.x = help_text_x,
+                             .y = help_text_start_y + fh * lines_drawn},
+                            (char *)current_line.c_str(), FontSize::Size16,
+                            Black, White);
+                        lines_drawn++;
+                        current_line = w;
+                }
+        }
+
+        if (current_line != "") {
+                p->display->draw_string(
+                    {.x = help_text_x,
+                     .y = help_text_start_y + fh * lines_drawn},
+                    (char *)current_line.c_str(), FontSize::Size16, Black,
+                    White);
+        }
+
+        // We render the part saying that ok closes the help screen
+        const char *ok = "OK";
+        int ok_text_len = strlen(ok);
+
+        int ok_text_x = w - fw * (ok_text_len + 3);
+        int ok_text_y = h - 2 * fh;
+
+        int ok_green_circle_x = ok_text_x + (ok_text_len + 1) * fw;
+        int ok_green_circle_y = ok_text_y + 3 * fh / 4;
+
+        // The font on the emulator differs slightly from the target
+        // LCD display font, so we need to apply this vertical alignment
+        // override.
+#ifndef EMULATOR
+        ok_text_y += fh / 4;
+#endif
+
+        p->display->draw_string({.x = ok_text_x, .y = ok_text_y}, (char *)ok,
+                                FontSize::Size16, Black, White);
+
+        // This might need simplification in the future
+        int radius = FONT_SIZE / 4;
+        int d = 2 * radius;
+        int circle_radius = 5;
+        p->display->draw_circle(
+            {.x = ok_green_circle_x, .y = ok_green_circle_y}, circle_radius,
+            Green, 0, true);
+}
+
+void wait_until_green_pressed(Platform *p)
+{
+        while (true) {
+                Action act;
+                if (action_input_registered(p->action_controllers, &act)) {
+                        if (act == Action::GREEN) {
+                                LOG_DEBUG(TAG, "User confirmed 'OK'");
+                                p->delay_provider->delay_ms(
+                                    MOVE_REGISTERED_DELAY);
+                                return;
+                        }
+                }
+                p->delay_provider->delay_ms(INPUT_POLLING_DELAY);
+                p->display->refresh();
+        }
 }

@@ -93,6 +93,11 @@ UserAction minesweeper_loop(Platform *platform,
 void Minesweeper::game_loop(Platform *p,
                             UserInterfaceCustomization *customization)
 {
+        const char *help_text =
+            "Use the joystick to move the caret around the grid. Press green "
+            "to uncover a cell, red to place a flag. The aim "
+            "is to uncover all cells with no mines. Digits in the grid tell you"
+            " the number of mines around the cell.";
 
         bool exit_requested = false;
         while (!exit_requested) {
@@ -114,9 +119,10 @@ void Minesweeper::game_loop(Platform *p,
                         exit_requested = true;
                         break;
                 case UserAction::ShowHelp:
-                        // show help here
                         LOG_DEBUG(TAG,
                                   "User requested minesweeper help screen");
+                        render_wrapped_help_text(p, customization, help_text);
+                        wait_until_green_pressed(p);
                         break;
                 }
         }

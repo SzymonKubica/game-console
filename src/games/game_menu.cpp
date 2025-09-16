@@ -118,17 +118,28 @@ void select_game(Platform *p)
 
         auto maybe_interrupt = collect_game_menu_config(p, &config);
 
-        if (maybe_interrupt.has_value() &&
-            maybe_interrupt.value() == UserAction::ShowHelp) {
-                // Show main menu help here, return for another go at
-                // configuring the menu.
-                return;
-        }
-
+        // this customization might not be initialized properly if the user
+        // requests help message. The current version of the help text rendering
+        // does not depend on it but this might become problematic in the
+        // future.
         UserInterfaceCustomization customization = {
             config.accent_color,
             config.rendering_mode,
         };
+
+        const char *help_text =
+            "Move joystick up/down to switch between menu options. Move "
+            "joystick left/right or press green to change the value of the "
+            "current option. Press green or move joystick left on the last "
+            "cell to start the game.";
+
+            if (maybe_interrupt.has_value() &&
+                maybe_interrupt.value() == UserAction::ShowHelp)
+        {
+                render_wrapped_help_text(p, &customization, help_text);
+                wait_until_green_pressed(p);
+                return;
+        }
 
         LOG_INFO(TAG, "User selected game: %s.", game_to_string(config.game));
 

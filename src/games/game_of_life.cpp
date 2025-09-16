@@ -177,6 +177,12 @@ UserAction game_of_life_loop(Platform *platform,
 void GameOfLife::game_loop(Platform *p,
                            UserInterfaceCustomization *customization)
 {
+        const char *help_text =
+            "Use the joystick to move the caret around the grid. Press green "
+            "to toggle the cell between alive/dead, yellow to pause, blue to "
+            "rewind back in time, red to exit. There is no aim, you stare at "
+            "the simulation";
+
         bool exit_requested = false;
         while (!exit_requested) {
                 switch (game_of_life_loop(p, customization)) {
@@ -189,6 +195,8 @@ void GameOfLife::game_loop(Platform *p,
                 case UserAction::ShowHelp:
                         LOG_DEBUG(TAG,
                                   "User requested game of life help screen.");
+                        render_wrapped_help_text(p, customization, help_text);
+                        wait_until_green_pressed(p);
                         break;
                 }
         }
