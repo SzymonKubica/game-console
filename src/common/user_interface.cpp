@@ -1,4 +1,3 @@
-#include <sstream>
 #include "user_interface.hpp"
 #include "configuration.hpp"
 #include "platform/interface/color.hpp"
@@ -597,41 +596,37 @@ void render_wrapped_help_text(Platform *p,
         // TODO: calculate dynamically
         int help_text_start_y = 2 * fh;
 
-        std::string text_string(help_text);
-        std::istringstream iss(text_string);
-        std::vector<std::string> words;
-
-        std::string word;
-        while (iss >> word) {
-                words.push_back(word);
-        }
-
         int lines_drawn = 0;
-        std::string current_line = "";
-        for (auto &w : words) {
-                if (current_line.size() + w.size() + 1 <= maximum_line_chars) {
-                        if (current_line != "") {
-                                current_line = current_line + " " + w;
+        int curr_word_x_offset = 0;
+        bool first_word = true;
+
+        char help_text_copy[500];
+        strncpy(help_text_copy, help_text, strlen(help_text));
+
+        char *word = strtok((char *)help_text_copy, " ");
+        while (word != nullptr) {
+                int curr_y = help_text_start_y + fh * lines_drawn;
+                if (curr_word_x_offset + strlen(word) + 1 <=
+                    maximum_line_chars) {
+                        if (first_word) {
+                                // We omit the space separator on the first
+                                // word.
+                                first_word = false;
                         } else {
-                                current_line = w;
+                                curr_word_x_offset += 1;
                         }
                 } else {
-                        p->display->draw_string(
-                            {.x = help_text_x,
-                             .y = help_text_start_y + fh * lines_drawn},
-                            (char *)current_line.c_str(), FontSize::Size16,
-                            Black, White);
                         lines_drawn++;
-                        current_line = w;
+                        curr_word_x_offset = 0;
+                        curr_y = help_text_start_y + fh * lines_drawn;
                 }
-        }
 
-        if (current_line != "") {
                 p->display->draw_string(
-                    {.x = help_text_x,
-                     .y = help_text_start_y + fh * lines_drawn},
-                    (char *)current_line.c_str(), FontSize::Size16, Black,
-                    White);
+                    {.x = help_text_x + fw * curr_word_x_offset, .y = curr_y},
+                    (char *)word, FontSize::Size16, Black, White);
+                curr_word_x_offset += strlen(word);
+
+                word = strtok(nullptr, " ");
         }
 
         // We render the part saying that ok closes the help screen
