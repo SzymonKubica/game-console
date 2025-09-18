@@ -600,7 +600,9 @@ void render_wrapped_help_text(Platform *p,
         int curr_word_x_offset = 0;
         bool first_word = true;
 
-        char help_text_copy[500];
+        // We allocate dynamically a copy of the constant string as strtok
+        // needs a mutable reference.
+        char *help_text_copy = (char *)malloc(sizeof(char) * strlen(help_text));
         strncpy(help_text_copy, help_text, strlen(help_text));
 
         char *word = strtok((char *)help_text_copy, " ");
@@ -628,6 +630,8 @@ void render_wrapped_help_text(Platform *p,
 
                 word = strtok(nullptr, " ");
         }
+
+        free(help_text_copy);
 
         // We render the part saying that ok closes the help screen
         const char *ok = "OK";
