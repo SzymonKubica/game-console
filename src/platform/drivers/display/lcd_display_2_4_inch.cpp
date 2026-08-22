@@ -42,7 +42,7 @@ void LcdDisplay::clear(Color color) const { tft.fillScreen(TFT_BLACK); };
 
 void LcdDisplay::draw_rounded_border(Color color) const {};
 
-void LcdDisplay::draw_circle(Point center, int radius, Color color,
+void LcdDisplay::draw_circle(IntPoint center, int radius, Color color,
                              int border_width, bool filled) const
 {
 
@@ -59,7 +59,7 @@ void LcdDisplay::draw_circle(Point center, int radius, Color color,
  * might need to update the display interface to also not expose that (TFT_eSPI
  * is the current go-to display).
  */
-void LcdDisplay::draw_rectangle(Point start, int width, int height, Color color,
+void LcdDisplay::draw_rectangle(IntPoint start, int width, int height, Color color,
                                 int border_width, bool filled) const
 {
 
@@ -72,19 +72,19 @@ void LcdDisplay::draw_rectangle(Point start, int width, int height, Color color,
         }
 };
 
-void LcdDisplay::draw_rounded_rectangle(Point start, int width, int height,
+void LcdDisplay::draw_rounded_rectangle(IntPoint start, int width, int height,
                                         int radius, Color color) const
 {
         tft.fillRoundRect(start.x, start.y, width, height, radius,
                           to_tft_color(color));
 };
 
-void LcdDisplay::draw_line(Point start, Point end, Color color) const
+void LcdDisplay::draw_line(IntPoint start, IntPoint end, Color color) const
 {
         tft.drawLine(start.x, start.y, end.x, end.y, to_tft_color(color));
 }
 
-void LcdDisplay::draw_string(Point start, char *string_buffer,
+void LcdDisplay::draw_string(IntPoint start, char *string_buffer,
                              FontSize font_size, Color bg_color,
                              Color fg_color) const
 {
@@ -96,7 +96,7 @@ void LcdDisplay::draw_string(Point start, char *string_buffer,
         tft.print(string_buffer);
 };
 
-void LcdDisplay::clear_region(Point top_left, Point bottom_right,
+void LcdDisplay::clear_region(IntPoint top_left, IntPoint bottom_right,
                               Color clear_color) const
 
 {
