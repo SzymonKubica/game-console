@@ -131,7 +131,7 @@ UserAction Pong::app_loop(const Platform &p,
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
         Point v = {1.0, 1.0};
         Ball ball{Circle{pos, (double)radius}, v};
-        int time_delta = 10; // ms
+        int time_delta = 1000 / config.initial_speed ; // ms
 
         // Rendering lambdas to make the logic code more readable.
         auto erase_paddle = [&](Rectangle paddle) {
@@ -287,7 +287,7 @@ Configuration *assemble_pong_configuration(PersistentStorage *storage,
                                            PongConfiguration *initial_config)
 {
         auto *initial_speed = ConfigurationOption::of_integers(
-            "Speed", {3, 4, 5}, initial_config->initial_speed);
+            "Speed (px/s)", {100, 150, 200, 250}, initial_config->initial_speed);
 
         std::vector<ConfigurationOption *> options = {initial_speed};
 
