@@ -76,10 +76,9 @@ void draw_pong_canvas(const Platform &p,
 }
 
 struct Ball {
-        Point position;
+        Circle circle;
         Point velocity;
 };
-
 
 UserAction Pong::app_loop(const Platform &p,
                           const UserInterfaceCustomization &customization,
@@ -100,7 +99,7 @@ UserAction Pong::app_loop(const Platform &p,
         int radius = 3;
         // this padding is needed so that the ball doesn't clip the walls of
         // the game grid.
-        int padding = radius;
+        int padding = 0;
         Point top_left = {(double)gd->left_horizontal_margin + padding,
                           (double)gd->top_vertical_margin + padding};
         Point top_right =
@@ -115,8 +114,6 @@ UserAction Pong::app_loop(const Platform &p,
         LineSegment left_wall{top_left, bottom_left};
         LineSegment right_wall{top_right, bottom_right};
 
-        // define the paddle segment
-
         int paddle_len = gd->actual_height / 4;
         int paddle_w = 5;
         // some intense maths here to make the paddle centered.
@@ -126,31 +123,33 @@ UserAction Pong::app_loop(const Platform &p,
                                   paddle_len / 2.0};
         Point paddle_end = paddle_start + Point{0, (double)paddle_len};
 
-        LineSegment paddle{paddle_start, paddle_end};
-        // for collision we need a segment that lies on the actual boundary
-        // after the rectangle is drawn.
-        double surface_offset = (double)paddle_w + padding;
-        LineSegment paddle_surface{paddle_start + Point{surface_offset, 0},
-                               paddle_end + Point{surface_offset, 0}};
+        Rectangle paddle{paddle_start, (double)paddle_w, (double)paddle_len};
 
-        std::vector<LineSegment *> walls = {&paddle_surface, &top_wall,
-                                        &bottom_wall, &left_wall, &right_wall};
+        std::vector<LineSegment *> walls = {&top_wall, &bottom_wall, &left_wall,
+                                            &right_wall};
 
-        // we do some simulation here
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
         Point v = {1.0, 1.0};
-        Ball ball{pos, v};
+        Ball ball{Circle{pos, (double)radius}, v};
         int time_delta = 10; // ms
 
-        auto render_paddle = [&](LineSegment paddle) {
-                p.display->draw_rectangle(paddle.start.cast(), paddle_w,
+        // Rendering lambdas to make the logic code more readable.
+        auto erase_paddle = [&](Rectangle paddle) {
+                p.display->draw_rectangle(paddle.top_left.cast(), paddle_w,
+                                          paddle_len, Black, 1, false);
+        };
+        auto render_paddle = [&](Rectangle paddle) {
+                p.display->draw_rectangle(paddle.top_left.cast(), paddle_w,
                                           paddle_len,
                                           customization.accent_color, 1, false);
         };
-
-        auto erase_paddle = [&](LineSegment paddle) {
-                p.display->draw_rectangle(paddle.start.cast(), paddle_w,
-                                          paddle_len, Black, 1, false);
+        auto erase_ball = [&](Ball ball) {
+                p.display->draw_circle(ball.circle.center.cast(), radius, Black,
+                                       1, true);
+        };
+        auto render_ball = [&](Ball ball) {
+                p.display->draw_circle(ball.circle.center.cast(), radius, Red,
+                                       1, true);
         };
 
         render_paddle(paddle);
@@ -162,11 +161,27 @@ UserAction Pong::app_loop(const Platform &p,
         // 1pixel per tick
 
         bool game_over = false;
+        bool game_paused = false;
+        bool action_input_on_last_iteration = false;
         while (!game_over) {
                 auto maybe_action = poll_action_input(p.action_controllers);
                 if (maybe_action.has_value() &&
                     maybe_action.value() == BACK_ACTION) {
                         break;
+                }
+                if (maybe_action.has_value() &&
+                    maybe_action.value() == FORWARD_ACTION &&
+                    !action_input_on_last_iteration) {
+                        game_paused = !game_paused;
+                        action_input_on_last_iteration = true;
+                        p.time_provider->delay_ms(INPUT_POLLING_DELAY);
+                }
+
+                if (!maybe_action.has_value())
+                        action_input_on_last_iteration = false;
+                if (game_paused) {
+                        p.time_provider->delay_ms(INPUT_POLLING_DELAY);
+                        continue;
                 }
 
                 auto maybe_direction =
@@ -175,76 +190,54 @@ UserAction Pong::app_loop(const Platform &p,
                         auto dir = maybe_direction.value();
                         if (dir == Direction::UP || dir == Direction::DOWN) {
 
-                                Point offset;
-                                if (dir == Direction::UP) {
-                                        offset = {0, -2 * v.y};
-                                } else {
-                                        offset = {0, 2 * v.y};
-                                }
-
-                                bool out_of_bounds = false;
+                                int dir_sign = dir == Direction::UP ? -1 : 1;
+                                Point off = {0, dir_sign * 2 * v.y};
 
                                 // prevent paddle from going out of bounds.
-                                out_of_bounds |=
-                                    dir == Direction::UP &&
-                                    paddle.start.y - v.y <= top_wall.start.y;
-                                out_of_bounds |=
-                                    dir == Direction::DOWN &&
-                                    paddle.end.y + v.y >= bottom_wall.end.y;
+                                bool outside = false;
+                                double new_y;
+                                if (dir == Direction::UP) {
+                                        new_y = paddle.top_left.y + off.y;
+                                        outside = new_y <= top_wall.start.y;
+                                } else {
+                                        new_y = paddle.top_left.y + off.y +
+                                                paddle.height;
+                                        outside = new_y >= bottom_wall.end.y;
+                                }
 
-                                if (!out_of_bounds) {
+                                if (!outside) {
                                         erase_paddle(paddle);
-                                        paddle.start = paddle.start + offset;
-                                        paddle.end = paddle.end + offset;
-                                        // This is important it affects the
-                                        // actual segment used for colision
-                                        // detection against the paddle. Ideally
-                                        // this should be baked into the
-                                        // rectangle object representing the
-                                        // paddle so that we don't need to track
-                                        // this separately.
-                                        paddle_surface.start =
-                                            paddle_surface.start + offset;
-                                        paddle_surface.end =
-                                            paddle_surface.end + offset;
+                                        paddle.top_left = paddle.top_left + off;
                                         render_paddle(paddle);
                                 }
                         }
                 }
 
-                // erase the previous location
-                p.display->draw_circle(ball.position.cast(), radius, Black, 1,
-                                       true);
+                erase_ball(ball);
 
-                // take a step
-                ball.position = ball.position + ball.velocity;
+                ball.circle.center = ball.circle.center + ball.velocity;
 
+                // collision detection
                 for (const auto &seg : walls) {
-                        if (!seg->contains(ball.position))
+                        if (!collides(ball.circle, *seg))
                                 continue;
-                        if (seg == &left_wall) {
+                        if (seg == &left_wall)
                                 game_over = true;
-                        }
-
-                        // collision detected
-                        // roll back the previous step
-                        ball.position = ball.position - ball.velocity;
-
                         if (seg->is_horizontal())
                                 ball.velocity.y = -ball.velocity.y;
                         if (seg->is_vertical())
                                 ball.velocity.x = -ball.velocity.x;
                 }
+                if (collides(ball.circle, paddle))
+                        ball.velocity.x = -ball.velocity.x;
 
-                p.display->draw_circle(ball.position.cast(), radius, Red, 1,
-                                       true);
+                render_ball(ball);
 
                 if (!p.display->refresh())
                         return UserAction::CloseWindow;
                 p.time_provider->delay_ms(time_delta);
         }
 
-        wait_until_green_pressed(p);
         return UserAction::PlayAgain;
 }
 
