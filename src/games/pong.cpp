@@ -66,7 +66,7 @@ void draw_pong_canvas(const Platform &p,
         if (customization.show_help_text) {
                 std::map<Action, std::string> button_hints;
                 button_hints[BACK_ACTION] = "Quit";
-                button_hints[CONFIRM_ACTION] = "TODO";
+                button_hints[CONFIRM_ACTION] = "Continue";
                 button_hints[FORWARD_ACTION] = "Pause";
                 button_hints[HELP_ACTION] = "Help";
                 render_controls_explanations(*p.display,
@@ -150,7 +150,8 @@ UserAction Pong::app_loop(const Platform &p,
                                             &right_wall};
 
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
-        Point v = {1.0, 1.0};
+        double initial_velocity = 1.0;
+        Point v = {initial_velocity, initial_velocity};
         double friction = 0.25;
         Ball ball{Circle{pos, (double)radius}, v};
         int time_delta = 1000 / config.initial_speed; // ms
@@ -234,6 +235,17 @@ UserAction Pong::app_loop(const Platform &p,
                         paddle.velocity = {0, 0};
                 }
 
+                // Handle cpu paddle.
+                erase_paddle(cpu_paddle.body);
+                if (cpu_paddle.body.top_left.y > ball.circle.center.y) {
+                        cpu_paddle.body.top_left.y -= initial_velocity;
+                }
+                if (cpu_paddle.body.top_left.y + cpu_paddle.body.height <
+                    ball.circle.center.y) {
+                        cpu_paddle.body.top_left.y += initial_velocity;
+                }
+                render_paddle(cpu_paddle.body);
+
                 erase_ball(ball);
 
                 ball.circle.center = ball.circle.center + ball.velocity;
@@ -242,7 +254,7 @@ UserAction Pong::app_loop(const Platform &p,
                 for (const auto &seg : walls) {
                         if (!collides(ball.circle, *seg))
                                 continue;
-                        if (seg == &left_wall)
+                        if (seg == &left_wall || seg == &right_wall)
                                 game_over = true;
                         if (seg->is_horizontal())
                                 ball.velocity.y = -ball.velocity.y;
@@ -268,6 +280,7 @@ UserAction Pong::app_loop(const Platform &p,
                         return UserAction::CloseWindow;
                 p.time_provider->delay_ms(time_delta);
         }
+        wait_until_green_pressed(p);
 
         return UserAction::PlayAgain;
 }
