@@ -80,6 +80,12 @@ struct Ball {
         Point velocity;
 };
 
+struct Paddle {
+        Rectangle body;
+        Point velocity;
+        Point acceleration;
+};
+
 UserAction Pong::app_loop(const Platform &p,
                           const UserInterfaceCustomization &customization,
                           const PongConfiguration &config) const
@@ -99,7 +105,7 @@ UserAction Pong::app_loop(const Platform &p,
         int radius = 3;
         // this padding is needed so that the ball doesn't clip the walls of
         // the game grid.
-        int padding = 0;
+        int padding = 1;
         Point top_left = {(double)gd->left_horizontal_margin + padding,
                           (double)gd->top_vertical_margin + padding};
         Point top_right =
@@ -123,7 +129,11 @@ UserAction Pong::app_loop(const Platform &p,
                                   paddle_len / 2.0};
         Point paddle_end = paddle_start + Point{0, (double)paddle_len};
 
-        Rectangle paddle{paddle_start, (double)paddle_w, (double)paddle_len};
+        Paddle paddle{
+            .body = {paddle_start, (double)paddle_w, (double)paddle_len},
+            .velocity = {0, 0},
+            .acceleration = {0.1, 0.1},
+        };
 
         std::vector<LineSegment *> walls = {&top_wall, &bottom_wall, &left_wall,
                                             &right_wall};
@@ -131,7 +141,7 @@ UserAction Pong::app_loop(const Platform &p,
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
         Point v = {1.0, 1.0};
         Ball ball{Circle{pos, (double)radius}, v};
-        int time_delta = 1000 / config.initial_speed ; // ms
+        int time_delta = 1000 / config.initial_speed; // ms
 
         // Rendering lambdas to make the logic code more readable.
         auto erase_paddle = [&](Rectangle paddle) {
@@ -152,7 +162,7 @@ UserAction Pong::app_loop(const Platform &p,
                                        1, true);
         };
 
-        render_paddle(paddle);
+        render_paddle(paddle.body);
 
         // Note on increasing ball velocity: right now the collision detection
         // is crap if the ball moves too fast, there is a chance that it will
@@ -189,28 +199,32 @@ UserAction Pong::app_loop(const Platform &p,
                 if (maybe_direction.has_value()) {
                         auto dir = maybe_direction.value();
                         if (dir == Direction::UP || dir == Direction::DOWN) {
-
                                 int dir_sign = dir == Direction::UP ? -1 : 1;
-                                Point off = {0, dir_sign * 2 * v.y};
+                                paddle.velocity.y +=
+                                    dir_sign * paddle.acceleration.y;
+                                Point off = {0, paddle.velocity.y};
 
                                 // prevent paddle from going out of bounds.
                                 bool outside = false;
-                                double new_y;
-                                if (dir == Direction::UP) {
-                                        new_y = paddle.top_left.y + off.y;
-                                        outside = new_y <= top_wall.start.y;
-                                } else {
-                                        new_y = paddle.top_left.y + off.y +
-                                                paddle.height;
-                                        outside = new_y >= bottom_wall.end.y;
-                                }
+                                double new_top, new_bottom;
+                                new_top = paddle.body.top_left.y + off.y;
+                                outside |= new_top <= top_wall.start.y;
+                                new_bottom = paddle.body.top_left.y + off.y +
+                                             paddle.body.height;
+                                outside |= new_bottom >= bottom_wall.end.y;
 
                                 if (!outside) {
-                                        erase_paddle(paddle);
-                                        paddle.top_left = paddle.top_left + off;
-                                        render_paddle(paddle);
+                                        erase_paddle(paddle.body);
+                                        paddle.body.top_left =
+                                            paddle.body.top_left + off;
+                                        render_paddle(paddle.body);
+                                } else {
+                                        paddle.velocity.y = 0;
                                 }
                         }
+                } else {
+                        // For now we do no deceleration.
+                        paddle.velocity = {0, 0};
                 }
 
                 erase_ball(ball);
@@ -228,7 +242,7 @@ UserAction Pong::app_loop(const Platform &p,
                         if (seg->is_vertical())
                                 ball.velocity.x = -ball.velocity.x;
                 }
-                if (collides(ball.circle, paddle))
+                if (collides(ball.circle, paddle.body))
                         ball.velocity.x = -ball.velocity.x;
 
                 render_ball(ball);
@@ -287,7 +301,8 @@ Configuration *assemble_pong_configuration(PersistentStorage *storage,
                                            PongConfiguration *initial_config)
 {
         auto *initial_speed = ConfigurationOption::of_integers(
-            "Speed (px/s)", {100, 150, 200, 250}, initial_config->initial_speed);
+            "Speed (px/s)", {100, 150, 200, 250},
+            initial_config->initial_speed);
 
         std::vector<ConfigurationOption *> options = {initial_speed};
 
