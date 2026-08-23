@@ -140,6 +140,7 @@ UserAction Pong::app_loop(const Platform &p,
 
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
         Point v = {1.0, 1.0};
+        double friction_coefficient = 0.5;
         Ball ball{Circle{pos, (double)radius}, v};
         int time_delta = 1000 / config.initial_speed; // ms
 
@@ -242,8 +243,17 @@ UserAction Pong::app_loop(const Platform &p,
                         if (seg->is_vertical())
                                 ball.velocity.x = -ball.velocity.x;
                 }
-                if (collides(ball.circle, paddle.body))
+                if (collides(ball.circle, paddle.body)) {
                         ball.velocity.x = -ball.velocity.x;
+                        // the velocity of the paddle is partially tranferred to
+                        // the vertical velocity of the ball.
+                        double relative_y_velocity =
+                            ball.velocity.y - paddle.velocity.y;
+                        double post_collision_relative_y_velocity =
+                            relative_y_velocity * (1 - friction_coefficient);
+                        ball.velocity.y = paddle.velocity.y +
+                                          post_collision_relative_y_velocity;
+                }
 
                 render_ball(ball);
 
