@@ -135,12 +135,23 @@ UserAction Pong::app_loop(const Platform &p,
             .acceleration = {0.1, 0.1},
         };
 
+        Point cpu_paddle_offset{(double)gd->actual_width -
+                                    2 * ((double)paddle_w + padding) - paddle_w,
+                                0};
+
+        Paddle cpu_paddle{
+            .body = {paddle_start + cpu_paddle_offset, (double)paddle_w,
+                     (double)paddle_len},
+            .velocity = {0, 0},
+            .acceleration = {0.1, 0.1},
+        };
+
         std::vector<LineSegment *> walls = {&top_wall, &bottom_wall, &left_wall,
                                             &right_wall};
 
         Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
         Point v = {1.0, 1.0};
-        double friction_coefficient = 0.5;
+        double friction = 0.25;
         Ball ball{Circle{pos, (double)radius}, v};
         int time_delta = 1000 / config.initial_speed; // ms
 
@@ -164,12 +175,7 @@ UserAction Pong::app_loop(const Platform &p,
         };
 
         render_paddle(paddle.body);
-
-        // Note on increasing ball velocity: right now the collision detection
-        // is crap if the ball moves too fast, there is a chance that it will
-        // never hit the seg.contains() check. We need some continuous collision
-        // detection mechanism to allow for increasing the game speed beyond
-        // 1pixel per tick
+        render_paddle(cpu_paddle.body);
 
         bool game_over = false;
         bool game_paused = false;
@@ -246,13 +252,14 @@ UserAction Pong::app_loop(const Platform &p,
                 if (collides(ball.circle, paddle.body)) {
                         ball.velocity.x = -ball.velocity.x;
                         // the velocity of the paddle is partially tranferred to
-                        // the vertical velocity of the ball.
-                        double relative_y_velocity =
-                            ball.velocity.y - paddle.velocity.y;
-                        double post_collision_relative_y_velocity =
-                            relative_y_velocity * (1 - friction_coefficient);
-                        ball.velocity.y = paddle.velocity.y +
-                                          post_collision_relative_y_velocity;
+                        // the vertical velocity of the ball. This is controlled
+                        // by the friction coefficient.
+                        ball.velocity.y += paddle.velocity.y * friction;
+                }
+
+                if (collides(ball.circle, cpu_paddle.body)) {
+                        ball.velocity.x = -ball.velocity.x;
+                        ball.velocity.y += cpu_paddle.velocity.y * friction;
                 }
 
                 render_ball(ball);
