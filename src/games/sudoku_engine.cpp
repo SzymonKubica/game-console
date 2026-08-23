@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "sudoku_engine.hpp"
 #include "../common/logging.hpp"
-#include "../common/point.hpp"
+#include "../common/geometry.hpp"
 
 #define TAG "sudoku_engine"
 

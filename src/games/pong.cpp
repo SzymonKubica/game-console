@@ -80,32 +80,6 @@ struct Ball {
         Point velocity;
 };
 
-struct Segment {
-        Point start;
-        Point end;
-
-        bool contains(const Point &p) const
-        {
-                // for now we assume segments are either only horizontal or
-                // vertical.
-                double eps = 0.01;
-                bool on_the_line, within_bounds;
-                if (is_horizontal()) {
-                        on_the_line =
-                            start.y - eps < p.y && p.y < start.y + eps;
-                        within_bounds = start.x <= p.x && p.x <= end.x;
-                } else {
-                        on_the_line =
-                            start.x - eps < p.x && p.x < start.x + eps;
-                        within_bounds = start.y <= p.y && p.y <= end.y;
-                }
-                return on_the_line && within_bounds;
-        }
-
-        bool is_horizontal() const { return start.y == end.y; }
-
-        bool is_vertical() const { return start.x == end.x; }
-};
 
 UserAction Pong::app_loop(const Platform &p,
                           const UserInterfaceCustomization &customization,
@@ -136,10 +110,10 @@ UserAction Pong::app_loop(const Platform &p,
         Point bottom_right =
             top_right + Point{0, (double)gd->actual_height - 2 * padding};
 
-        Segment top_wall{top_left, top_right};
-        Segment bottom_wall{bottom_left, bottom_right};
-        Segment left_wall{top_left, bottom_left};
-        Segment right_wall{top_right, bottom_right};
+        LineSegment top_wall{top_left, top_right};
+        LineSegment bottom_wall{bottom_left, bottom_right};
+        LineSegment left_wall{top_left, bottom_left};
+        LineSegment right_wall{top_right, bottom_right};
 
         // define the paddle segment
 
@@ -152,14 +126,14 @@ UserAction Pong::app_loop(const Platform &p,
                                   paddle_len / 2.0};
         Point paddle_end = paddle_start + Point{0, (double)paddle_len};
 
-        Segment paddle{paddle_start, paddle_end};
+        LineSegment paddle{paddle_start, paddle_end};
         // for collision we need a segment that lies on the actual boundary
         // after the rectangle is drawn.
         double surface_offset = (double)paddle_w + padding;
-        Segment paddle_surface{paddle_start + Point{surface_offset, 0},
+        LineSegment paddle_surface{paddle_start + Point{surface_offset, 0},
                                paddle_end + Point{surface_offset, 0}};
 
-        std::vector<Segment *> walls = {&paddle_surface, &top_wall,
+        std::vector<LineSegment *> walls = {&paddle_surface, &top_wall,
                                         &bottom_wall, &left_wall, &right_wall};
 
         // we do some simulation here
@@ -168,13 +142,13 @@ UserAction Pong::app_loop(const Platform &p,
         Ball ball{pos, v};
         int time_delta = 10; // ms
 
-        auto render_paddle = [&](Segment paddle) {
+        auto render_paddle = [&](LineSegment paddle) {
                 p.display->draw_rectangle(paddle.start.cast(), paddle_w,
                                           paddle_len,
                                           customization.accent_color, 1, false);
         };
 
-        auto erase_paddle = [&](Segment paddle) {
+        auto erase_paddle = [&](LineSegment paddle) {
                 p.display->draw_rectangle(paddle.start.cast(), paddle_w,
                                           paddle_len, Black, 1, false);
         };

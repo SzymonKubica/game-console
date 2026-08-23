@@ -1,4 +1,4 @@
-#include "../common/point.hpp"
+#include "../common/geometry.hpp"
 #include "../common/user_interface_customization.hpp"
 #include "../common/grid.hpp"
 #include "../common/color.hpp"

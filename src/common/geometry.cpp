@@ -1,10 +1,16 @@
-#include "point.hpp"
+#include "geometry.hpp"
 #include "stdlib.h"
 #include "../platform/interface/input.hpp"
 
 #include "maths_utils.hpp"
+#include <cmath>
 #include <optional>
 
+/* === IntPoint Implementations === */
+
+/**
+ * Component-wise add two IntPoints together and returns the result.
+ */
 IntPoint operator+(IntPoint first, IntPoint second)
 {
         return {first.x + second.x, first.y + second.y};
@@ -206,6 +212,8 @@ bool is_adjacent(const IntPoint &p1, const IntPoint &p2)
         return (abs(p1.x - p2.x) <= 1 && abs(p1.y - p2.y) <= 1);
 }
 
+/* === Point Implementations === */
+
 /**
  * Scalar product
  */
@@ -224,4 +232,113 @@ Point operator+(const Point &p1, const Point &p2)
 Point operator-(const Point &p1, const Point &p2)
 {
         return {p1.x - p2.x, p1.y - p2.y};
+}
+
+double distance(const Point &p1, const Point &p2)
+{
+        double dx = p1.x - p2.x;
+        double dy = p1.y - p2.y;
+        return sqrt(dx * dx + dy * dy);
+}
+
+/* === LineSegment Implementations === */
+
+/**
+ * Checks if a point lies on the line segment. For now we assume segments are
+ * either horizontal or vertical.
+ */
+bool LineSegment::contains(const Point &p) const
+{
+        // for now we assume segments are either only horizontal or
+        // vertical.
+        double eps = 0.01;
+        bool on_the_line, within_bounds;
+        if (is_horizontal()) {
+                on_the_line = start.y - eps < p.y && p.y < start.y + eps;
+                within_bounds = start.x <= p.x && p.x <= end.x;
+        } else {
+                on_the_line = start.x - eps < p.x && p.x < start.x + eps;
+                within_bounds = start.y <= p.y && p.y <= end.y;
+        }
+        return on_the_line && within_bounds;
+}
+
+bool LineSegment::is_horizontal() const { return start.y == end.y; }
+
+bool LineSegment::is_vertical() const { return start.x == end.x; }
+
+/* === Rectangle Implementations === */
+
+bool Rectangle::contains(const Point &p) const
+{
+        return (top_left.x <= p.x && p.x <= top_left.x + width) &&
+               (top_left.y <= p.y && p.y <= top_left.y + height);
+}
+
+/**
+ * Returns the four edges starting from the top left corner and going
+ * clockwise.
+ */
+std::vector<LineSegment> Rectangle::get_edges() const
+{
+
+        Point width_vector = {width, 0};
+        Point height_vector = {0, height};
+        Point top_right = top_left + width_vector;
+        Point bottom_left = top_left + height_vector;
+        Point bottom_right = top_right + height_vector;
+
+        return {
+            {top_left, top_right},
+            {top_right, bottom_right},
+            {bottom_right, bottom_left},
+            {bottom_left, top_left},
+        };
+}
+
+/* === Circle Implementations === */
+
+bool Circle::contains(const Point &p) const
+{
+        return distance(center, p) <= radius;
+}
+
+/* === Interaction Implementations === */
+
+bool collides(const Circle &c, const LineSegment &l)
+{
+        // Check if either endpoint of the line segment is inside the circle
+        if (c.contains(l.start) || c.contains(l.end)) {
+                return true;
+        }
+
+        // Calculate the projection of the circle's center onto the line segment
+        Point line_vec = l.end - l.start;
+        Point center_vec = c.center - l.start;
+
+        // projection scaling factor t is the dot product of center_vec and
+        // line_vec divided by the dot product of line_vec with itself
+        double t = (center_vec * line_vec) / (line_vec * line_vec);
+
+        // Clamp t to the range [0, 1] to stay within the segment
+        t = std::max(0.0, std::min(1.0, t));
+
+        // Apply the scaling to find the actual projection.
+        Point closest_point = l.start + line_vec * t;
+
+        // Check if this closest point is within the circle
+        return c.contains(closest_point);
+}
+
+bool collides(const Circle &c, const Rectangle &rect)
+{
+        if (rect.contains(c.center))
+                return true;
+
+        for (const auto &edge : rect.get_edges()) {
+                if (collides(c, edge))
+                        return true;
+        }
+
+        return false;
 }

@@ -14,7 +14,7 @@
 #include "configuration.hpp"
 #include "constants.hpp"
 #include "font_size.hpp"
-#include "point.hpp"
+#include "geometry.hpp"
 
 #define GRID_BG_COLOR White
 #define TAG "user_interface"

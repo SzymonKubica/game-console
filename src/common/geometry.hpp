@@ -52,18 +52,50 @@ struct Point {
         double x;
         double y;
 
-  /**
-   * Scalar product
-   */
-  Point operator*(double scalar);
-  /**
-   * Dot product
-   */
-  double operator*(Point other);
+        /**
+         * Scalar product
+         */
+        Point operator*(double scalar);
+        /**
+         * Dot product
+         */
+        double operator*(Point other);
 
-  IntPoint cast();
+        IntPoint cast();
 };
+
+double distance(const Point &p1, const Point &p2);
 
 Point operator+(const Point &p1, const Point &p2);
 Point operator-(const Point &p1, const Point &p2);
 
+struct LineSegment {
+        Point start;
+        Point end;
+
+        Point get_normal() const;
+        bool contains(const Point &p) const;
+        bool is_horizontal() const;
+        bool is_vertical() const;
+};
+
+struct Rectangle {
+        Point top_left;
+        double width;
+        double height;
+        bool contains(const Point &p) const;
+        /**
+         * Returns the four edges starting from the top left corner and going
+         * clockwise.
+         */
+        std::vector<LineSegment> get_edges() const;
+};
+
+struct Circle {
+        Point center;
+        double radius;
+        bool contains(const Point &p) const;
+};
+
+bool collides(const Circle &c, const LineSegment &l);
+bool collides(const Circle &c, const Rectangle &l);

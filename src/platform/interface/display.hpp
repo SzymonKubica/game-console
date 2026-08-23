@@ -1,5 +1,5 @@
 #pragma once
-#include "../../common/point.hpp"
+#include "../../common/geometry.hpp"
 #include "../../common/font_size.hpp"
 #include "../../common/color.hpp"
 #include <cstdint>
