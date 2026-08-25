@@ -106,6 +106,8 @@ UserAction Pong::app_loop(const Platform &p,
         // this padding is needed so that the ball doesn't clip the walls of
         // the game grid.
         int padding = 1;
+        int game_area_width = gd->actual_width - 2 * padding;
+        int game_area_height = gd->actual_height - 2 * padding;
         Point top_left = {(double)gd->left_horizontal_margin + padding,
                           (double)gd->top_vertical_margin + padding};
         Point top_right =
@@ -178,6 +180,11 @@ UserAction Pong::app_loop(const Platform &p,
         render_paddle(paddle.body);
         render_paddle(cpu_paddle.body);
 
+        int expected_impact_y =
+            (int)ball.circle.center.y +
+            ((int)(ball.velocity.y * (game_area_width / ball.velocity.x))) %
+                game_area_height;
+
         bool game_over = false;
         bool game_paused = false;
         bool action_input_on_last_iteration = false;
@@ -237,11 +244,11 @@ UserAction Pong::app_loop(const Platform &p,
 
                 // Handle cpu paddle.
                 erase_paddle(cpu_paddle.body);
-                if (cpu_paddle.body.top_left.y > ball.circle.center.y) {
+                if (cpu_paddle.body.top_left.y > expected_impact_y) {
                         cpu_paddle.body.top_left.y -= initial_velocity;
                 }
                 if (cpu_paddle.body.top_left.y + cpu_paddle.body.height <
-                    ball.circle.center.y) {
+                    expected_impact_y) {
                         cpu_paddle.body.top_left.y += initial_velocity;
                 }
                 render_paddle(cpu_paddle.body);
@@ -267,6 +274,12 @@ UserAction Pong::app_loop(const Platform &p,
                         // the vertical velocity of the ball. This is controlled
                         // by the friction coefficient.
                         ball.velocity.y += paddle.velocity.y * friction;
+                        // we calculate the expected ball location here for the
+                        // cpu paddle.
+                        int expected_impact_y =
+                            ball.circle.center.y + ((int)(ball.velocity.y *
+                                   (game_area_width / ball.velocity.x))) %
+                            game_area_height;
                 }
 
                 if (collides(ball.circle, cpu_paddle.body)) {
