@@ -6,6 +6,7 @@
 #include "pong.hpp"
 
 #include "../common/logging.hpp"
+#include "../common/maths_utils.hpp"
 #include "../common/constants.hpp"
 #include "../common/grid.hpp"
 #include "../platform/interface/display.hpp"
@@ -85,6 +86,44 @@ struct Paddle {
         Point velocity;
         Point acceleration;
 };
+
+int calculate_impact_position(double ball_center_y, Point ball_velocity,
+                              int paddle_displacement, Point top_left,
+                              Point border_dimensions)
+{
+
+        auto [vx, vy] = ball_velocity;
+        double travel_time = paddle_displacement / vx;
+        double total_y_travel = travel_time * vy;
+
+        // figure out if we need to do mod
+        double final_y_with_no_border = ball_center_y + total_y_travel;
+        double y_lo_bound = top_left.y;
+        double y_up_bound = top_left.y + border_dimensions.y;
+        if (y_lo_bound <= final_y_with_no_border &&
+            final_y_with_no_border <= y_up_bound) {
+                return final_y_with_no_border;
+        }
+
+        double towards_wall;
+        if (vy > 0) {
+                towards_wall = top_left.y + border_dimensions.y - ball_center_y;
+        } else {
+                towards_wall = ball_center_y - top_left.y;
+        }
+
+        total_y_travel -= towards_wall;
+        // now we cancel out all complete bounces
+        int bounces = total_y_travel / border_dimensions.y;
+        int remaining = (int)total_y_travel % (int)border_dimensions.y;
+
+  if (vy > 0 && bounces % 2 == 0) {
+    return top_left.y + remaining;
+  }
+
+        // TODO: implement more robust wall bounding handling here
+        return mathematical_modulo(final_y_with_no_border, border_dimensions.y);
+}
 
 UserAction Pong::app_loop(const Platform &p,
                           const UserInterfaceCustomization &customization,
@@ -180,10 +219,13 @@ UserAction Pong::app_loop(const Platform &p,
         render_paddle(paddle.body);
         render_paddle(cpu_paddle.body);
 
-        int expected_impact_y =
-            (int)ball.circle.center.y +
-            ((int)(ball.velocity.y * (game_area_width / ball.velocity.x))) %
-                game_area_height;
+        Point game_area_dimensions = {(double)game_area_width,
+                                      (double)game_area_height};
+        int distance_between_paddles =
+            game_area_width - 2 * (paddle_w + padding);
+        int expected_impact_y = calculate_impact_position(
+            ball.circle.center.y, ball.velocity, distance_between_paddles,
+            top_left, game_area_dimensions);
 
         bool game_over = false;
         bool game_paused = false;
@@ -208,6 +250,7 @@ UserAction Pong::app_loop(const Platform &p,
                         p.time_provider->delay_ms(INPUT_POLLING_DELAY);
                         continue;
                 }
+                LOG_DEBUG(TAG, "Expected impact y=%d", expected_impact_y);
 
                 auto maybe_direction =
                     poll_directional_input(p.directional_controllers);
@@ -244,10 +287,11 @@ UserAction Pong::app_loop(const Platform &p,
 
                 // Handle cpu paddle.
                 erase_paddle(cpu_paddle.body);
-                if (cpu_paddle.body.top_left.y > expected_impact_y) {
+                if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 >
+                    expected_impact_y) {
                         cpu_paddle.body.top_left.y -= initial_velocity;
                 }
-                if (cpu_paddle.body.top_left.y + cpu_paddle.body.height <
+                if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 <
                     expected_impact_y) {
                         cpu_paddle.body.top_left.y += initial_velocity;
                 }
@@ -274,12 +318,10 @@ UserAction Pong::app_loop(const Platform &p,
                         // the vertical velocity of the ball. This is controlled
                         // by the friction coefficient.
                         ball.velocity.y += paddle.velocity.y * friction;
-                        // we calculate the expected ball location here for the
-                        // cpu paddle.
-                        int expected_impact_y =
-                            ball.circle.center.y + ((int)(ball.velocity.y *
-                                   (game_area_width / ball.velocity.x))) %
-                            game_area_height;
+                        expected_impact_y = calculate_impact_position(
+                            ball.circle.center.y, ball.velocity,
+                            distance_between_paddles, top_left,
+                            game_area_dimensions);
                 }
 
                 if (collides(ball.circle, cpu_paddle.body)) {
