@@ -94,7 +94,7 @@ int calculate_impact_position(double ball_center_y, Point ball_velocity,
 
         auto [vx, vy] = ball_velocity;
         double travel_time = paddle_displacement / vx;
-        double total_y_travel = travel_time * vy;
+        double total_y_travel = abs(travel_time * vy);
 
         // figure out if we need to do mod
         double final_y_with_no_border = ball_center_y + total_y_travel;
@@ -112,17 +112,32 @@ int calculate_impact_position(double ball_center_y, Point ball_velocity,
                 towards_wall = ball_center_y - top_left.y;
         }
 
+        LOG_DEBUG(TAG, "Ball center y %f", ball_center_y);
+        LOG_DEBUG(TAG, "Total y travel before the wall %f", total_y_travel);
         total_y_travel -= towards_wall;
         // now we cancel out all complete bounces
-        int bounces = total_y_travel / border_dimensions.y;
+        int bounces = 1 + total_y_travel / border_dimensions.y;
         int remaining = (int)total_y_travel % (int)border_dimensions.y;
 
-  if (vy > 0 && bounces % 2 == 0) {
-    return top_left.y + remaining;
-  }
-
-        // TODO: implement more robust wall bounding handling here
-        return mathematical_modulo(final_y_with_no_border, border_dimensions.y);
+        LOG_DEBUG(TAG, "Total y travel after hitting the wall %f",
+                  total_y_travel);
+        LOG_DEBUG(TAG, "Total y space %f", border_dimensions.y);
+        LOG_DEBUG(TAG, "Total y travel after bouncing %d", remaining);
+        LOG_DEBUG(TAG, "Expecting %d bounces", bounces);
+        LOG_DEBUG(TAG, "Ball travelling %s ", vy > 0 ? "downwards" : "upwards");
+        if (vy > 0) {
+                if (bounces % 2 == 0) {
+                        return top_left.y + remaining;
+                } else {
+                        return top_left.y + border_dimensions.y - remaining;
+                }
+        } else {
+                if (bounces % 2 == 0) {
+                        return top_left.y + border_dimensions.y - remaining;
+                } else {
+                        return top_left.y + remaining;
+                }
+        }
 }
 
 UserAction Pong::app_loop(const Platform &p,
@@ -190,7 +205,7 @@ UserAction Pong::app_loop(const Platform &p,
         std::vector<LineSegment *> walls = {&top_wall, &bottom_wall, &left_wall,
                                             &right_wall};
 
-        Point pos = {gd->actual_width / 2.0, gd->actual_height / 2.0};
+        Point pos = {paddle_end.x + 10, gd->actual_height / 2.0};
         double initial_velocity = 1.0;
         Point v = {initial_velocity, initial_velocity};
         double friction = 0.25;
@@ -250,7 +265,6 @@ UserAction Pong::app_loop(const Platform &p,
                         p.time_provider->delay_ms(INPUT_POLLING_DELAY);
                         continue;
                 }
-                LOG_DEBUG(TAG, "Expected impact y=%d", expected_impact_y);
 
                 auto maybe_direction =
                     poll_directional_input(p.directional_controllers);
@@ -289,11 +303,30 @@ UserAction Pong::app_loop(const Platform &p,
                 erase_paddle(cpu_paddle.body);
                 if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 >
                     expected_impact_y) {
-                        cpu_paddle.body.top_left.y -= initial_velocity;
+                        bool outside = false;
+                        double new_top, new_bottom;
+                        // TODO: clean up the paddle out of bounds logic.
+                        new_top = cpu_paddle.body.top_left.y - initial_velocity;
+                        outside |= new_top <= top_wall.start.y;
+                        new_bottom = paddle.body.top_left.y - initial_velocity +
+                                     paddle.body.height;
+                        outside |= new_bottom >= bottom_wall.end.y;
+                        if (!outside) {
+                                cpu_paddle.body.top_left.y -= initial_velocity;
+                        }
                 }
                 if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 <
                     expected_impact_y) {
-                        cpu_paddle.body.top_left.y += initial_velocity;
+                        bool outside = false;
+                        double new_top, new_bottom;
+                        new_top = cpu_paddle.body.top_left.y + initial_velocity;
+                        outside |= new_top <= top_wall.start.y;
+                        new_bottom = paddle.body.top_left.y + initial_velocity +
+                                     paddle.body.height;
+                        outside |= new_bottom >= bottom_wall.end.y;
+                        if (!outside) {
+                                cpu_paddle.body.top_left.y += initial_velocity;
+                        }
                 }
                 render_paddle(cpu_paddle.body);
 
