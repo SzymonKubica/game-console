@@ -36,6 +36,9 @@ todo. They usually start with a 'theme' headline to give the overall idea.
 
 - [ ] (uno-q / raspberry pi) ensure emulator compiles & runs on commodity hardware (e.g. uno q / raspberry pi)
 
+- [ ] clean up / separate the geometry utils header so that changes there don't
+      cause a cascading recompilcation of e.g. display headers (as those depends on the
+      basic points from the geometry library).
 
 - [ ] ensure weather app compatibility on V1
 
