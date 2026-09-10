@@ -296,6 +296,11 @@ std::vector<LineSegment> Rectangle::get_edges() const
         };
 }
 
+LineSegment Rectangle::get_top_edge() const { return get_edges()[0]; }
+LineSegment Rectangle::get_bottom_edge() const { return get_edges()[2]; }
+LineSegment Rectangle::get_left_edge() const { return get_edges()[3]; }
+LineSegment Rectangle::get_right_edge() const { return get_edges()[1]; }
+
 /* === Circle Implementations === */
 
 bool Circle::contains(const Point &p) const

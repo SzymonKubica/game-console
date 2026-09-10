@@ -89,6 +89,10 @@ struct Rectangle {
          * clockwise.
          */
         std::vector<LineSegment> get_edges() const;
+        LineSegment get_top_edge() const;
+        LineSegment get_bottom_edge() const;
+        LineSegment get_left_edge() const;
+        LineSegment get_right_edge() const;
 };
 
 struct Circle {

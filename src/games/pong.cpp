@@ -346,15 +346,25 @@ UserAction Pong::app_loop(const Platform &p,
                                 ball.velocity.x = -ball.velocity.x;
                 }
                 if (collides(ball.circle, paddle.body)) {
-                        ball.velocity.x = -ball.velocity.x;
-                        // the velocity of the paddle is partially tranferred to
-                        // the vertical velocity of the ball. This is controlled
-                        // by the friction coefficient.
-                        ball.velocity.y += paddle.velocity.y * friction;
-                        expected_impact_y = calculate_impact_position(
-                            ball.circle.center.y, ball.velocity,
-                            distance_between_paddles, top_left,
-                            game_area_dimensions);
+                        if (collides(ball.circle, paddle.body.get_top_edge()) ||
+                            collides(ball.circle,
+                                     paddle.body.get_bottom_edge())) {
+                                // This prevents the ball from clipping into the
+                                // paddle when it hits the top or bottom edge of
+                                // the paddle.
+                                ball.velocity.y = -ball.velocity.y;
+                        } else {
+                                ball.velocity.x = -ball.velocity.x;
+                                // the velocity of the paddle is partially
+                                // tranferred to the vertical velocity of the
+                                // ball. This is controlled by the friction
+                                // coefficient.
+                                ball.velocity.y += paddle.velocity.y * friction;
+                                expected_impact_y = calculate_impact_position(
+                                    ball.circle.center.y, ball.velocity,
+                                    distance_between_paddles, top_left,
+                                    game_area_dimensions);
+                        }
                 }
 
                 if (collides(ball.circle, cpu_paddle.body)) {
