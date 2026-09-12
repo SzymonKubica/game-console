@@ -793,9 +793,9 @@ void draw_game_cell(const Display &display,
                     const IntPoint &grid_position, Color color)
 {
         IntPoint actual_position = {.x = dimensions.left_horizontal_margin +
-                                      grid_position.x * GAME_CELL_WIDTH,
-                                 .y = dimensions.top_vertical_margin +
-                                      grid_position.y * GAME_CELL_WIDTH};
+                                         grid_position.x * GAME_CELL_WIDTH,
+                                    .y = dimensions.top_vertical_margin +
+                                         grid_position.y * GAME_CELL_WIDTH};
 
         display.draw_rectangle(actual_position, GAME_CELL_WIDTH,
                                GAME_CELL_WIDTH, color, 1, true);

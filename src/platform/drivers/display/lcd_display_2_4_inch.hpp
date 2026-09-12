@@ -58,8 +58,8 @@ class LcdDisplay : public Display, public TftCompatibleDisplay
          * Draws a rounded rectangle with specified color. This is useful for
          * drawing nicely-looking game menu items.
          */
-        virtual void draw_rounded_rectangle(IntPoint start, int width, int height,
-                                            int radius,
+        virtual void draw_rounded_rectangle(IntPoint start, int width,
+                                            int height, int radius,
                                             Color color) const override;
         /**
          * Draws a line from a start point to the end point with specified

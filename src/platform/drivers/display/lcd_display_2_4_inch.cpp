@@ -59,8 +59,9 @@ void LcdDisplay::draw_circle(IntPoint center, int radius, Color color,
  * might need to update the display interface to also not expose that (TFT_eSPI
  * is the current go-to display).
  */
-void LcdDisplay::draw_rectangle(IntPoint start, int width, int height, Color color,
-                                int border_width, bool filled) const
+void LcdDisplay::draw_rectangle(IntPoint start, int width, int height,
+                                Color color, int border_width,
+                                bool filled) const
 {
 
         if (filled) {

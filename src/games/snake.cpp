@@ -474,12 +474,12 @@ void SnakeGame::render_thumbnail(
                                   *gd.get(), snake);
         };
 
-        auto render_connection = [platform, &gd, customization](IntPoint first,
-                                                                IntPoint second) {
-                render_segment_connection(*platform.display,
-                                          customization.accent_color, *gd.get(),
-                                          first, second);
-        };
+        auto render_connection =
+            [platform, &gd, customization](IntPoint first, IntPoint second) {
+                    render_segment_connection(*platform.display,
+                                              customization.accent_color,
+                                              *gd.get(), first, second);
+            };
 
         int rows = gd->rows;
         int cols = gd->cols;

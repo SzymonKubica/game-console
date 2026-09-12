@@ -42,6 +42,10 @@ todo. They usually start with a 'theme' headline to give the overall idea.
 
 - [ ] ensure weather app compatibility on V1
 
+- [ ] add a 'sokoban-like' game
+  - [ ] randomly generated boxes and slots
+  - [ ] 3 characters: warrior, thief, wizard
+
 - [ ] add pong with proper 'physics' (i.e. rotation and friction)
   - [x] initial plumbing to get the game entrypoint available
   - [x] add 'AI' opponent that 'predicts' ball location on impact (but has a fixed probability of getting it wrong)
@@ -52,7 +56,9 @@ todo. They usually start with a 'theme' headline to give the overall idea.
 
 - [ ] add floating-point joystick controller (so that we can control velocity / acceleration vectors)
 
-- [] redesign the process of adding a new game as it is a huge pain now (takes about 20 mins and a lot of places need to be updated)
+- [ ] redesign the process of adding a new game as it is a huge pain now (takes about 20 mins and a lot of places need to be updated)
+  - [ ] apply proper design patterns to the game executor class hierarchy
+  - [ ] remove game enum? (crazy idea)
 
 
 # In Progress

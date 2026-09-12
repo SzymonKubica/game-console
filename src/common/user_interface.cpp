@@ -146,7 +146,7 @@ void render_config_bar_centered(const Display &display, int y_start,
         int h_padding = fw / 2;
         int v_padding = fh / 2;
         IntPoint bar_start = {.x = left_margin - h_padding,
-                           .y = y_start - v_padding};
+                              .y = y_start - v_padding};
 
         int bar_width = text_len * fw + 2 * h_padding;
         // The value cell is the small rounded rect inside of the config bar
@@ -316,7 +316,7 @@ void render_text_bar_centered(const Display &display, int y_start,
         int h_padding = fw / 2;
         int v_padding = fh / 2;
         IntPoint bar_start = {.x = left_margin - h_padding,
-                           .y = y_start - v_padding};
+                              .y = y_start - v_padding};
 
         int bar_width = text_len * fw + 2 * h_padding;
 
@@ -340,7 +340,7 @@ void render_text_bar_centered(const Display &display, int y_start,
                         // display always clears the background of the text.
                         display.clear_region(bar_start + IntPoint{-3 * fw, 0},
                                              IntPoint{bar_start.x + bar_width,
-                                                   bar_start.y + fh * 2} +
+                                                      bar_start.y + fh * 2} +
                                                  IntPoint{3 * fw, 0},
                                              Black);
                         // The only other option supported right now is the
@@ -379,11 +379,13 @@ void render_circle_selector(const Display &display, bool already_rendered,
         }
         if (!already_rendered || prev_pos_idx != curr_pos_idx) {
                 // First clear the old circle
-                IntPoint clear_pos = {.x = x_axis, .y = y_positions[prev_pos_idx]};
+                IntPoint clear_pos = {.x = x_axis,
+                                      .y = y_positions[prev_pos_idx]};
                 display.draw_circle(clear_pos, radius, bg_color, 0, true);
 
                 // Draw the new circle
-                IntPoint new_pos = {.x = x_axis, .y = y_positions[curr_pos_idx]};
+                IntPoint new_pos = {.x = x_axis,
+                                    .y = y_positions[curr_pos_idx]};
                 display.draw_circle(new_pos, radius, circle_color, 0, true);
         }
 }
@@ -1058,7 +1060,8 @@ void render_wrapped_help_text(const Platform &p,
                 for (const auto &d : displacements) {
                         Color color = d == IntPoint{0, 1} ? White : Gray;
                         p.display->draw_circle(
-                            IntPoint{center.x - circle_text_gap_width, center.y} +
+                            IntPoint{center.x - circle_text_gap_width,
+                                     center.y} +
                                 (d * 2 * circle_radius),
                             circle_radius, color, 0, true);
                 }
@@ -1087,9 +1090,10 @@ void draw_cube_perspective(const Display &display, IntPoint position, int size,
          */
         int displacement = size - 1;
         IntPoint front_top_left_vertex = {position.x, position.y};
-        IntPoint front_top_right_vertex = {position.x + displacement, position.y};
+        IntPoint front_top_right_vertex = {position.x + displacement,
+                                           position.y};
         IntPoint front_bottom_right_vertex = {position.x + displacement,
-                                           position.y + displacement};
+                                              position.y + displacement};
         auto front_vertices = {front_top_left_vertex, front_top_right_vertex,
                                front_bottom_right_vertex};
 
@@ -1098,7 +1102,7 @@ void draw_cube_perspective(const Display &display, IntPoint position, int size,
 
         auto translate_to_back = [&perspective_offset](IntPoint vertex) {
                 return IntPoint{vertex.x + perspective_offset,
-                             vertex.y - perspective_offset};
+                                vertex.y - perspective_offset};
         };
 
         for (IntPoint vertex : front_vertices) {
@@ -1106,8 +1110,10 @@ void draw_cube_perspective(const Display &display, IntPoint position, int size,
         }
 
         // Draw the two visible back edges
-        IntPoint back_top_left_vertex = translate_to_back(front_top_left_vertex);
-        IntPoint back_top_right_vertex = translate_to_back(front_top_right_vertex);
+        IntPoint back_top_left_vertex =
+            translate_to_back(front_top_left_vertex);
+        IntPoint back_top_right_vertex =
+            translate_to_back(front_top_right_vertex);
         IntPoint back_bottom_right_vertex =
             translate_to_back(front_bottom_right_vertex);
 
@@ -1130,9 +1136,10 @@ void draw_mu_letter(const Display &display, IntPoint position, int size,
 
         // First we draw the 'leg' which is the vertical long part of
         // the μ letter
-        IntPoint letter_leg_start = {position.x + h_margin, position.y + v_margin};
+        IntPoint letter_leg_start = {position.x + h_margin,
+                                     position.y + v_margin};
         IntPoint letter_leg_end = {letter_leg_start.x,
-                                letter_leg_start.y + height};
+                                   letter_leg_start.y + height};
 
         display.draw_line(letter_leg_start, letter_leg_end, color);
 
@@ -1141,9 +1148,9 @@ void draw_mu_letter(const Display &display, IntPoint position, int size,
         // height of the 'back leg'. Hence we go for 5/12.
         int letter_front_height = (height * 5) / 12;
         IntPoint letter_front_start = {position.x + h_margin + width,
-                                    position.y + v_margin};
-        IntPoint letter_front_end = {letter_front_start.x,
-                                  letter_front_start.y + letter_front_height};
+                                       position.y + v_margin};
+        IntPoint letter_front_end = {
+            letter_front_start.x, letter_front_start.y + letter_front_height};
 
         display.draw_line(letter_front_start, letter_front_end, color);
 
@@ -1174,7 +1181,8 @@ void render_input_prompt(const Platform &p, int display_width,
         auto [fw, fh] = p.display->get_font_configuration().font_dimensions;
         int prompt_text_centering_margin =
             (display_width - strlen(input_prompt) * fw) / 2;
-        IntPoint prompt_text_start = {.x = prompt_text_centering_margin, .y = fw};
+        IntPoint prompt_text_start = {.x = prompt_text_centering_margin,
+                                      .y = fw};
         p.display->draw_string(prompt_text_start, (char *)input_prompt,
                                FontSize::Size16, Black, White);
 }
@@ -1249,7 +1257,7 @@ collect_string_input(const Platform &p,
         std::vector<int> left_indent_map = {0, 1, 2, 3};
 
         IntPoint input_text_start = {.x = left_horizontal_margin,
-                                  .y = top_vertical_margin};
+                                     .y = top_vertical_margin};
         IntPoint input_text_start_second_line = {
             .x = left_horizontal_margin, .y = top_vertical_margin + fh + 4};
 
@@ -1288,7 +1296,7 @@ collect_string_input(const Platform &p,
                     // we mutiply the index by two here to spread out
                     // the keyboard characters a bit.
                     IntPoint start = {.x = (left_indent + 2 * x) * fw,
-                                   .y = keyboard_start_y + y * fh};
+                                      .y = keyboard_start_y + y * fh};
                     char buffer[2];
                     buffer[0] = row[x];
                     buffer[1] = '\0';
@@ -1305,10 +1313,11 @@ collect_string_input(const Platform &p,
                             // Main underline
                             display->draw_line(space_start, space_end, color);
                             // Small vertical lines to indicate the space symbol
+                            display->draw_line(space_start,
+                                               space_start + IntPoint{0, -5},
+                                               color);
                             display->draw_line(
-                                space_start, space_start + IntPoint{0, -5}, color);
-                            display->draw_line(space_end,
-                                               space_end + IntPoint{0, -5}, color);
+                                space_end, space_end + IntPoint{0, -5}, color);
                     }
             };
 
@@ -1534,7 +1543,7 @@ collect_number_input(const Platform &p,
             std::vector<int>(base_char_map.size(), centering_margin);
 
         IntPoint input_text_start = {.x = left_horizontal_margin,
-                                  .y = top_vertical_margin};
+                                     .y = top_vertical_margin};
         IntPoint input_text_start_second_line = {
             .x = left_horizontal_margin, .y = top_vertical_margin + fh + 4};
 
@@ -1573,7 +1582,7 @@ collect_number_input(const Platform &p,
                     // we mutiply the index by two here to spread out
                     // the keyboard characters a bit.
                     IntPoint start = {.x = (left_indent + 2 * x) * fw,
-                                   .y = keyboard_start_y + 2 * y * fh};
+                                      .y = keyboard_start_y + 2 * y * fh};
                     char buffer[2];
                     buffer[0] = row[x];
                     buffer[1] = '\0';

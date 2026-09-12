@@ -932,8 +932,9 @@ void SnakeDuel::render_thumbnail(
                 render_snake_head(*platform.display, color, *gd.get(), snake);
         };
 
-        auto render_connection = [platform, &gd, customization](
-                                     IntPoint first, IntPoint second, Color color) {
+        auto render_connection = [platform, &gd, customization](IntPoint first,
+                                                                IntPoint second,
+                                                                Color color) {
                 render_segment_connection(*platform.display, color, *gd.get(),
                                           first, second);
         };
@@ -978,7 +979,8 @@ void SnakeDuel::render_thumbnail(
         translate(apple, Direction::UP);
         render_cell(apple, Cell::Apple, primary);
 
-        Snake second_snake{IntPoint{.x = cols / 2, .y = rows / 2} + IntPoint{2, 1},
+        Snake second_snake{IntPoint{.x = cols / 2, .y = rows / 2} +
+                               IntPoint{2, 1},
                            Direction::UP};
         render_head(second_snake, Red);
         render_cell(second_snake.get_neck(), Cell::Snake, Red);

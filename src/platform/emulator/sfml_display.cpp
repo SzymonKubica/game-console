@@ -39,9 +39,9 @@ void SfmlDisplay::draw_rounded_border(Color color) const
         int width = get_width();
         int height = get_height();
         IntPoint top_left_corner = {.x = rounding_radius + margin,
-                                 .y = rounding_radius + margin};
+                                    .y = rounding_radius + margin};
         IntPoint bottom_right_corner = {.x = width - rounding_radius - margin,
-                                     .y = height - rounding_radius - margin};
+                                        .y = height - rounding_radius - margin};
 
         int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
         int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};
@@ -196,10 +196,11 @@ void SfmlDisplay::draw_rectangle(IntPoint start, int width, int height,
 void SfmlDisplay::draw_rounded_rectangle(IntPoint start, int width, int height,
                                          int radius, Color color) const
 {
-        IntPoint top_left_corner = {.x = start.x + radius, .y = start.y + radius};
+        IntPoint top_left_corner = {.x = start.x + radius,
+                                    .y = start.y + radius};
 
         IntPoint bottom_right_corner = {.x = start.x + width - radius,
-                                     .y = start.y + height - radius};
+                                        .y = start.y + height - radius};
 
         int x_positions[2] = {top_left_corner.x, bottom_right_corner.x};
         int y_positions[2] = {top_left_corner.y, bottom_right_corner.y};

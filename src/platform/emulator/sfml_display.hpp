@@ -66,13 +66,15 @@ class SfmlDisplay : public Display, public TftCompatibleDisplay
          * Draws a line from a start point to the end point with specified
          * color. Note that fill and thickness are not controllable yet.
          */
-        void draw_line(IntPoint start, IntPoint end, Color color) const override;
+        void draw_line(IntPoint start, IntPoint end,
+                       Color color) const override;
         /**
          * Prints a string on the display, allows for specifying the font size,
          * color and background color.
          */
-        void draw_string(IntPoint start, char *string_buffer, FontSize font_size,
-                         Color bg_color, Color fg_color) const override;
+        void draw_string(IntPoint start, char *string_buffer,
+                         FontSize font_size, Color bg_color,
+                         Color fg_color) const override;
         /**
          * Clears a rectangular region of the display. This is done by redrawing
          * the rectangle using the specified color. Note that on the physical

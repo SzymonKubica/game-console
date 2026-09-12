@@ -148,8 +148,8 @@ void process_all_cells(
  * exact start location where the text inside of the cell should be rendered.
  */
 IntPoint calculate_cell_text_start(const FontDimensions &font_dimensions,
-                                const SquareCellGridDimensions &dimensions,
-                                const IntPoint &location)
+                                   const SquareCellGridDimensions &dimensions,
+                                   const IntPoint &location)
 {
         int x_margin = dimensions.left_horizontal_margin;
         int y_margin = dimensions.top_vertical_margin;

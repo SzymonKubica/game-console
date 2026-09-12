@@ -80,6 +80,8 @@ std::optional<UserAction> select_app_and_run(const Platform &p)
          * use a switch to get an instance of ApplicationExecutor<T> as this T
          * would be different in each branch and so we then cannot pass that
          * through a single call to `execute_app`.
+         *
+         * TODO: is there a better way of doing this?
          */
         LOG_INFO(TAG, "User selected game: %s.", GameStr::to_cstr(config.game));
         switch (config.game) {

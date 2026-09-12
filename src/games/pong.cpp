@@ -140,6 +140,16 @@ int calculate_impact_position(double ball_center_y, Point ball_velocity,
         }
 }
 
+/**
+ * When managing position of the player / CPU paddles, we need to ensure that
+ * they don't go out of bounds of the game area. To test for this, we try to
+ * move the paddle by the displacement and check if it went outside. If it did,
+ * the caller code is responsible for preventing the paddle from making this
+ * move.
+ */
+bool about_to_go_outside(const Paddle &paddle, double displacement,
+                         const LineSegment &top_wall,
+                         const LineSegment &bottom_wall);
 UserAction Pong::app_loop(const Platform &p,
                           const UserInterfaceCustomization &customization,
                           const PongConfiguration &config) const
@@ -276,16 +286,8 @@ UserAction Pong::app_loop(const Platform &p,
                                     dir_sign * paddle.acceleration.y;
                                 Point off = {0, paddle.velocity.y};
 
-                                // prevent paddle from going out of bounds.
-                                bool outside = false;
-                                double new_top, new_bottom;
-                                new_top = paddle.body.top_left.y + off.y;
-                                outside |= new_top <= top_wall.start.y;
-                                new_bottom = paddle.body.top_left.y + off.y +
-                                             paddle.body.height;
-                                outside |= new_bottom >= bottom_wall.end.y;
-
-                                if (!outside) {
+                                if (!about_to_go_outside(
+                                        paddle, off.y, top_wall, bottom_wall)) {
                                         erase_paddle(paddle.body);
                                         paddle.body.top_left =
                                             paddle.body.top_left + off;
@@ -303,28 +305,15 @@ UserAction Pong::app_loop(const Platform &p,
                 erase_paddle(cpu_paddle.body);
                 if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 >
                     expected_impact_y) {
-                        bool outside = false;
-                        double new_top, new_bottom;
-                        // TODO: clean up the paddle out of bounds logic.
-                        new_top = cpu_paddle.body.top_left.y - initial_velocity;
-                        outside |= new_top <= top_wall.start.y;
-                        new_bottom = paddle.body.top_left.y - initial_velocity +
-                                     paddle.body.height;
-                        outside |= new_bottom >= bottom_wall.end.y;
-                        if (!outside) {
+                        if (!about_to_go_outside(cpu_paddle, -initial_velocity,
+                                                 top_wall, bottom_wall)) {
                                 cpu_paddle.body.top_left.y -= initial_velocity;
                         }
                 }
                 if (cpu_paddle.body.top_left.y + (double)paddle_len / 2 <
                     expected_impact_y) {
-                        bool outside = false;
-                        double new_top, new_bottom;
-                        new_top = cpu_paddle.body.top_left.y + initial_velocity;
-                        outside |= new_top <= top_wall.start.y;
-                        new_bottom = paddle.body.top_left.y + initial_velocity +
-                                     paddle.body.height;
-                        outside |= new_bottom >= bottom_wall.end.y;
-                        if (!outside) {
+                        if (!about_to_go_outside(cpu_paddle, initial_velocity,
+                                                 top_wall, bottom_wall)) {
                                 cpu_paddle.body.top_left.y += initial_velocity;
                         }
                 }
@@ -381,6 +370,19 @@ UserAction Pong::app_loop(const Platform &p,
         wait_until_green_pressed(p);
 
         return UserAction::PlayAgain;
+}
+
+bool about_to_go_outside(const Paddle &paddle, double displacement,
+                         const LineSegment &top_wall,
+                         const LineSegment &bottom_wall)
+{
+        bool outside = false;
+        double new_top, new_bottom;
+        new_top = paddle.body.top_left.y + displacement;
+        new_bottom = paddle.body.top_left.y + paddle.body.height + displacement;
+        outside |= new_top <= top_wall.start.y;
+        outside |= new_bottom >= bottom_wall.end.y;
+        return outside;
 }
 
 PongConfiguration *load_initial_pong_config(const PersistentStorage &storage)

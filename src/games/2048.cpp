@@ -700,7 +700,7 @@ GridDimensions *calculate_grid_dimensions(const Display &display, int grid_size)
             SCREEN_BORDER_WIDTH;
 
         IntPoint score_start = {.x = SCREEN_BORDER_WIDTH + corner_radius,
-                             .y = score_start_y};
+                                .y = score_start_y};
 
         int score_title_x = score_start.x + cell_x_spacing;
 
@@ -825,10 +825,10 @@ void render_cell_value(const Platform &p, GridDimensions *gd, IntPoint start,
         // actual number. So if the number is composed of two digits, we
         // clear a region that spans two digits.
         IntPoint clear_start = {.x = start.x + x_margin + max_cell_text_width -
-                                  old_digit_text_width,
-                             .y = start.y + y_margin};
+                                     old_digit_text_width,
+                                .y = start.y + y_margin};
         IntPoint clear_end = {.x = start.x + x_margin + max_cell_text_width,
-                           .y = start.y + y_margin + fh};
+                              .y = start.y + y_margin + fh};
         p.display->clear_region(clear_start, clear_end, GRID_BG_COLOR);
 
         // We only use nice color rendering on platforms
@@ -837,7 +837,7 @@ void render_cell_value(const Platform &p, GridDimensions *gd, IntPoint start,
                           ? get_number_color_coding(cell_value)
                           : Black;
         IntPoint start_with_margin = {.x = start.x + x_margin,
-                                   .y = start.y + y_margin};
+                                      .y = start.y + y_margin};
         p.display->draw_string(start_with_margin, buffer, Size16, GRID_BG_COLOR,
                                color);
 }
@@ -863,16 +863,18 @@ void update_game_grid(const Platform &p, GameState &gs,
 
         int score_rounding_radius = gd->score_cell_height / 2;
 
-        IntPoint clear_start = {.x = gd->score_title_x + score_title_length + fw,
-                             .y = gd->score_title_y};
+        IntPoint clear_start = {.x =
+                                    gd->score_title_x + score_title_length + fw,
+                                .y = gd->score_title_y};
         IntPoint clear_end = {.x = gd->score_start_x + gd->score_cell_width -
-                                score_rounding_radius,
-                           .y = gd->score_title_y + fh};
+                                   score_rounding_radius,
+                              .y = gd->score_title_y + fh};
 
         p.display->clear_region(clear_start, clear_end, GRID_BG_COLOR);
 
-        IntPoint score_start = {.x = gd->score_title_x + score_title_length + fw,
-                             .y = gd->score_title_y};
+        IntPoint score_start = {.x =
+                                    gd->score_title_x + score_title_length + fw,
+                                .y = gd->score_title_y};
 
         p.display->draw_string(score_start, score_buffer, Size16, GRID_BG_COLOR,
                                TEXT_COLOR);
@@ -970,7 +972,7 @@ void Clean2048::render_thumbnail(
                 int y_margin = (height - fh) / 2;
 
                 IntPoint start_with_margin = {.x = position.x + x_margin,
-                                           .y = position.y + y_margin};
+                                              .y = position.y + y_margin};
                 platform.display->draw_string(start_with_margin, (char *)value,
                                               Size16, GRID_BG_COLOR, Black);
         };

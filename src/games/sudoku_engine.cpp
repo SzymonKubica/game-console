@@ -54,7 +54,8 @@ int size(const ValidNumberSetMask &mask)
 
 /* Forward-declarations of the utility functions used by the Sudoku solver */
 std::optional<IntPoint> find_empty_cell(const SudokuGrid &grid);
-ValidNumberSetMask find_valid_numbers(const SudokuGrid &grid, IntPoint location);
+ValidNumberSetMask find_valid_numbers(const SudokuGrid &grid,
+                                      IntPoint location);
 
 /**
  * Recursive algorithm that solves the supplied Sudoku grid by modifying it in

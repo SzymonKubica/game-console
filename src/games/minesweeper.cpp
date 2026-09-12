@@ -73,7 +73,8 @@ uncover_grid_cell(const Display &display, const IntPoint &grid_position,
                   const MinesweeperGridDimensions &dimensions,
                   std::vector<std::vector<MinesweeperGridCell>> &grid,
                   int &total_uncovered);
-static void flag_grid_cell(const Display &display, const IntPoint &grid_position,
+static void flag_grid_cell(const Display &display,
+                           const IntPoint &grid_position,
                            const MinesweeperGridDimensions &dimensions,
                            std::vector<std::vector<MinesweeperGridCell>> &grid,
                            const UserInterfaceCustomization &customization);
@@ -361,9 +362,9 @@ void erase_caret(const Display &display, const IntPoint &grid_position,
         // border get clipped.
         int border_offset = 1;
         IntPoint actual_position = {.x = dimensions.left_horizontal_margin +
-                                      grid_position.x * fw + border_offset,
-                                 .y = dimensions.top_vertical_margin +
-                                      grid_position.y * fh + border_offset};
+                                         grid_position.x * fw + border_offset,
+                                    .y = dimensions.top_vertical_margin +
+                                         grid_position.y * fh + border_offset};
 
         display.draw_rectangle(actual_position, fw - 2 * border_offset,
                                fh - 2 * border_offset, grid_background_color, 1,
@@ -380,9 +381,9 @@ void draw_caret(const Display &display, const IntPoint &grid_position,
         // Otherwise, we'll get weird rendering artifacts.
         int border_offset = 1;
         IntPoint actual_position = {.x = dimensions.left_horizontal_margin +
-                                      grid_position.x * fw + border_offset,
-                                 .y = dimensions.top_vertical_margin +
-                                      grid_position.y * fh + border_offset};
+                                         grid_position.x * fw + border_offset,
+                                    .y = dimensions.top_vertical_margin +
+                                         grid_position.y * fh + border_offset};
 
         display.draw_rectangle(actual_position, fw - 2 * border_offset,
                                fh - 2 * border_offset, White, 1, false);

@@ -9,7 +9,8 @@
 
 namespace SnakeDefinitions
 {
-Snake::Snake(IntPoint head, Direction direction) : head(head), direction(direction)
+Snake::Snake(IntPoint head, Direction direction)
+    : head(head), direction(direction)
 {
         IntPoint tail = head;
         translate(tail, get_opposite(direction));
@@ -53,7 +54,7 @@ void render_snake_head(const Display &display, Color snake_color,
         // that we need to start drawing from the padded vertical start
         // hence we add the padding in the y coordinate
         IntPoint start = {.x = left_margin + snake.head.x * width,
-                       .y = top_margin + snake.head.y * height};
+                          .y = top_margin + snake.head.y * height};
 
         // We draw a 'half-cell' to connect snake head to the neck.
         int snake_w = width - 2 * snake_padding;
@@ -94,9 +95,10 @@ void render_snake_head(const Display &display, Color snake_color,
 
         IntPoint padded_start = start + IntPoint{snake_padding, snake_padding};
         IntPoint neck = padded_start + IntPoint{offset.x, offset.y};
-        IntPoint forehead_center = padded_start + IntPoint{snake_w / 2, snake_h / 2};
+        IntPoint forehead_center =
+            padded_start + IntPoint{snake_w / 2, snake_h / 2};
         IntPoint eye_center = neck + IntPoint{rectangle_w / 2 + eye_offset.x,
-                                        rectangle_h / 2 + eye_offset.y};
+                                              rectangle_h / 2 + eye_offset.y};
         display.draw_rectangle(neck, rectangle_w, rectangle_h, snake_color,
                                border_width, true);
         display.draw_circle(forehead_center, snake_w / 2 - 1, snake_color,
@@ -114,7 +116,8 @@ void render_snake_head(const Display &display, Color snake_color,
  */
 void render_segment_connection(const Display &display, Color snake_color,
                                const SquareCellGridDimensions &dimensions,
-                               IntPoint &first_location, IntPoint &second_location)
+                               IntPoint &first_location,
+                               IntPoint &second_location)
 {
 
         // Calculation logic to map from logical cells to the actual pixel
@@ -144,8 +147,8 @@ void render_segment_connection(const Display &display, Color snake_color,
         int segment_height;
         if (adjacent_horizontally) {
                 IntPoint &left_point = first_location.x < second_location.x
-                                        ? first_location
-                                        : second_location;
+                                           ? first_location
+                                           : second_location;
 
                 // We start drawing from the end of the padded square, hence we
                 // add `width - padding below to get to that point` also note
@@ -159,8 +162,8 @@ void render_segment_connection(const Display &display, Color snake_color,
 
         } else {
                 IntPoint top_point = first_location.y < second_location.y
-                                      ? first_location
-                                      : second_location;
+                                         ? first_location
+                                         : second_location;
                 // We start drawing from the end of the padded square (bottom
                 // left corner), hence we add `height - padding below to get to
                 // that point`
@@ -187,7 +190,7 @@ void render_grid_cell(const Display &display, Color snake_color,
         int top_margin = dimensions.top_vertical_margin;
 
         IntPoint start = {.x = left_margin + location.x * width,
-                       .y = top_margin + location.y * height};
+                          .y = top_margin + location.y * height};
 
         // When rendering on the actual lcd display the circle comes out a bit
         // larger because of pixel inaccuracies and internal of that lcd display
@@ -196,12 +199,12 @@ void render_grid_cell(const Display &display, Color snake_color,
 
         // Represents the top left corner of the snake segment
         IntPoint padded_start = {.x = start.x + snake_padding,
-                              .y = start.y + snake_padding};
+                                 .y = start.y + snake_padding};
         // We render a large snake segment when the apple is inside of it.
         IntPoint large_segment_start = {.x = start.x + padding,
-                                     .y = start.y + padding};
+                                        .y = start.y + padding};
         IntPoint apple_center = {.x = start.x + width / 2,
-                              .y = start.y + width / 2};
+                                 .y = start.y + width / 2};
 
         switch (cell_type) {
         case Cell::Apple: {

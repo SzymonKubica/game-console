@@ -198,11 +198,13 @@ std::vector<int> get_settings_storage_offsets()
         };
 
         std::vector<Game> games = {
-            Game::MainMenu,   Game::Clean2048,        Game::Minesweeper,
-            Game::GameOfLife, Game::RandomSeedPicker, Game::Snake,
-            Game::SnakeDuel,  Game::WifiApp,          Game::Sudoku,
-            Game::Brightness, Game::Settings,         Game::DisplaySizeSetting,
-            Game::WeatherApp, Game::Pong};
+            Game::MainMenu,         Game::Clean2048,
+            Game::Minesweeper,      Game::GameOfLife,
+            Game::RandomSeedPicker, Game::Snake,
+            Game::SnakeDuel,        Game::WifiApp,
+            Game::Sudoku,           Game::Brightness,
+            Game::Settings,         Game::DisplaySizeSetting,
+            Game::WeatherApp,       Game::Pong};
 
         // We make the offsets size a two element bigger as the game enum starts
         // at 1 and we skip number 5 as that is the 'Settings' app itself. We

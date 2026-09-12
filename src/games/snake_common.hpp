@@ -63,7 +63,8 @@ void render_grid_cell(const Display &display, Color snake_color,
  */
 void render_segment_connection(const Display &display, Color snake_color,
                                const SquareCellGridDimensions &dimensions,
-                               IntPoint &first_location, IntPoint &second_location);
+                               IntPoint &first_location,
+                               IntPoint &second_location);
 /**
  * Renders a segment that connects two adjacent snake segments on the grid.
  */

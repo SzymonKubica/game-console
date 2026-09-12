@@ -127,13 +127,15 @@ class Display
          * Draws a rounded rectangle with specified color. This is useful for
          * drawing nicely-looking game menu items.
          */
-        virtual void draw_rounded_rectangle(IntPoint start, int width, int height,
-                                            int radius, Color color) const = 0;
+        virtual void draw_rounded_rectangle(IntPoint start, int width,
+                                            int height, int radius,
+                                            Color color) const = 0;
         /**
          * Draws a line from a start point to the end point with specified
          * color. Note that fill and thickness are not controllable yet.
          */
-        virtual void draw_line(IntPoint start, IntPoint end, Color color) const = 0;
+        virtual void draw_line(IntPoint start, IntPoint end,
+                               Color color) const = 0;
         /**
          * Prints a string on the display, allows for specifying the font size,
          * color and background color.

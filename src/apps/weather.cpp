@@ -297,7 +297,8 @@ void render_weather_data(const Platform &p, const WeatherDatapoint &datapoint,
         IntPoint start = first_line_start;
 
         for (auto [heading, value] : headings_and_values) {
-                auto value_start = start + IntPoint{(int)strlen(heading) * fw, 0};
+                auto value_start =
+                    start + IntPoint{(int)strlen(heading) * fw, 0};
 
                 if (refresh_values_only) {
                         // We need to erase a bit further in case a numerical
